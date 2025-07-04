@@ -4,10 +4,12 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace Melody.API.Migrations
 {
     /// <inheritdoc />
-    public partial class melody : Migration
+    public partial class v01 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -46,6 +48,7 @@ namespace Melody.API.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     FotoPerfil = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
+                    FechaRegistro = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     UserName = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     NormalizedUserName = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
@@ -101,7 +104,8 @@ namespace Melody.API.Migrations
                     Descripcion = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Precio = table.Column<double>(type: "double", nullable: false),
-                    DuracionDias = table.Column<int>(type: "int", nullable: false)
+                    DuracionDias = table.Column<int>(type: "int", nullable: false),
+                    NumeroUsuarios = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -128,6 +132,32 @@ namespace Melody.API.Migrations
                         name: "FK_AspNetRoleClaims_AspNetRoles_RoleId",
                         column: x => x.RoleId,
                         principalTable: "AspNetRoles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "Artistas",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    NombreArtista = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Biografia = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ImagenPerfil = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    UsuarioId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Artistas", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Artistas_AspNetUsers_UsuarioId",
+                        column: x => x.UsuarioId,
+                        principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
@@ -238,7 +268,7 @@ namespace Melody.API.Migrations
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     Nombre = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Imagen = table.Column<string>(type: "longtext", nullable: false)
+                    Imagen = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     EsPublica = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     UsuarioId = table.Column<string>(type: "longtext", nullable: false)
@@ -257,69 +287,6 @@ namespace Melody.API.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Seguimientos",
-                columns: table => new
-                {
-                    UsuarioId = table.Column<string>(type: "varchar(255)", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    ArtistaId = table.Column<string>(type: "varchar(255)", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Id = table.Column<int>(type: "int", nullable: false),
-                    UsuarioId1 = table.Column<int>(type: "int", nullable: true),
-                    ArtistaId1 = table.Column<int>(type: "int", nullable: true),
-                    FechaSeguimiento = table.Column<DateTime>(type: "datetime(6)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Seguimientos", x => new { x.UsuarioId, x.ArtistaId });
-                    table.ForeignKey(
-                        name: "FK_Seguimientos_AspNetUsers_ArtistaId1",
-                        column: x => x.ArtistaId1,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Seguimientos_AspNetUsers_UsuarioId1",
-                        column: x => x.UsuarioId1,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id");
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.CreateTable(
-                name: "Albums",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Titulo = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    FechaLanzamiento = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    PortadaUrl = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    GeneroId = table.Column<int>(type: "int", nullable: false),
-                    ArtistaId = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    ArtistaId1 = table.Column<int>(type: "int", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Albums", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Albums_AspNetUsers_ArtistaId1",
-                        column: x => x.ArtistaId1,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Albums_Generos_GeneroId",
-                        column: x => x.GeneroId,
-                        principalTable: "Generos",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.CreateTable(
                 name: "Suscripciones",
                 columns: table => new
                 {
@@ -327,6 +294,7 @@ namespace Melody.API.Migrations
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     FechaInicio = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     FechaFin = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    EsActiva = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     UsuarioId = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     PlanId = table.Column<int>(type: "int", nullable: false),
@@ -350,7 +318,7 @@ namespace Melody.API.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Canciones",
+                name: "Albums",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -358,33 +326,59 @@ namespace Melody.API.Migrations
                     Titulo = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     FechaLanzamiento = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    ArchivoAudio = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
                     PortadaUrl = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    AlbumId = table.Column<int>(type: "int", nullable: true),
                     GeneroId = table.Column<int>(type: "int", nullable: false),
                     ArtistaId = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
+                    ArtistaId2 = table.Column<int>(type: "int", nullable: true),
                     ArtistaId1 = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Canciones", x => x.Id);
+                    table.PrimaryKey("PK_Albums", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Canciones_Albums_AlbumId",
-                        column: x => x.AlbumId,
-                        principalTable: "Albums",
+                        name: "FK_Albums_Artistas_ArtistaId1",
+                        column: x => x.ArtistaId1,
+                        principalTable: "Artistas",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_Canciones_AspNetUsers_ArtistaId1",
-                        column: x => x.ArtistaId1,
+                        name: "FK_Albums_AspNetUsers_ArtistaId2",
+                        column: x => x.ArtistaId2,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_Canciones_Generos_GeneroId",
+                        name: "FK_Albums_Generos_GeneroId",
                         column: x => x.GeneroId,
                         principalTable: "Generos",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "Seguimientos",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    FechaSeguimiento = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    UsuarioId = table.Column<int>(type: "int", nullable: false),
+                    ArtistaId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Seguimientos", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Seguimientos_Artistas_ArtistaId",
+                        column: x => x.ArtistaId,
+                        principalTable: "Artistas",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Seguimientos_AspNetUsers_UsuarioId",
+                        column: x => x.UsuarioId,
+                        principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
@@ -400,17 +394,11 @@ namespace Melody.API.Migrations
                     FechaPago = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     MetodoPago = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    SuscripcionId = table.Column<int>(type: "int", nullable: false),
-                    UsuarioId = table.Column<int>(type: "int", nullable: true)
+                    SuscripcionId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Pagos", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Pagos_AspNetUsers_UsuarioId",
-                        column: x => x.UsuarioId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Pagos_Suscripciones_SuscripcionId",
                         column: x => x.SuscripcionId,
@@ -421,16 +409,65 @@ namespace Melody.API.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "PlaylistsCanciones",
+                name: "Canciones",
                 columns: table => new
                 {
-                    PlaylistId = table.Column<int>(type: "int", nullable: false),
-                    CancionId = table.Column<int>(type: "int", nullable: false),
                     Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Titulo = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    FechaLanzamiento = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    ArchivoAudio = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    PortadaUrl = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Duracion = table.Column<TimeSpan>(type: "time(6)", nullable: true),
+                    AlbumId = table.Column<int>(type: "int", nullable: true),
+                    GeneroId = table.Column<int>(type: "int", nullable: false),
+                    ArtistaId = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ArtistaId2 = table.Column<int>(type: "int", nullable: true),
+                    ArtistaId1 = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PlaylistsCanciones", x => new { x.PlaylistId, x.CancionId });
+                    table.PrimaryKey("PK_Canciones", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Canciones_Albums_AlbumId",
+                        column: x => x.AlbumId,
+                        principalTable: "Albums",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Canciones_Artistas_ArtistaId1",
+                        column: x => x.ArtistaId1,
+                        principalTable: "Artistas",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Canciones_AspNetUsers_ArtistaId2",
+                        column: x => x.ArtistaId2,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Canciones_Generos_GeneroId",
+                        column: x => x.GeneroId,
+                        principalTable: "Generos",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "PlaylistsCanciones",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    PlaylistId = table.Column<int>(type: "int", nullable: false),
+                    CancionId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PlaylistsCanciones", x => x.Id);
                     table.ForeignKey(
                         name: "FK_PlaylistsCanciones_Canciones_CancionId",
                         column: x => x.CancionId,
@@ -446,15 +483,37 @@ namespace Melody.API.Migrations
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
+            migrationBuilder.InsertData(
+                table: "AspNetRoles",
+                columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
+                values: new object[,]
+                {
+                    { 1, null, "admin", "ADMIN" },
+                    { 2, null, "artista", "ARTISTA" },
+                    { 3, null, "userfree", "USERFREE" },
+                    { 4, null, "userpremium", "USERPREMIUM" }
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_Albums_ArtistaId1",
                 table: "Albums",
                 column: "ArtistaId1");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Albums_ArtistaId2",
+                table: "Albums",
+                column: "ArtistaId2");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Albums_GeneroId",
                 table: "Albums",
                 column: "GeneroId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Artistas_UsuarioId",
+                table: "Artistas",
+                column: "UsuarioId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -504,6 +563,11 @@ namespace Melody.API.Migrations
                 column: "ArtistaId1");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Canciones_ArtistaId2",
+                table: "Canciones",
+                column: "ArtistaId2");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Canciones_GeneroId",
                 table: "Canciones",
                 column: "GeneroId");
@@ -512,11 +576,6 @@ namespace Melody.API.Migrations
                 name: "IX_Pagos_SuscripcionId",
                 table: "Pagos",
                 column: "SuscripcionId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Pagos_UsuarioId",
-                table: "Pagos",
-                column: "UsuarioId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Playlists_UsuarioId1",
@@ -529,14 +588,19 @@ namespace Melody.API.Migrations
                 column: "CancionId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Seguimientos_ArtistaId1",
-                table: "Seguimientos",
-                column: "ArtistaId1");
+                name: "IX_PlaylistsCanciones_PlaylistId",
+                table: "PlaylistsCanciones",
+                column: "PlaylistId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Seguimientos_UsuarioId1",
+                name: "IX_Seguimientos_ArtistaId",
                 table: "Seguimientos",
-                column: "UsuarioId1");
+                column: "ArtistaId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Seguimientos_UsuarioId",
+                table: "Seguimientos",
+                column: "UsuarioId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Suscripciones_PlanId",
@@ -595,10 +659,13 @@ namespace Melody.API.Migrations
                 name: "Albums");
 
             migrationBuilder.DropTable(
-                name: "AspNetUsers");
+                name: "Artistas");
 
             migrationBuilder.DropTable(
                 name: "Generos");
+
+            migrationBuilder.DropTable(
+                name: "AspNetUsers");
         }
     }
 }

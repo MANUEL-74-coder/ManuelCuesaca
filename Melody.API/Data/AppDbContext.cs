@@ -4,17 +4,19 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Melody.Modelos;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
-public class AppDbContext : IdentityDbContext<Usuario,IdentityRole<int>,int>
-{
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
-    public AppDbContext (DbContextOptions<AppDbContext> options)
+public class AppDbContext : IdentityDbContext<Usuario, IdentityRole<int>, int>
+{
+        public AppDbContext (DbContextOptions<AppDbContext> options)
             : base(options)
         {
         }
 
-public DbSet<Melody.Modelos.Album> Albums { get; set; } = default!;
+        public DbSet<Melody.Modelos.Album> Albums { get; set; } = default!;
+
+public DbSet<Melody.Modelos.Artista> Artistas { get; set; } = default!;
 
 public DbSet<Melody.Modelos.Cancion> Canciones { get; set; } = default!;
 
@@ -31,21 +33,24 @@ public DbSet<Melody.Modelos.PlaylistCancion> PlaylistsCanciones { get; set; } = 
 public DbSet<Melody.Modelos.Seguimiento> Seguimientos { get; set; } = default!;
 
 public DbSet<Melody.Modelos.Suscripcion> Suscripciones { get; set; } = default!;
+
+    public DbSet<Melody.Modelos.Usuario> Usuarios { get; set; } = default!;
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
 
-        // Configuraciones personalizadas
-        builder.Entity<PlaylistCancion>()
-            .HasKey(pc => new { pc.PlaylistId, pc.CancionId }); // Clave compuesta
+        // Configurar relaciones personalizadas
+        builder.Entity<Artista>()
+            .HasOne(a => a.Usuario)
+            .WithOne(u => u.Artista)
+            .HasForeignKey<Artista>(a => a.UsuarioId);
 
-        builder.Entity<Seguimiento>()
-            .HasKey(s => new { s.UsuarioId, s.ArtistaId }); // Clave compuesta
-
-        // Opcional: Configurar eliminación en cascada para relaciones
-        builder.Entity<Usuario>()
-            .HasMany(u => u.Albums)
-            .WithOne(a => a.Artista)
-            .OnDelete(DeleteBehavior.Restrict); // Evita eliminación en cascada
+        // Roles iniciales
+        builder.Entity<IdentityRole<int>>().HasData(
+            new IdentityRole<int> { Id = 1, Name = "admin", NormalizedName = "ADMIN" },
+            new IdentityRole<int> { Id = 2, Name = "artista", NormalizedName = "ARTISTA" },
+            new IdentityRole<int> { Id = 3, Name = "userfree", NormalizedName = "USERFREE" },
+            new IdentityRole<int> { Id = 4, Name = "userpremium", NormalizedName = "USERPREMIUM" }
+        );
     }
 }
