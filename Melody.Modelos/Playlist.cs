@@ -10,7 +10,7 @@ namespace Melody.Modelos
     {
         public int Id { get; set; }
         public string Nombre { get; set; }
-        public string Imagen { get; set; }
+        public string? Imagen { get; set; }
         public bool EsPublica { get; set; }
         // Foreign key
         public string UsuarioId { get; set; }

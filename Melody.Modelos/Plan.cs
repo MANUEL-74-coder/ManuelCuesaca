@@ -13,6 +13,7 @@ namespace Melody.Modelos
         public string Descripcion { get; set; }  
         public double Precio { get; set; }      
         public int DuracionDias { get; set; }  
+        public int NumeroUsuarios { get; set; }
 
         public List<Suscripcion>? Suscripciones { get; set; }
     }

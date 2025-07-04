@@ -11,6 +11,7 @@ namespace Melody.Modelos
         public int Id { get; set; }
         public DateTime FechaInicio { get; set; }
         public DateTime FechaFin { get; set; }
+        public bool EsActiva { get; set; } = false;
         // Foreign keys
         public string UsuarioId { get; set; }
         public int PlanId { get; set; }

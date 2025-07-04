@@ -13,6 +13,7 @@ namespace Melody.Modelos
         public DateTime FechaLanzamiento { get; set; }
         public string ArchivoAudio { get; set; }
         public string PortadaUrl { get; set; }
+        public TimeSpan? Duracion { get; set; }
 
         // Foreign keys
         public int? AlbumId { get; set; }

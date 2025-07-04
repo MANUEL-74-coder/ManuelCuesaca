@@ -9,12 +9,14 @@ namespace Melody.Modelos
     public class Seguimiento
     {
         public int Id { get; set; }
-        // Foreign key for the Follower
-        public string UsuarioId { get; set; }
-        public Usuario? Usuario { get; set; }
-        //Foreign key for the Artist being followed
-        public string ArtistaId { get; set; }
-        public Usuario? Artista { get; set; }
         public DateTime FechaSeguimiento { get; set; } = DateTime.Now;
+
+        // Foreign key for the Follower
+        public int UsuarioId { get; set; }
+        public int ArtistaId { get; set; }
+
+        // Navigation properties
+        public Usuario? Usuario { get; set; }
+        public Artista? Artista { get; set; }
     }
 }
