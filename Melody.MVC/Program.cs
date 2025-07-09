@@ -1,5 +1,6 @@
 using Melody.API.Consumer;
 using Melody.Modelos;
+using Melody.MVC.Services;
 using static System.Net.WebRequestMethods;
 
 internal class Program
@@ -15,10 +16,28 @@ internal class Program
         Crud<Suscripcion>.Endpoint = "https://localhost:7115/api/Suscripciones";
         Crud<PlaylistCancion>.Endpoint = "https://localhost:7115/api/PlaylistsCanciones";
         Crud<Seguimiento>.Endpoint = "https://localhost:7115/api/Seguimientos";
+
+
+
         var builder = WebApplication.CreateBuilder(args);
 
         // Add services to the container.
         builder.Services.AddControllersWithViews();
+
+        // Configurar sesiones (IMPORTANTE para guardar JWT)
+        builder.Services.AddDistributedMemoryCache();
+        builder.Services.AddSession(options =>
+        {
+            options.IdleTimeout = TimeSpan.FromMinutes(60); // Mismo tiempo que JWT
+            options.Cookie.HttpOnly = true;
+            options.Cookie.IsEssential = true;
+        });
+
+        // Registrar HttpContextAccessor (necesario para AuthService)
+        builder.Services.AddHttpContextAccessor();
+
+        // Registrar el AuthService
+        builder.Services.AddScoped<AuthService>();
 
         var app = builder.Build();
 
@@ -35,11 +54,13 @@ internal class Program
 
         app.UseRouting();
 
+        app.UseSession();
+
         app.UseAuthorization();
 
         app.MapControllerRoute(
             name: "default",
-            pattern: "{controller=Home}/{action=Index}/{id?}");
+            pattern: "{controller=Auth}/{action=Login}/{id?}");
 
         app.Run();
     }

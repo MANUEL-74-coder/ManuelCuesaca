@@ -1,0 +1,83 @@
+﻿@model Melody.Modelos.DTOs.RegistroDto
+@{
+    ViewData["Title"] = "Registro - Melody Stream";
+    Layout = null;
+}
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Registro</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="card shadow">
+                    <div class="card-header text-center bg-primary text-white">
+                        <h3><i class="fas fa-music"></i> Melody Stream</h3>
+                        <p class="mb-0">Únete a la familia musical</p>
+                    </div>
+                    <div class="card-body p-4">
+                        <form asp-action="Registro" method="post">
+                            @Html.AntiForgeryToken()
+
+                            <!-- Mensajes de error generales -->
+                            <div asp-validation-summary="All" class="alert alert-danger" role="alert" style="display: @(ViewData.ModelState.ErrorCount > 0 ? "block" : "none")"></div>
+
+
+                            <div class="mb-3">
+                                <label asp-for="Nombre" class="form-label">Nombre</label>
+                                <input asp-for="Nombre" class="form-control" placeholder="Tu nombre" />
+                                <span asp-validation-for="Nombre" class="text-danger"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label asp-for="Apellido" class="form-label">Apellido</label>
+                                <input asp-for="Apellido" class="form-control" placeholder="Tu apellido" />
+                                <span asp-validation-for="Apellido" class="text-danger"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label asp-for="Email" class="form-label">Correo Electrónico</label>
+                                <input asp-for="Email" type="email" class="form-control" placeholder="tu@email.com" />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label asp-for="Password" class="form-label"> Contraseña</label>
+                                <input asp-for="Password" type="password" class="form-control" placeholder="Mínimo 6 caracteres" />
+                                <span asp-validation-for="Password" class="text-danger"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label asp-for="ConfirmarPassword" class="form-label">Confirmar Contraseña</label>
+                                <input asp-for="ConfirmarPassword" type="password" class="form-control" placeholder="Repite tu contraseña" />
+                                <span asp-validation-for="ConfirmarPassword" class="text-danger"></span>
+                            </div>
+                            <!-- Es Artista -->
+                            <div class="mb-4">
+                                <div class="form-check">
+                                    <input asp-for="EsArtista" class="form-check-input" type="checkbox" />
+                                    <label asp-for="EsArtista" class="form-check-label">Quiero registrarme como artista</label>
+                                </div>
+                                <small class="form-text text-muted">
+                                    Los artistas pueden subir música y crear álbumes
+                                </small>
+                            </div>
+
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg">Crear Cuenta</button>
+                            </div>
+                        </form>
+
+
+                        <div class="text-center mt-3">
+                            <p class="mb-0">
+                                ¿Ya tienes cuenta?
+                                <a asp-action="Login" class="text-primary text-decoration-none">Inicia Sesión</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
