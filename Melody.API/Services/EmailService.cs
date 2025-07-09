@@ -41,5 +41,31 @@ namespace Melody.API.Service
             await smtpClient.SendMailAsync(mailMessage);
         }
 
+        public async Task EnviarEmailForgotPasswordAsync(string destinatario, string nombreUsuario, string resetLink)
+        {
+            var asunto = "Restablecer Contraseña - Melody Stream";
+            var contenido = $@"Hola {nombreUsuario},
+            Recibimos una solicitud para restablecer la contraseña de tu cuenta en Melody Stream.
+            Para restablecer tu contraseña, haz clic en el siguiente enlace:
+            {resetLink} 
+            Este enlace expirará en 30 minutos por motivos de seguridad.    
+            Si no solicitaste este cambio, simplemente ignora este correo.
+            Saludos,
+            El equipo de Melody Stream";
+            await EnviarEmailAsync(destinatario, asunto, contenido);
+        }
+
+        public async Task EnviarEmailPasswordResetConfirmationAsync(string destinatario, string nombreUsuario)
+        {
+            var asunto = "Contraseña Restablecida - Melody Stream";
+            var contenido = $@"Hola {nombreUsuario},    
+            Tu contraseña ha sido restablecida exitosamente.
+            Ya puedes iniciar sesión en Melody Stream con tu nueva contraseña.  
+            IMPORTANTE: Si no realizaste este cambio, contacta inmediatamente con nuestro soporte.
+            Saludos,
+            El equipo de Melody Stream";
+            await EnviarEmailAsync(destinatario, asunto, contenido);
+        }
+
     }
 }
