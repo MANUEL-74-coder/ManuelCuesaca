@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace Melody.Modelos.DTOs
 {
-    internal class ForgotPasswordDto
+    public class ForgotPasswordDto
     {
+        public string Email { get; set; }
     }
 }

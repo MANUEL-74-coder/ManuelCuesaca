@@ -114,6 +114,134 @@ namespace Melody.MVC.Controllers
             return View(model);
         }
 
+        [HttpGet]
+        public IActionResult ForgotPassword()
+        {
+            // Si ya está logueado, redirigir
+            if (_authService.IsAuthenticated())
+            {
+                TempData["InfoMessage"] = "Ya tienes una sesión activa.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            return View(new ForgotPasswordDto());
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ForgotPassword(ForgotPasswordDto model)
+        {
+            if (_authService.IsAuthenticated())
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            try
+            {
+                var resultado = _authService.ForgotPassword(model);
+
+                if (resultado.IsSuccess)
+                {
+                    TempData["SuccessMessage"] = resultado.Message;
+                    return RedirectToAction("ForgotPasswordConfirmation");
+                }
+                else
+                {
+                    ModelState.AddModelError("", resultado.Message);
+                    foreach (var error in resultado.Errors)
+                    {
+                        ModelState.AddModelError("", error);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error en forgot password");
+                ModelState.AddModelError("", "Error de conexión. Intenta más tarde.");
+            }
+
+            return View(model);
+        }
+
+        [HttpGet]
+        public IActionResult ForgotPasswordConfirmation()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult ResetPassword(string email, string token)
+        {
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(token))
+            {
+                TempData["ErrorMessage"] = "Enlace de restablecimiento inválido.";
+                return RedirectToAction("Login");
+            }
+
+            var model = new ResetPasswordDto
+            {
+                Email = email,
+                Token = token
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ResetPassword(ResetPasswordDto model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            // Validación de que ambas contraseñas coincidan
+            if (model.NuevaPassword != model.ConfirmarPassword)
+            {
+                ModelState.AddModelError("", "Las contraseñas no coinciden.");
+                return View(model);
+            }
+
+            try
+            {
+                var resultado = _authService.ResetPassword(model);
+
+                if (resultado.IsSuccess)
+                {
+                    TempData["SuccessMessage"] = resultado.Message;
+                    return RedirectToAction("ResetPasswordConfirmation");
+                }
+                else
+                {
+                    ModelState.AddModelError("", resultado.Message);
+                    foreach (var error in resultado.Errors)
+                    {
+                        ModelState.AddModelError("", error);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error en reset password");
+                ModelState.AddModelError("", "Error de conexión. Intenta más tarde.");
+            }
+
+            return View(model);
+        }
+
+        [HttpGet]
+        public IActionResult ResetPasswordConfirmation()
+        {
+            return View();
+        }
+
+
         public IActionResult Salir()
         {
             _authService.Logout();

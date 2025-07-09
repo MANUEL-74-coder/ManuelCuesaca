@@ -27,6 +27,16 @@ namespace Melody.MVC.Services
         {
             return ProcesarAuth(model, _configuration["ApiSettings:RegistroEndpoint"]);
         }
+        public AuthResponse ForgotPassword(ForgotPasswordDto model)
+        {
+            return ProcesarAuth(model, _configuration["ApiSettings:ForgotPasswordEndpoint"]);
+        }
+
+        public AuthResponse ResetPassword(ResetPasswordDto model)
+        {
+            return ProcesarAuth(model, _configuration["ApiSettings:ResetPasswordEndpoint"]);
+        }
+
 
         private AuthResponse ProcesarAuth<T>(T item, string endpoint)
         {
