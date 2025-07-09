@@ -27,7 +27,7 @@ internal class Program
             options.Password.RequireUppercase = true;
             options.Password.RequireLowercase = true;
 
-            // Configuración de lockout o intentos fallidos
+            // Configuración de lockout o intentos fallidos 
             options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(1);
             options.Lockout.MaxFailedAccessAttempts = 5;
             options.Lockout.AllowedForNewUsers = true;
@@ -38,6 +38,14 @@ internal class Program
         })
         .AddEntityFrameworkStores<AppDbContext>()  // ⭐ ESTO REGISTRA UserManager, SignInManager, etc.
         .AddDefaultTokenProviders();
+
+
+        //Tiempo de vida de los tokens
+        builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
+        {
+
+            options.TokenLifespan = TimeSpan.FromMinutes(30);
+        });
 
         // Configuración JWT
         var jwtKey = builder.Configuration["Jwt:Key"];
