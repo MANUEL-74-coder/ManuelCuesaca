@@ -38,27 +38,6 @@ namespace Melody.API.Consumer
                 }
             }
         }
-        public static async Task<T> GetByCredentials(string correo, string contraseña)
-        {
-            using (var client = new HttpClient())
-            {
-                try
-                {
-                    // Usar parámetros de query
-                    var response = await client.GetAsync($"{Endpoint}/acceso?correo={Uri.EscapeDataString(correo)}&contraseña={Uri.EscapeDataString(contraseña)}");
-
-                    response.EnsureSuccessStatusCode();
-
-                    var json = await response.Content.ReadAsStringAsync();
-                    return JsonConvert.DeserializeObject<T>(json);
-                }
-                catch (HttpRequestException ex)
-                {
-                    throw new Exception($"Error al autenticar: {ex.Message}");
-                }
-            }
-        }
-
 
         public static List<T> GetBy(string campo, int id)
         {
@@ -125,6 +104,49 @@ namespace Melody.API.Consumer
                     throw new Exception($"Error al eliminar datos: {response.ReasonPhrase}");
                 }
             }
+        }
+        public static async Task<bool> SubirCancion(MultipartFormDataContent formData, string token)
+        {
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            var response = await client.PostAsync($"{Endpoint}/subir", formData); // Nota: /subir
+            return response.IsSuccessStatusCode;
+        }
+
+        public static async Task<List<T>> GetMisCanciones(string token)
+        {
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            var response = await client.GetAsync($"{Endpoint}/mis-canciones");
+            if (response.IsSuccessStatusCode)
+            {
+                var json = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<List<T>>(json) ?? new List<T>();
+            }
+            throw new HttpRequestException($"Error: {response.StatusCode}");
+        }
+
+        public static async Task<bool> DeleteAuth(int id, string token)
+        {
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            var response = await client.DeleteAsync($"{Endpoint}/{id}");
+            return response.IsSuccessStatusCode;
+        }
+        public static async Task<bool> Update(int id, MultipartFormDataContent formData, string token)
+        {
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            var response = await client.PutAsync($"{Endpoint}/{id}", formData);
+            return response.IsSuccessStatusCode;
         }
 
     }
