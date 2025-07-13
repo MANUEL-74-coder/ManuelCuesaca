@@ -4,94 +4,94 @@ using Newtonsoft.Json;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Melody.Modelos.Auth;
+using System.Net.Http.Headers;
 
 namespace Melody.MVC.Services
 {
     public class AuthService
     {
+        private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public AuthService(IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
+        public AuthService(IHttpClientFactory httpClientFactory, IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
         {
+            _httpClientFactory = httpClientFactory;
             _configuration = configuration;
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public AuthResponse Login(LoginDto model)
+        // Métodos públicos simplificados
+        public async Task<AuthResponse> LoginAsync(LoginDto model)
         {
-            return ProcesarAuth(model, _configuration["ApiSettings:LoginEndpoint"]);
+            return await ProcesarAuthAsync(model, "ApiSettings:LoginEndpoint");
         }
 
-        public AuthResponse Registrar(RegistroDto model)
+        public async Task<AuthResponse> RegistrarAsync(RegistroDto model)
         {
-            return ProcesarAuth(model, _configuration["ApiSettings:RegistroEndpoint"]);
-        }
-        public AuthResponse ForgotPassword(ForgotPasswordDto model)
-        {
-            return ProcesarAuth(model, _configuration["ApiSettings:ForgotPasswordEndpoint"]);
+            return await ProcesarAuthAsync(model, "ApiSettings:RegistroEndpoint");
         }
 
-        public AuthResponse ResetPassword(ResetPasswordDto model)
+        public async Task<AuthResponse> ForgotPasswordAsync(ForgotPasswordDto model)
         {
-            return ProcesarAuth(model, _configuration["ApiSettings:ResetPasswordEndpoint"]);
+            return await ProcesarAuthAsync(model, "ApiSettings:ForgotPasswordEndpoint");
         }
 
-
-        private AuthResponse ProcesarAuth<T>(T item, string endpoint)
+        public async Task<AuthResponse> ResetPasswordAsync(ResetPasswordDto model)
         {
+            return await ProcesarAuthAsync(model, "ApiSettings:ResetPasswordEndpoint");
+        }
+
+        // Método privado mejorado con HttpClientFactory y async
+        private async Task<AuthResponse> ProcesarAuthAsync<T>(T item, string endpointConfigKey)
+        {
+            var endpoint = _configuration[endpointConfigKey];
             if (string.IsNullOrEmpty(endpoint))
+                throw new InvalidOperationException($"Endpoint {endpointConfigKey} no configurado");
+
+            using var client = _httpClientFactory.CreateClient();
+
+            var json = JsonConvert.SerializeObject(item);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await client.PostAsync(endpoint, content);
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+
+            if (response.IsSuccessStatusCode)
             {
-                throw new InvalidOperationException("Endpoint no configurado");
+                var resultado = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
+                return new AuthResponse
+                {
+                    IsSuccess = true,
+                    Message = resultado?.mensaje?.ToString() ?? "Operación exitosa",
+                    Token = resultado?.token?.ToString()
+                };
             }
-
-            using (var client = new HttpClient())
+            else
             {
-                var json = JsonConvert.SerializeObject(item);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-                var response = client.PostAsync(endpoint, content).Result;
-                var jsonResponse = response.Content.ReadAsStringAsync().Result;
+                var errorObj = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
+                var errores = new List<string>();
+                string errorMessage = "Error en la operación";
 
-                if (response.IsSuccessStatusCode)
+                if (errorObj?.error != null)
                 {
-                    var resultado = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
-
-                    return new AuthResponse
-                    {
-                        IsSuccess = true,
-                        Message = resultado?.mensaje?.ToString() ?? "Operación exitosa",
-                        Token = resultado?.token?.ToString()
-                    };
+                    errorMessage = errorObj.error.ToString();
                 }
-                else
+                else if (errorObj?.errores != null)
                 {
-                    var errorObj = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
-                    string errorMessage = "Error en la operación";
-                    var errores = new List<string>();
-
-                    if (errorObj?.error != null)
-                    {
-                        errorMessage = errorObj.error.ToString();
-                    }
-                    else if (errorObj?.errores != null)
-                    {
-                        foreach (var error in errorObj.errores)
-                        {
-                            errores.Add(error.ToString());
-                        }
-                        errorMessage = string.Join(", ", errores);
-                    }
-
-                    return new AuthResponse
-                    {
-                        IsSuccess = false,
-                        Message = errorMessage,
-                        Errors = errores
-                    };
+                    foreach (var error in errorObj.errores)
+                        errores.Add(error.ToString());
+                    errorMessage = string.Join(", ", errores);
                 }
+
+                return new AuthResponse
+                {
+                    IsSuccess = false,
+                    Message = errorMessage,
+                    Errors = errores
+                };
             }
         }
-
         public UserSessionInfo? GetCurrentUser()
         {
             var token = _httpContextAccessor.HttpContext?.Session.GetString("AuthToken");
@@ -129,6 +129,10 @@ namespace Melody.MVC.Services
         public void Logout()
         {
             _httpContextAccessor.HttpContext?.Session.Clear();
+        }
+        public string? ObtenerToken()
+        {
+            return _httpContextAccessor.HttpContext?.Session.GetString("AuthToken");
         }
 
         public TokenInfo? ExtraerInfoToken(string token)
