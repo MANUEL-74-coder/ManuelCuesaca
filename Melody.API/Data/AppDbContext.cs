@@ -44,13 +44,5 @@ public DbSet<Melody.Modelos.Suscripcion> Suscripciones { get; set; } = default!;
             .HasOne(a => a.Usuario)
             .WithOne(u => u.Artista)
             .HasForeignKey<Artista>(a => a.UsuarioId);
-
-        // Roles iniciales
-        builder.Entity<IdentityRole<int>>().HasData(
-            new IdentityRole<int> { Id = 1, Name = "admin", NormalizedName = "ADMIN" },
-            new IdentityRole<int> { Id = 2, Name = "artista", NormalizedName = "ARTISTA" },
-            new IdentityRole<int> { Id = 3, Name = "userfree", NormalizedName = "USERFREE" },
-            new IdentityRole<int> { Id = 4, Name = "userpremium", NormalizedName = "USERPREMIUM" }
-        );
     }
 }
