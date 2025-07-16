@@ -36,6 +36,7 @@ internal class Program
         // Registrar HttpContextAccessor (necesario para AuthService)
         builder.Services.AddHttpContextAccessor();
 
+        builder.Services.AddHttpClient();
         // Registrar el AuthService
         builder.Services.AddScoped<AuthService>();
 
