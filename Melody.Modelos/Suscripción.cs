@@ -12,9 +12,11 @@ namespace Melody.Modelos
         public DateTime FechaInicio { get; set; }
         public DateTime FechaFin { get; set; }
         public bool EsActiva { get; set; } = false;
+
         // Foreign keys
-        public string UsuarioId { get; set; }
+        public int UsuarioId { get; set; }
         public int PlanId { get; set; }
+
         // Navigation properties
         public Usuario? Usuario { get; set; }
         public Plan? Plan { get; set; }
