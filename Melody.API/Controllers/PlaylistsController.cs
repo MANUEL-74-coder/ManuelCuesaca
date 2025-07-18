@@ -192,6 +192,157 @@ namespace Melody.API.Controllers
         }
 
 
+        // PUT: api/Playlists/5
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPut("{id}")]
+        [Authorize]
+        public async Task<IActionResult> ActualizarPlaylist(int id, [FromForm] ActualizarPlaylistDto dto)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var usuario = await ObtenerUsuarioActualAsync();
+                if (usuario == null)
+                {
+                    return Unauthorized("Usuario no autenticado");
+                }
+
+                var playlist = await _context.Playlists
+                    .FirstOrDefaultAsync(p => p.Id == id && p.UsuarioId == usuario.Id);
+
+                if (playlist == null)
+                {
+                    return NotFound("Playlist no encontrada o no tienes permisos para editarla");
+                }
+
+                // Actualizar imagen si se proporciona
+                if (dto.Imagen != null)
+                {
+                    var extensionesPermitidas = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+                    var extension = Path.GetExtension(dto.Imagen.FileName).ToLower();
+
+                    if (!extensionesPermitidas.Contains(extension))
+                    {
+                        return BadRequest("Formato de imagen no permitido. Use .jpg, .jpeg, .png o .webp");
+                    }
+
+                    if (dto.Imagen.Length > 5 * 1024 * 1024) // 5MB
+                    {
+                        return BadRequest("La imagen no puede exceder los 5 MB");
+                    }
+
+                    // Eliminar imagen anterior si existe
+                    if (!string.IsNullOrEmpty(playlist.Imagen))
+                    {
+                        await EliminarArchivoBlobAsync(playlist.Imagen);
+                    }
+
+                    // Subir nueva imagen
+                    playlist.Imagen = await SubirImagenPlaylistAsync(dto.Imagen);
+                }
+
+                // Actualizar datos solo si se proporcionan
+                if (!string.IsNullOrEmpty(dto.Nombre))
+                    playlist.Nombre = dto.Nombre;
+
+                if (dto.EsPublica.HasValue)
+                    playlist.EsPublica = dto.EsPublica.Value;
+
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Playlist actualizada: {Nombre} por {Usuario}", playlist.Nombre, usuario.Email);
+
+                return Ok(new
+                {
+                    mensaje = "Playlist actualizada con éxito",
+                    playlist = new
+                    {
+                        playlist.Id,
+                        playlist.Nombre,
+                        playlist.Imagen,
+                        playlist.EsPublica
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al actualizar la playlist con ID {Id}", id);
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error al actualizar la playlist");
+            }
+        }
+
+        // POST: api/Playlists
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPost]
+        [Authorize]
+        public async Task<ActionResult<object>> CrearPlaylist([FromForm] CrearPlaylistDto dto)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var usuario = await ObtenerUsuarioActualAsync();
+                if (usuario == null)
+                {
+                    return Unauthorized("Usuario no autenticado");
+                }
+
+                var playlist = new Playlist
+                {
+                    Nombre = dto.Nombre,
+                    EsPublica = dto.EsPublica,
+                    UsuarioId = usuario.Id
+                };
+
+                // Subir imagen si se proporciona
+                if (dto.Imagen != null)
+                {
+                    var extensionesPermitidas = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+                    var extension = Path.GetExtension(dto.Imagen.FileName).ToLower();
+
+                    if (!extensionesPermitidas.Contains(extension))
+                    {
+                        return BadRequest("Formato de imagen no permitido. Use .jpg, .jpeg, .png o .webp");
+                    }
+
+                    if (dto.Imagen.Length > 5 * 1024 * 1024) // 5MB
+                    {
+                        return BadRequest("La imagen no puede exceder los 5 MB");
+                    }
+
+                    playlist.Imagen = await SubirImagenPlaylistAsync(dto.Imagen);
+                }
+
+                _context.Playlists.Add(playlist);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Playlist creada: {Nombre} por {Usuario}", playlist.Nombre, usuario.Email);
+
+                return Ok(new
+                {
+                    mensaje = "Playlist creada con éxito",
+                    playlist = new
+                    {
+                        playlist.Id,
+                        playlist.Nombre,
+                        playlist.Imagen,
+                        playlist.EsPublica
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al crear la playlist");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error al crear la playlist");
+            }
+        }
+
         // DELETE: api/Playlists/5
         [HttpDelete("{id}")]
         [Authorize]

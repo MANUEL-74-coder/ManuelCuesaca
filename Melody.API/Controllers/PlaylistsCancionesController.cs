@@ -6,6 +6,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Melody.Modelos;
+using Microsoft.AspNetCore.Identity;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
+using Melody.Modelos.DTOs;
 
 namespace Melody.API.Controllers
 {
@@ -15,93 +19,195 @@ namespace Melody.API.Controllers
     {
         private readonly AppDbContext _context;
 
-        public PlaylistsCancionesController(AppDbContext context)
+        private readonly UserManager<Usuario> _userManager;
+        private readonly ILogger<PlaylistsCancionesController> _logger;
+
+        public PlaylistsCancionesController(AppDbContext context, UserManager<Usuario> userManager, ILogger<PlaylistsCancionesController> logger)
         {
             _context = context;
+            _userManager = userManager;
+            _logger = logger;
         }
 
-        // GET: api/PlaylistsCanciones
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<PlaylistCancion>>> GetPlaylistCancion()
+        // Helper method para obtener usuario actual
+        private async Task<Usuario?> ObtenerUsuarioActualAsync()
         {
-            return await _context.PlaylistsCanciones.ToListAsync();
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out int userId))
+                return null;
+
+            return await _userManager.FindByIdAsync(userId.ToString());
         }
 
-        // GET: api/PlaylistsCanciones/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<PlaylistCancion>> GetPlaylistCancion(int id)
-        {
-            var playlistCancion = await _context.PlaylistsCanciones.FindAsync(id);
-
-            if (playlistCancion == null)
-            {
-                return NotFound();
-            }
-
-            return playlistCancion;
-        }
-
-        // PUT: api/PlaylistsCanciones/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutPlaylistCancion(int id, PlaylistCancion playlistCancion)
-        {
-            if (id != playlistCancion.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(playlistCancion).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!PlaylistCancionExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
 
         // POST: api/PlaylistsCanciones
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<PlaylistCancion>> PostPlaylistCancion(PlaylistCancion playlistCancion)
+        [Authorize]
+        public async Task<ActionResult<object>> AgregarCancionAPlylist([FromBody] AgregarCancionPlaylistDto dto)
         {
-            _context.PlaylistsCanciones.Add(playlistCancion);
-            await _context.SaveChangesAsync();
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
 
-            return CreatedAtAction("GetPlaylistCancion", new { id = playlistCancion.Id }, playlistCancion);
+                var usuario = await ObtenerUsuarioActualAsync();
+                if (usuario == null)
+                {
+                    return Unauthorized("Usuario no autenticado");
+                }
+
+                // Verificar que la playlist existe y es del usuario
+                var playlist = await _context.Playlists
+                    .FirstOrDefaultAsync(p => p.Id == dto.PlaylistId && p.UsuarioId == usuario.Id);
+
+                if (playlist == null)
+                {
+                    return NotFound("Playlist no encontrada o no tienes permisos para editarla");
+                }
+
+                // Verificar que la canción existe
+                var cancion = await _context.Canciones
+                    .Include(c => c.Artista)
+                    .FirstOrDefaultAsync(c => c.Id == dto.CancionId);
+
+                if (cancion == null)
+                {
+                    return NotFound("Canción no encontrada");
+                }
+
+                // Verificar si la canción ya está en la playlist
+                var relacionExistente = await _context.PlaylistsCanciones
+                    .FirstOrDefaultAsync(pc => pc.PlaylistId == dto.PlaylistId && pc.CancionId == dto.CancionId);
+
+                if (relacionExistente != null)
+                {
+                    return BadRequest("La canción ya está en esta playlist");
+                }
+
+                var playlistCancion = new PlaylistCancion
+                {
+                    PlaylistId = dto.PlaylistId,
+                    CancionId = dto.CancionId
+                };
+
+                _context.PlaylistsCanciones.Add(playlistCancion);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Canción {CancionTitulo} agregada a playlist {PlaylistNombre}",
+                    cancion.Titulo, playlist.Nombre);
+
+                return Ok(new
+                {
+                    mensaje = "Canción agregada a la playlist con éxito",
+                    playlistCancion = new
+                    {
+                        playlistCancion.Id,
+                        Playlist = new { playlist.Id, playlist.Nombre },
+                        Cancion = new
+                        {
+                            cancion.Id,
+                            cancion.Titulo,
+                            Artista = cancion.Artista!.NombreArtista
+                        }
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al agregar canción a playlist");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error al agregar canción a playlist");
+            }
         }
 
         // DELETE: api/PlaylistsCanciones/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeletePlaylistCancion(int id)
+        [Authorize]
+        public async Task<IActionResult> EliminarCancionDePlaylist(int id)
         {
-            var playlistCancion = await _context.PlaylistsCanciones.FindAsync(id);
-            if (playlistCancion == null)
+            try
             {
-                return NotFound();
+                var usuario = await ObtenerUsuarioActualAsync();
+                if (usuario == null)
+                {
+                    return Unauthorized("Usuario no autenticado");
+                }
+
+                var playlistCancion = await _context.PlaylistsCanciones
+                    .Include(pc => pc.Playlist)
+                    .Include(pc => pc.Cancion)
+                    .ThenInclude(c => c.Artista)
+                    .FirstOrDefaultAsync(pc => pc.Id == id);
+
+                if (playlistCancion == null)
+                {
+                    return NotFound("Relación playlist-canción no encontrada");
+                }
+
+                // Verificar que la playlist es del usuario
+                if (playlistCancion.Playlist!.UsuarioId != usuario.Id)
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, "No tienes permisos para editar esta playlist");
+                }
+
+                _context.PlaylistsCanciones.Remove(playlistCancion);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Canción {CancionTitulo} eliminada de playlist {PlaylistNombre}",
+                    playlistCancion.Cancion!.Titulo, playlistCancion.Playlist.Nombre);
+
+                return Ok(new
+                {
+                    mensaje = "Canción eliminada de la playlist con éxito",
+                    cancion = playlistCancion.Cancion.Titulo,
+                    playlist = playlistCancion.Playlist.Nombre
+                });
             }
-
-            _context.PlaylistsCanciones.Remove(playlistCancion);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al eliminar canción de playlist");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error al eliminar canción de playlist");
+            }
         }
-
-        private bool PlaylistCancionExists(int id)
+        // GET: api/PlaylistCanciones/verificar?playlistId=1&cancionId=5 - Verificar si canción está en playlist
+        [HttpGet("verificar")]
+        [Authorize]
+        public async Task<ActionResult<object>> VerificarCancionEnPlaylist([FromQuery] int playlistId, [FromQuery] int cancionId)
         {
-            return _context.PlaylistsCanciones.Any(e => e.Id == id);
+            try
+            {
+                var usuario = await ObtenerUsuarioActualAsync();
+                if (usuario == null)
+                {
+                    return Unauthorized("Usuario no autenticado");
+                }
+
+                // Verificar que la playlist es del usuario
+                var playlist = await _context.Playlists
+                    .FirstOrDefaultAsync(p => p.Id == playlistId && p.UsuarioId == usuario.Id);
+
+                if (playlist == null)
+                {
+                    return NotFound("Playlist no encontrada o no tienes permisos");
+                }
+
+                var enPlaylist = await _context.PlaylistsCanciones
+                    .AnyAsync(pc => pc.PlaylistId == playlistId && pc.CancionId == cancionId);
+
+                return Ok(new
+                {
+                    playlistId = playlistId,
+                    cancionId = cancionId,
+                    enPlaylist = enPlaylist
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al verificar canción en playlist");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error al verificar canción en playlist");
+            }
         }
     }
 }

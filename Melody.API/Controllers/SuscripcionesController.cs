@@ -351,7 +351,89 @@ namespace Melody.API.Controllers
             }
         }
 
-  
+        // POST: api/Suscripciones
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPost]
+        [Authorize]
+        public async Task<ActionResult<Suscripcion>> CrearSuscripcion([FromBody] CrearSuscripcionDto dto)
+        {
+
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var usuario = await ObtenerUsuarioActualAsync();
+                if (usuario == null)
+                {
+                    return Unauthorized("Usuario no autenticado");
+                }
+
+                // Verificar que el plan existe
+                var plan = await _context.Planes.FirstOrDefaultAsync(p => p.Id == dto.PlanId);
+                if (plan == null)
+                {
+                    return NotFound("Plan no encontrado");
+                }
+
+                // Verificar si ya tiene una suscripción activa
+                var suscripcionActiva = await _context.Suscripciones
+                    .FirstOrDefaultAsync(s => s.UsuarioId == usuario.Id && s.EsActiva);
+
+                if (suscripcionActiva != null)
+                {
+                    return BadRequest("Ya tienes una suscripción activa. Cancela la actual antes de crear una nueva.");
+                }
+
+                var suscripcion = new Suscripcion
+                {
+                    UsuarioId = usuario.Id,
+                    PlanId = dto.PlanId,
+                    FechaInicio = DateTime.Now,
+                    FechaFin = DateTime.Now.AddDays(plan.DuracionDias),
+                    EsActiva = true
+                };
+
+                _context.Suscripciones.Add(suscripcion);
+                await _context.SaveChangesAsync();
+
+                // Cambiar rol del usuario a userpremium
+                var rolesActuales = await _userManager.GetRolesAsync(usuario);
+                if (rolesActuales.Contains("userfree"))
+                {
+                    await _userManager.RemoveFromRoleAsync(usuario, "userfree");
+                    await _userManager.AddToRoleAsync(usuario, "userpremium");
+                }
+
+                _logger.LogInformation("Suscripción creada para usuario {Email} con plan {PlanNombre}",
+                    usuario.Email, plan.Nombre);
+
+                return Ok(new
+                {
+                    mensaje = "Suscripción creada con éxito",
+                    suscripcion = new
+                    {
+                        suscripcion.Id,
+                        suscripcion.FechaInicio,
+                        suscripcion.FechaFin,
+                        Plan = new
+                        {
+                            plan.Id,
+                            plan.Nombre,
+                            plan.Precio
+                        },
+                        DiasRestantes = plan.DuracionDias
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al crear la suscripción");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error al crear la suscripción");
+            }
+        }
 
         // GET: api/Suscripciones/historial - Obtener mi historial de suscripciones
         [HttpGet("historial")]
