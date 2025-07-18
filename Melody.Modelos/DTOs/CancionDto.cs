@@ -14,6 +14,7 @@ namespace Melody.Modelos.DTOs
         public DateTime FechaLanzamiento { get; set; }
         public string ArchivoAudioUrl { get; set; } = string.Empty;
         public string? PortadaUrl { get; set; }
+        public TimeSpan? Duracion { get; set; }
         public int GeneroId { get; set; }
         public string GeneroNombre { get; set; } = string.Empty;
         public int? AlbumId { get; set; }
