@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using Melody.API.Inicializador;
+using Meldoy.API.Inicializador;
 internal class Program
 {
     private static void Main(string[] args)
@@ -14,8 +16,8 @@ internal class Program
 
         var connectionString = builder.Configuration.GetConnectionString("AppDbContext");
         builder.Services.AddDbContext<AppDbContext>(options =>
-           options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
-       );
+            options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
+        );
 
         //Configuración de Identity
         builder.Services.AddIdentity<Usuario, IdentityRole<int>>(options =>
@@ -77,6 +79,7 @@ internal class Program
         // Registrar servicios personalizados
         builder.Services.AddScoped<JwtService>();
         builder.Services.AddScoped<EmailService>();
+        builder.Services.AddScoped<IDbInicializador, DbInicializador>();
 
 
         //Add services to the container
@@ -131,6 +134,7 @@ internal class Program
                 }
             });
         });
+        builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
@@ -141,10 +145,26 @@ internal class Program
         }
 
         app.UseHttpsRedirection();
-        app.UseCors();
+        app.UseCors(c => c.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod());
         app.UseAuthentication();
         app.UseAuthorization();
 
+        //Aplicar migraciones y datos iniciales
+        using (var scope = app.Services.CreateScope())
+        {
+            var services = scope.ServiceProvider;
+            var loggerFactory = services.GetRequiredService<ILoggerFactory>();
+            try
+            {
+                var inicializador = services.GetRequiredService<IDbInicializador>();
+                inicializador.InicializarAsync().GetAwaiter().GetResult();
+            }
+            catch (Exception ex)
+            {
+                var logger = loggerFactory.CreateLogger<Program>();
+                logger.LogError(ex, "Un Error ocurrió al ejecutar la migración");
+            }
+        }
         app.MapControllers();
 
         app.Run();
