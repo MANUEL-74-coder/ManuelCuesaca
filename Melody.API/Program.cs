@@ -14,8 +14,8 @@ internal class Program
 
         var connectionString = builder.Configuration.GetConnectionString("AppDbContext");
         builder.Services.AddDbContext<AppDbContext>(options =>
-            options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
-        );
+           options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
+       );
 
         //Configuración de Identity
         builder.Services.AddIdentity<Usuario, IdentityRole<int>>(options =>

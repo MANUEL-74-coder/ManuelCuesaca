@@ -14,25 +14,27 @@ public class AppDbContext : IdentityDbContext<Usuario, IdentityRole<int>, int>
         {
         }
 
-        public DbSet<Melody.Modelos.Album> Albums { get; set; } = default!;
+    public DbSet<Melody.Modelos.Album> Albums { get; set; } = default!;
 
-public DbSet<Melody.Modelos.Artista> Artistas { get; set; } = default!;
+    public DbSet<Melody.Modelos.Artista> Artistas { get; set; } = default!;
 
-public DbSet<Melody.Modelos.Cancion> Canciones { get; set; } = default!;
+    public DbSet<Melody.Modelos.Cancion> Canciones { get; set; } = default!;
 
-public DbSet<Melody.Modelos.Genero> Generos { get; set; } = default!;
+    public DbSet<Melody.Modelos.Genero> Generos { get; set; } = default!;
 
-public DbSet<Melody.Modelos.Pago> Pagos { get; set; } = default!;
+    public DbSet<Melody.Modelos.Pago> Pagos { get; set; } = default!;
 
-public DbSet<Melody.Modelos.Plan> Planes { get; set; } = default!;
+    public DbSet<Melody.Modelos.Plan> Planes { get; set; } = default!;
 
-public DbSet<Melody.Modelos.Playlist> Playlists { get; set; } = default!;
+    public DbSet<Melody.Modelos.Playlist> Playlists { get; set; } = default!;
 
-public DbSet<Melody.Modelos.PlaylistCancion> PlaylistsCanciones { get; set; } = default!;
+    public DbSet<Melody.Modelos.PlaylistCancion> PlaylistsCanciones { get; set; } = default!;
 
-public DbSet<Melody.Modelos.Seguimiento> Seguimientos { get; set; } = default!;
+    public DbSet<Melody.Modelos.Seguimiento> Seguimientos { get; set; } = default!;
 
-public DbSet<Melody.Modelos.Suscripcion> Suscripciones { get; set; } = default!;
+    public DbSet<Melody.Modelos.Suscripcion> Suscripciones { get; set; } = default!;
+
+
 
     public DbSet<Melody.Modelos.Usuario> Usuarios { get; set; } = default!;
     protected override void OnModelCreating(ModelBuilder builder)

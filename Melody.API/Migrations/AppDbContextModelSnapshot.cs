@@ -29,14 +29,7 @@ namespace Melody.API.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ArtistaId")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<int?>("ArtistaId1")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ArtistaId2")
+                    b.Property<int>("ArtistaId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("FechaLanzamiento")
@@ -55,9 +48,7 @@ namespace Melody.API.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ArtistaId1");
-
-                    b.HasIndex("ArtistaId2");
+                    b.HasIndex("ArtistaId");
 
                     b.HasIndex("GeneroId");
 
@@ -108,14 +99,7 @@ namespace Melody.API.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("ArtistaId")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<int?>("ArtistaId1")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ArtistaId2")
+                    b.Property<int>("ArtistaId")
                         .HasColumnType("int");
 
                     b.Property<TimeSpan?>("Duracion")
@@ -139,9 +123,7 @@ namespace Melody.API.Migrations
 
                     b.HasIndex("AlbumId");
 
-                    b.HasIndex("ArtistaId1");
-
-                    b.HasIndex("ArtistaId2");
+                    b.HasIndex("ArtistaId");
 
                     b.HasIndex("GeneroId");
 
@@ -241,16 +223,12 @@ namespace Melody.API.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("UsuarioId")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<int?>("UsuarioId1")
+                    b.Property<int>("UsuarioId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UsuarioId1");
+                    b.HasIndex("UsuarioId");
 
                     b.ToTable("Playlists");
                 });
@@ -324,18 +302,14 @@ namespace Melody.API.Migrations
                     b.Property<int>("PlanId")
                         .HasColumnType("int");
 
-                    b.Property<string>("UsuarioId")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<int?>("UsuarioId1")
+                    b.Property<int>("UsuarioId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("PlanId");
 
-                    b.HasIndex("UsuarioId1");
+                    b.HasIndex("UsuarioId");
 
                     b.ToTable("Suscripciones");
                 });
@@ -448,32 +422,6 @@ namespace Melody.API.Migrations
                         .HasDatabaseName("RoleNameIndex");
 
                     b.ToTable("AspNetRoles", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Name = "admin",
-                            NormalizedName = "ADMIN"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Name = "artista",
-                            NormalizedName = "ARTISTA"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Name = "userfree",
-                            NormalizedName = "USERFREE"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Name = "userpremium",
-                            NormalizedName = "USERPREMIUM"
-                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
@@ -581,13 +529,11 @@ namespace Melody.API.Migrations
 
             modelBuilder.Entity("Melody.Modelos.Album", b =>
                 {
-                    b.HasOne("Melody.Modelos.Artista", null)
+                    b.HasOne("Melody.Modelos.Artista", "Artista")
                         .WithMany("Albums")
-                        .HasForeignKey("ArtistaId1");
-
-                    b.HasOne("Melody.Modelos.Usuario", "Artista")
-                        .WithMany()
-                        .HasForeignKey("ArtistaId2");
+                        .HasForeignKey("ArtistaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("Melody.Modelos.Genero", "Genero")
                         .WithMany("Albums")
@@ -617,13 +563,11 @@ namespace Melody.API.Migrations
                         .WithMany("Canciones")
                         .HasForeignKey("AlbumId");
 
-                    b.HasOne("Melody.Modelos.Artista", null)
+                    b.HasOne("Melody.Modelos.Artista", "Artista")
                         .WithMany("Canciones")
-                        .HasForeignKey("ArtistaId1");
-
-                    b.HasOne("Melody.Modelos.Usuario", "Artista")
-                        .WithMany()
-                        .HasForeignKey("ArtistaId2");
+                        .HasForeignKey("ArtistaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("Melody.Modelos.Genero", "Genero")
                         .WithMany("Canciones")
@@ -653,7 +597,9 @@ namespace Melody.API.Migrations
                 {
                     b.HasOne("Melody.Modelos.Usuario", "Usuario")
                         .WithMany("Playlists")
-                        .HasForeignKey("UsuarioId1");
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Usuario");
                 });
@@ -706,7 +652,9 @@ namespace Melody.API.Migrations
 
                     b.HasOne("Melody.Modelos.Usuario", "Usuario")
                         .WithMany("Suscripciones")
-                        .HasForeignKey("UsuarioId1");
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Plan");
 
