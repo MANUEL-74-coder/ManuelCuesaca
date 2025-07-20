@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Melody.Modelos;
 using Azure.Storage.Blobs;
@@ -11,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Melody.Modelos.DTOs;
+using Melody.API.Services;
 
 namespace Melody.API.Controllers
 {
@@ -19,28 +15,19 @@ namespace Melody.API.Controllers
     public class PlaylistsController : ControllerBase
     {
         private readonly AppDbContext _context;
-        private readonly UserManager<Usuario> _userManager;
-        private readonly BlobContainerClient _playlistImagesContainer;
+        private readonly IAzureBlobService _blobService;
+        private readonly IUsuarioService _usuarioService;
         private readonly ILogger<PlaylistsController> _logger;
 
-        public PlaylistsController(AppDbContext context, UserManager<Usuario> userManager, IConfiguration configuration, ILogger<PlaylistsController> logger)
+        public PlaylistsController(AppDbContext context, IAzureBlobService blobService,
+                                    IUsuarioService usuarioService, ILogger<PlaylistsController> logger)
         {
             _context = context;
-            _userManager = userManager;
-            string playlistImagesSasUrl = configuration["AzureStorage:Playlists"];
-            _playlistImagesContainer = new BlobContainerClient(new Uri(playlistImagesSasUrl));
+            _blobService = blobService;
+            _usuarioService = usuarioService;
             _logger = logger;
         }
 
-        // Helper method to get the current user
-        private async Task<Usuario?> ObtenerUsuarioActualAsync()
-        {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (!int.TryParse(userIdClaim, out int userId))
-                return null;
-
-            return await _userManager.FindByIdAsync(userId.ToString());
-        }
 
         // GET: api/Playlists
         [HttpGet]
@@ -93,8 +80,8 @@ namespace Melody.API.Controllers
                     return NotFound("Playlist no encontrada");
                 }
 
-                // Verificar permisos: debe ser pública o del usuario actual
-                var usuarioActual = await ObtenerUsuarioActualAsync();
+                // Verificar permisos
+                var usuarioActual = await _usuarioService.ObtenerUsuarioActualAsync();
                 if (!playlist.EsPublica && (usuarioActual == null || playlist.UsuarioId != usuarioActual.Id))
                 {
                     return StatusCode(StatusCodes.Status403Forbidden, "No tienes permisos para ver esta playlist");
@@ -162,7 +149,7 @@ namespace Melody.API.Controllers
         {
             try
             {
-                var usuario = await ObtenerUsuarioActualAsync();
+                var usuario = await _usuarioService.ObtenerUsuarioActualAsync();
                 if (usuario == null)
                 {
                     return Unauthorized("Usuario no autenticado");
@@ -205,7 +192,7 @@ namespace Melody.API.Controllers
                     return BadRequest(ModelState);
                 }
 
-                var usuario = await ObtenerUsuarioActualAsync();
+                var usuario = await _usuarioService.ObtenerUsuarioActualAsync();
                 if (usuario == null)
                 {
                     return Unauthorized("Usuario no autenticado");
@@ -222,27 +209,16 @@ namespace Melody.API.Controllers
                 // Actualizar imagen si se proporciona
                 if (dto.Imagen != null)
                 {
-                    var extensionesPermitidas = new[] { ".jpg", ".jpeg", ".png", ".webp" };
-                    var extension = Path.GetExtension(dto.Imagen.FileName).ToLower();
+                    var (imagenValida, imagenError) = ValidacionService.ValidarArchivo(
+                    dto.Imagen,
+                    ValidacionService.Archivos.ExtensionesImagen,
+                    ValidacionService.Archivos.MaxTamanoImagen);
 
-                    if (!extensionesPermitidas.Contains(extension))
-                    {
-                        return BadRequest("Formato de imagen no permitido. Use .jpg, .jpeg, .png o .webp");
-                    }
+                    if (!imagenValida)
+                        return BadRequest(imagenError);
 
-                    if (dto.Imagen.Length > 5 * 1024 * 1024) // 5MB
-                    {
-                        return BadRequest("La imagen no puede exceder los 5 MB");
-                    }
-
-                    // Eliminar imagen anterior si existe
-                    if (!string.IsNullOrEmpty(playlist.Imagen))
-                    {
-                        await EliminarArchivoBlobAsync(playlist.Imagen);
-                    }
-
-                    // Subir nueva imagen
-                    playlist.Imagen = await SubirImagenPlaylistAsync(dto.Imagen);
+                    await _blobService.EliminarArchivoAsync(playlist.Imagen, "Playlists");
+                    playlist.Imagen = await _blobService.SubirArchivoAsync(dto.Imagen, "Playlists", "playlist");
                 }
 
                 // Actualizar datos solo si se proporcionan
@@ -253,7 +229,6 @@ namespace Melody.API.Controllers
                     playlist.EsPublica = dto.EsPublica.Value;
 
                 await _context.SaveChangesAsync();
-                _logger.LogInformation("Playlist actualizada: {Nombre} por {Usuario}", playlist.Nombre, usuario.Email);
 
                 return Ok(new
                 {
@@ -287,7 +262,7 @@ namespace Melody.API.Controllers
                     return BadRequest(ModelState);
                 }
 
-                var usuario = await ObtenerUsuarioActualAsync();
+                var usuario = await _usuarioService.ObtenerUsuarioActualAsync();
                 if (usuario == null)
                 {
                     return Unauthorized("Usuario no autenticado");
@@ -303,20 +278,15 @@ namespace Melody.API.Controllers
                 // Subir imagen si se proporciona
                 if (dto.Imagen != null)
                 {
-                    var extensionesPermitidas = new[] { ".jpg", ".jpeg", ".png", ".webp" };
-                    var extension = Path.GetExtension(dto.Imagen.FileName).ToLower();
+                    var (imagenValida, imagenError) = ValidacionService.ValidarArchivo(
+                    dto.Imagen,
+                    ValidacionService.Archivos.ExtensionesImagen,
+                    ValidacionService.Archivos.MaxTamanoImagen);
 
-                    if (!extensionesPermitidas.Contains(extension))
-                    {
-                        return BadRequest("Formato de imagen no permitido. Use .jpg, .jpeg, .png o .webp");
-                    }
+                    if (!imagenValida)
+                        return BadRequest(imagenError);
 
-                    if (dto.Imagen.Length > 5 * 1024 * 1024) // 5MB
-                    {
-                        return BadRequest("La imagen no puede exceder los 5 MB");
-                    }
-
-                    playlist.Imagen = await SubirImagenPlaylistAsync(dto.Imagen);
+                    playlist.Imagen = await _blobService.SubirArchivoAsync(dto.Imagen, "Playlists", "playlist");
                 }
 
                 _context.Playlists.Add(playlist);
@@ -350,7 +320,7 @@ namespace Melody.API.Controllers
         {
             try
             {
-                var usuario = await ObtenerUsuarioActualAsync();
+                var usuario = await _usuarioService.ObtenerUsuarioActualAsync();
                 if (usuario == null)
                 {
                     return Unauthorized("Usuario no autenticado");
@@ -365,16 +335,11 @@ namespace Melody.API.Controllers
                     return NotFound("Playlist no encontrada o no tienes permisos para eliminarla");
                 }
 
-                // Eliminar imagen si existe
-                if (!string.IsNullOrEmpty(playlist.Imagen))
-                {
-                    await EliminarArchivoBlobAsync(playlist.Imagen);
-                }
+                // Eliminar imagen 
+                await _blobService.EliminarArchivoAsync(playlist.Imagen, "Playlists");
 
                 _context.Playlists.Remove(playlist);
                 await _context.SaveChangesAsync();
-
-                _logger.LogInformation("Playlist eliminada: {Nombre} por {Usuario}", playlist.Nombre, usuario.Email);
 
                 return Ok(new { mensaje = "Playlist eliminada con éxito" });
             }
@@ -417,38 +382,6 @@ namespace Melody.API.Controllers
             {
                 _logger.LogError(ex, "Error al buscar playlists con término '{Termino}'", q);
                 return StatusCode(StatusCodes.Status500InternalServerError, "Error en la búsqueda");
-            }
-        }
-        // Métodos auxiliares para manejo de archivos
-        private async Task<string> SubirImagenPlaylistAsync(IFormFile imagen)
-        {
-            var extension = Path.GetExtension(imagen.FileName).ToLower();
-            var nombreImagen = $"playlist_{Guid.NewGuid()}{extension}";
-            var blobClient = _playlistImagesContainer.GetBlobClient(nombreImagen);
-
-            using (var stream = imagen.OpenReadStream())
-            {
-                await blobClient.UploadAsync(stream, true);
-            }
-
-            return $"https://appmelody.blob.core.windows.net/playlist-images/{nombreImagen}";
-        }
-
-        private async Task EliminarArchivoBlobAsync(string url)
-        {
-            if (!string.IsNullOrEmpty(url))
-            {
-                try
-                {
-                    var uri = new Uri(url);
-                    var blobName = uri.Segments.Last();
-                    var blobClient = _playlistImagesContainer.GetBlobClient(blobName);
-                    await blobClient.DeleteIfExistsAsync();
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Error al eliminar archivo blob: {Url}", url);
-                }
             }
         }
     }

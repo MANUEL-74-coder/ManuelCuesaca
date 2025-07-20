@@ -150,17 +150,9 @@ namespace Melody.API.Controllers
                 {
                     return BadRequest("Ya existe un plan con ese nombre.");
                 }
-                var nuevoPlan = new Plan
-                {
-                    Nombre = plan.Nombre,
-                    Descripcion = plan.Descripcion,
-                    Precio = plan.Precio,
-                    DuracionDias = plan.DuracionDias,
-                    NumeroUsuarios = plan.NumeroUsuarios
-                };
-                _context.Planes.Add(nuevoPlan);
+                _context.Planes.Add(plan);
                 await _context.SaveChangesAsync();
-                return CreatedAtAction("ObtenerPlan", new { id = nuevoPlan.Id }, nuevoPlan);
+                return CreatedAtAction("ObtenerPlan", new { id = plan.Id }, plan);
             }
             catch (Exception ex)
             {
