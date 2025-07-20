@@ -1,0 +1,108 @@
+﻿﻿:root {
+    --azul-oscuro: #1a1f3a;
+    --azul-principal: #2563eb;
+    --cyan: #06b6d4;
+    --morado: #7c3aed;
+    --rosa: #be185d;
+    --blanco: #ffffff;
+    --verde-exito: #10b981;
+    --rojo-error: #ef4444;
+}
+
+/* Fondo de la página */
+body {
+    background: linear-gradient(135deg, var(--azul-oscuro) 0%, var(--azul-principal) 50%, var(--morado) 100%);
+    min-height: 100vh;
+}
+
+/* Header para las tarjetas*/
+.bg-primary {
+    background: linear-gradient(135deg, var(--morado) 0%, var(--rosa) 100%) !important;
+    border-radius: 15px 15px 0 0 !important;
+}
+
+.bg-warning {
+    background: linear-gradient(135deg, var(--verde-exito) 0%, #34d399 100%) !important;
+    border-radius: 15px 15px 0 0 !important;
+}
+
+/* Botones */
+.btn-primary {
+    background: linear-gradient(135deg, var(--morado) 0%, var(--rosa) 100%);
+    border-radius: 25px;
+}
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, var(--cyan) 0%, var(--morado) 100%);
+    }
+
+.btn-success {
+    background: linear-gradient(135deg, var(--verde-exito) 0%, #34d399 100%);
+    border-radius: 25px;
+}
+
+    .btn-success:hover {
+        background: linear-gradient(135deg, #059669 0%, var(--verde-exito) 100%);
+    }
+
+.card {
+    border-radius: 15px;
+}
+
+/* Inputs */
+.form-control {
+    border-radius: 25px;
+}
+
+    .form-control:focus {
+        border-color: var(--cyan);
+        box-shadow: none;
+    }
+/* Alertas*/
+.alert-success {
+    background: rgba(16, 185, 129, 0.1);
+    color: #065f46;
+    border-left: 4px solid var(--verde-exito);
+}
+
+.alert-danger {
+    background: rgba(239, 68, 68, 0.1);
+    color: #991b1b;
+    border-left: 4px solid var(--rojo-error);
+}
+
+.alert-info {
+    background: rgba(6, 182, 212, 0.1);
+    color: var(--azul-oscuro);
+    border-left: 4px solid var(--cyan);
+}
+
+/* Enlaces con efecto */
+a {
+    color: var(--morado);
+    position: relative;
+}
+
+    a:hover {
+        color: var(--rosa);
+    }
+
+    a::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background: linear-gradient(135deg, var(--morado) 0%, var(--rosa) 100%);
+        transition: width 0.3s ease;
+    }
+
+    a:hover::after {
+        width: 100%;
+    }
+
+/* Validaciones */
+.text-danger {
+    color: var(--rojo-error) !important;
+}
