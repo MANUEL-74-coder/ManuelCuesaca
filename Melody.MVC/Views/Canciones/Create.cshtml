@@ -1,0 +1,74 @@
+﻿@model Melody.Modelos.DTOs.CancionCrearDto
+
+@{
+    ViewData["Title"] = "Subir Canción";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Subir Nueva Canción</h4>
+                </div>
+                <div class="card-body">
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger">
+                            @TempData["Error"]
+                        </div>
+                    }
+
+                    <form asp-action="Create" method="post" enctype="multipart/form-data">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Titulo" class="form-label">Título de la Canción *</label>
+                            <input asp-for="Titulo" class="form-control" placeholder="Ingresa el título de tu canción" />
+                            <span asp-validation-for="Titulo" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ArchivoAudio" class="form-label">Archivo de Audio *</label>
+                            <input asp-for="ArchivoAudio" type="file" class="form-control" accept=".mp3,.wav,.flac" />
+                            <span asp-validation-for="ArchivoAudio" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ImagenPortada" class="form-label">Imagen de Portada</label>
+                            <input asp-for="ImagenPortada" type="file" class="form-control" accept="image/*" />
+                            <span asp-validation-for="ImagenPortada" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="GeneroId" class="form-label">Género</label>
+                            <select asp-for="GeneroId" class="form-select" asp-items="@(new SelectList(ViewBag.Generos, "Value", "Text"))">
+                                <option value="">Selecciona un género</option>
+                            </select>
+                            <span asp-validation-for="GeneroId" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="AlbumId" class="form-label">Álbum (Opcional)</label>
+                            <select asp-for="AlbumId" class="form-select" asp-items="@(new SelectList(ViewBag.Albums, "Value", "Text"))">
+                                <option value="">Sin álbum</option>
+                            </select>
+                            <span asp-validation-for="AlbumId" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="@Url.Action("MisCanciones")" class="btn btn-secondary">Cancelar</a>
+                            <button type="submit" class="btn btn-primary">Subir Canción</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
