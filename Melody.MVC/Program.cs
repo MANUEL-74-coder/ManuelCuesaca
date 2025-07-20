@@ -1,21 +1,27 @@
 using Melody.API.Consumer;
+using Melody.Modelos.DTOs;
 using Melody.Modelos;
 using Melody.MVC.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using static System.Net.WebRequestMethods;
 
 internal class Program
 {
     private static void Main(string[] args)
     {
+        //Crud<AlbumDto>.Endpoint = "https://localhost:7115/api/Albums";
         Crud<Album>.Endpoint = "https://localhost:7115/api/Albums";
         Crud<Playlist>.Endpoint = "https://localhost:7115/api/Playlists";
-        Crud<Cancion>.Endpoint = "https://localhost:7115/api/Canciones";
+        Crud<CancionDto>.Endpoint = "https://localhost:7115/api/Canciones";
         Crud<Genero>.Endpoint = "https://localhost:7115/api/Generos";
         Crud<Plan>.Endpoint = "https://localhost:7115/api/Planes";
         Crud<Pago>.Endpoint = "https://localhost:7115/api/Pagos";
         Crud<Suscripcion>.Endpoint = "https://localhost:7115/api/Suscripciones";
         Crud<PlaylistCancion>.Endpoint = "https://localhost:7115/api/PlaylistsCanciones";
         Crud<Seguimiento>.Endpoint = "https://localhost:7115/api/Seguimientos";
+        Crud<Artista>.Endpoint = "https://localhost:7115/api/Artistas";
+        Crud<ArtistaDto>.Endpoint = "https://localhost:7115/api/Artistas";
+       // Crud<MiPerfilDto>.Endpoint = "https://localhost:7115/api/Usuarios";
 
 
 
@@ -23,6 +29,18 @@ internal class Program
 
         // Add services to the container.
         builder.Services.AddControllersWithViews();
+
+        builder.Services.AddHttpClient();
+
+        builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+          .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+          {
+              options.LoginPath = "/Auth/Login";
+              options.LogoutPath = "/Auth/Salir";
+              options.AccessDeniedPath = "/Auth/AccessDenied";
+              options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
+              options.SlidingExpiration = true;
+          });
 
         // Configurar sesiones (IMPORTANTE para guardar JWT)
         builder.Services.AddDistributedMemoryCache();
@@ -36,7 +54,6 @@ internal class Program
         // Registrar HttpContextAccessor (necesario para AuthService)
         builder.Services.AddHttpContextAccessor();
 
-        builder.Services.AddHttpClient();
         // Registrar el AuthService
         builder.Services.AddScoped<AuthService>();
 
@@ -56,7 +73,7 @@ internal class Program
         app.UseRouting();
 
         app.UseSession();
-
+        app.UseAuthentication();
         app.UseAuthorization();
 
         app.MapControllerRoute(
