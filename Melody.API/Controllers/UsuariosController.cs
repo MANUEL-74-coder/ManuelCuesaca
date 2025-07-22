@@ -170,7 +170,7 @@ namespace Melody.API.Controllers
                     Roles = roles.ToList(),
                     TieneSuscripcionActiva = suscripcionActiva != null,
                     PlanNombre = suscripcionActiva?.Plan?.Nombre,
-                    PlanPrecio = (decimal?)(suscripcionActiva?.Plan?.Precio),
+                    PlanPrecio = suscripcionActiva?.Plan?.Precio,
                     SuscripcionFechaInicio = suscripcionActiva?.FechaInicio,
                     SuscripcionFechaFin = suscripcionActiva?.FechaFin
                 };

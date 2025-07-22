@@ -1,13 +1,14 @@
-﻿using System.Text;
+﻿using Meldoy.API.Inicializador;
+using Melody.API.Inicializador;
 using Melody.API.Service;
+using Melody.API.Services;
 using Melody.Modelos;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using Melody.API.Inicializador;
-using Meldoy.API.Inicializador;
+using System.Text;
+
 internal class Program
 {
     private static void Main(string[] args)
@@ -19,37 +20,30 @@ internal class Program
             options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
         );
 
-        //Configuración de Identity
+        // Configuración de Identity
         builder.Services.AddIdentity<Usuario, IdentityRole<int>>(options =>
         {
-            // Configuración de contraseñas
             options.Password.RequireDigit = true;
             options.Password.RequiredLength = 6;
             options.Password.RequireNonAlphanumeric = false;
             options.Password.RequireUppercase = true;
             options.Password.RequireLowercase = true;
 
-            // Configuración de lockout o intentos fallidos 
             options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(1);
             options.Lockout.MaxFailedAccessAttempts = 5;
             options.Lockout.AllowedForNewUsers = true;
 
-            // Configuración de usuario
             options.User.RequireUniqueEmail = true;
-            options.SignIn.RequireConfirmedEmail = true; // Requerir confirmación por email
+            options.SignIn.RequireConfirmedEmail = true;
         })
-        .AddEntityFrameworkStores<AppDbContext>()  // ⭐ ESTO REGISTRA UserManager, SignInManager, etc.
+        .AddEntityFrameworkStores<AppDbContext>()
         .AddDefaultTokenProviders();
 
-
-        //Tiempo de vida de los tokens
         builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
         {
-
             options.TokenLifespan = TimeSpan.FromMinutes(30);
         });
 
-        // Configuración JWT
         var jwtKey = builder.Configuration["Jwt:Key"];
         if (string.IsNullOrEmpty(jwtKey))
         {
@@ -76,20 +70,18 @@ internal class Program
             };
         });
 
-        // Registrar servicios personalizados
         builder.Services.AddScoped<JwtService>();
         builder.Services.AddScoped<EmailService>();
         builder.Services.AddScoped<IDbInicializador, DbInicializador>();
+        builder.Services.AddHttpClient();
+        builder.Services.AddScoped<PayPalService>();
 
-
-        //Add services to the container
         builder.Services
             .AddControllers()
             .AddNewtonsoftJson(
                 options => options.SerializerSettings.ReferenceLoopHandling
                 = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
 
-        // Configuración de CORS para permitir llamadas desde el MVC
         builder.Services.AddCors(options =>
         {
             options.AddDefaultPolicy(policy =>
@@ -100,13 +92,11 @@ internal class Program
             });
         });
 
-        // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen(c =>
         {
             c.SwaggerDoc("v1", new() { Title = "Melody API", Version = "v1" });
 
-            // Configuración para JWT en Swagger
             c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
             {
                 Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
@@ -134,10 +124,10 @@ internal class Program
                 }
             });
         });
+
         builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
         var app = builder.Build();
 
-        // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
         {
             app.UseSwagger();
@@ -149,7 +139,6 @@ internal class Program
         app.UseAuthentication();
         app.UseAuthorization();
 
-        //Aplicar migraciones y datos iniciales
         using (var scope = app.Services.CreateScope())
         {
             var services = scope.ServiceProvider;
@@ -165,8 +154,8 @@ internal class Program
                 logger.LogError(ex, "Un Error ocurrió al ejecutar la migración");
             }
         }
-        app.MapControllers();
 
+        app.MapControllers();
         app.Run();
     }
 }

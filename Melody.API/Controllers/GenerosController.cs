@@ -46,16 +46,17 @@ namespace Melody.API.Controllers
         public async Task<ActionResult<Genero>> ObtenerGenero(int id)
         {
             var genero = await _context.Generos
+                .AsSplitQuery()
                 .Include(g => g.Albums)
-                    .ThenInclude(a => a.Artista)  // ⭐ AGREGAR ESTO
+                    .ThenInclude(a => a.Artista)
                 .Include(g => g.Canciones)
-                .ThenInclude(c => c.Artista)  // ⭐ AGREGAR ESTO
-        .FirstOrDefaultAsync(g => g.Id == id);
+                    .ThenInclude(c => c.Artista)
+                .FirstOrDefaultAsync(g => g.Id == id);
+
             if (genero == null)
             {
                 return NotFound();
             }
-
             return genero;
         }
 

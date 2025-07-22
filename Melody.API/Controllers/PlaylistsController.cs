@@ -28,35 +28,52 @@ namespace Melody.API.Controllers
             _logger = logger;
         }
 
-
-        // GET: api/Playlists
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<object>>> ObtenerPlaylistsPublicas()
+        [AllowAnonymous]
+        public async Task<ActionResult<IEnumerable<PlaylistDto>>> ObtenerPlaylistsPublicas()
         {
             try
             {
-                var playlists = await _context.Playlists
-                    .Include(p => p.Usuario)
-                    .Include(p => p.PlaylistCanciones)
+                var playlistsBasicas = await _context.Playlists
                     .Where(p => p.EsPublica)
-                    .Select(p => new
-                    {
-                        p.Id,
-                        p.Nombre,
-                        p.Imagen,
-                        TotalCanciones = p.PlaylistCanciones != null ? p.PlaylistCanciones.Count : 0,
-                        Creador = new
-                        {
-                            p.Usuario!.Id,
-                            p.Usuario.Nombre,
-                            p.Usuario.Apellido,
-                            p.Usuario.FotoPerfil
-                        }
-                    })
-                    .OrderByDescending(p => p.TotalCanciones)
                     .ToListAsync();
 
-                return Ok(playlists);
+                var resultado = new List<PlaylistDto>();
+
+                foreach (var playlist in playlistsBasicas)
+                {
+                    try
+                    {
+                        var usuario = await _context.Usuarios.FindAsync(playlist.UsuarioId);
+
+                        var totalCanciones = await _context.PlaylistsCanciones
+                            .Where(pc => pc.PlaylistId == playlist.Id)
+                            .CountAsync();
+
+                        var playlistDto = new PlaylistDto
+                        {
+                            Id = playlist.Id,
+                            Nombre = playlist.Nombre ?? "Sin nombre",
+                            Imagen = playlist.Imagen,
+                            EsPublica = playlist.EsPublica,
+                            TotalCanciones = totalCanciones,
+                            CreadorId = usuario?.Id ?? 0,
+                            CreadorNombre = usuario?.Nombre ?? "Usuario",
+                            CreadorApellido = usuario?.Apellido ?? "Desconocido",
+                            CreadorFotoPerfil = usuario?.FotoPerfil,
+                            DuracionTotal = 0
+                        };
+
+                        resultado.Add(playlistDto);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"Error procesando playlist {playlist.Id}");
+                        continue;
+                    }
+                }
+
+                return Ok(resultado.OrderByDescending(p => p.TotalCanciones));
             }
             catch (Exception ex)
             {
@@ -67,7 +84,8 @@ namespace Melody.API.Controllers
 
         // GET: api/Playlists/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<object>> ObtenerPlaylist(int id)
+        [Authorize]
+        public async Task<ActionResult<PlaylistDto>> ObtenerPlaylist(int id)
         {
             try
             {
@@ -94,41 +112,31 @@ namespace Melody.API.Controllers
                     .Include(pc => pc.Cancion)
                     .ThenInclude(c => c.Genero)
                     .Where(pc => pc.PlaylistId == id)
-                    .Select(pc => new
+                    .Select(pc => new CancionDto
                     {
-                        PlaylistCancionId = pc.Id,
-                        Cancion = new
-                        {
-                            pc.Cancion!.Id,
-                            pc.Cancion.Titulo,
-                            pc.Cancion.Duracion,
-                            pc.Cancion.PortadaUrl,
-                            pc.Cancion.ArchivoAudio,
-                            Artista = new
-                            {
-                                pc.Cancion.Artista!.Id,
-                                pc.Cancion.Artista.NombreArtista
-                            },
-                            Genero = pc.Cancion.Genero!.Nombre
-                        }
+                        Id = pc.Cancion!.Id,
+                        Titulo = pc.Cancion.Titulo,
+                        Duracion = pc.Cancion.Duracion,
+                        PortadaUrl = pc.Cancion.PortadaUrl,
+                        ArchivoAudioUrl = pc.Cancion.ArchivoAudio,
+                        FechaLanzamiento = pc.Cancion.FechaLanzamiento,
+                        ArtistaNombre = pc.Cancion.Artista!.NombreArtista,
+                        GeneroNombre = pc.Cancion.Genero!.Nombre
                     })
                     .ToListAsync();
 
-                var resultado = new
+                var resultado = new PlaylistDto
                 {
-                    playlist.Id,
-                    playlist.Nombre,
-                    playlist.Imagen,
-                    playlist.EsPublica,
+                    Id = playlist.Id,
+                    Nombre = playlist.Nombre,
+                    Imagen = playlist.Imagen,
+                    EsPublica = playlist.EsPublica,
                     TotalCanciones = canciones.Count,
-                    DuracionTotal = canciones.Sum(c => c.Cancion.Duracion?.TotalMinutes ?? 0),
-                    Creador = new
-                    {
-                        playlist.Usuario!.Id,
-                        playlist.Usuario.Nombre,
-                        playlist.Usuario.Apellido,
-                        playlist.Usuario.FotoPerfil
-                    },
+                    DuracionTotal = canciones.Sum(c => c.Duracion?.TotalMinutes ?? 0),
+                    CreadorId = playlist.Usuario!.Id,
+                    CreadorNombre = playlist.Usuario.Nombre,
+                    CreadorApellido = playlist.Usuario.Apellido,
+                    CreadorFotoPerfil = playlist.Usuario.FotoPerfil,
                     Canciones = canciones
                 };
 
@@ -144,8 +152,8 @@ namespace Melody.API.Controllers
 
         // GET: api/Playlists/mis-playlists - Obtener mis playlists
         [HttpGet("mis-playlists")]
-        [Authorize]
-        public async Task<ActionResult<IEnumerable<object>>> ObtenerMisPlaylists()
+        [Authorize(Roles = "userpremium")]
+        public async Task<ActionResult<IEnumerable<PlaylistDto>>> ObtenerMisPlaylists()
         {
             try
             {
@@ -158,13 +166,18 @@ namespace Melody.API.Controllers
                 var playlists = await _context.Playlists
                     .Include(p => p.PlaylistCanciones)
                     .Where(p => p.UsuarioId == usuario.Id)
-                    .Select(p => new
+                    .Select(p => new PlaylistDto
                     {
-                        p.Id,
-                        p.Nombre,
-                        p.Imagen,
-                        p.EsPublica,
-                        TotalCanciones = p.PlaylistCanciones != null ? p.PlaylistCanciones.Count : 0
+                        Id = p.Id,
+                        Nombre = p.Nombre,
+                        Imagen = p.Imagen,
+                        EsPublica = p.EsPublica,
+                        TotalCanciones = p.PlaylistCanciones != null ? p.PlaylistCanciones.Count : 0,
+                        CreadorId = usuario.Id,
+                        CreadorNombre = usuario.Nombre,
+                        CreadorApellido = usuario.Apellido,
+                        CreadorFotoPerfil = usuario.FotoPerfil,
+                        DuracionTotal = 0 // Opcional: calcular si necesitas mostrar duración
                     })
                     .OrderBy(p => p.Nombre)
                     .ToListAsync();
@@ -182,7 +195,7 @@ namespace Melody.API.Controllers
         // PUT: api/Playlists/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        [Authorize]
+        [Authorize(Roles = "userpremium")]
         public async Task<IActionResult> ActualizarPlaylist(int id, [FromForm] ActualizarPlaylistDto dto)
         {
             try
@@ -252,8 +265,8 @@ namespace Melody.API.Controllers
         // POST: api/Playlists
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        [Authorize]
-        public async Task<ActionResult<object>> CrearPlaylist([FromForm] CrearPlaylistDto dto)
+        [Authorize(Roles = "userpremium")]
+        public async Task<ActionResult> CrearPlaylist([FromForm] CrearPlaylistDto dto)
         {
             try
             {
@@ -268,26 +281,29 @@ namespace Melody.API.Controllers
                     return Unauthorized("Usuario no autenticado");
                 }
 
-                var playlist = new Playlist
-                {
-                    Nombre = dto.Nombre,
-                    EsPublica = dto.EsPublica,
-                    UsuarioId = usuario.Id
-                };
+                string imagenUrl = null;
 
                 // Subir imagen si se proporciona
                 if (dto.Imagen != null)
                 {
                     var (imagenValida, imagenError) = ValidacionService.ValidarArchivo(
-                    dto.Imagen,
-                    ValidacionService.Archivos.ExtensionesImagen,
-                    ValidacionService.Archivos.MaxTamanoImagen);
+                        dto.Imagen,
+                        ValidacionService.Archivos.ExtensionesImagen,
+                        ValidacionService.Archivos.MaxTamanoImagen);
 
                     if (!imagenValida)
                         return BadRequest(imagenError);
 
-                    playlist.Imagen = await _blobService.SubirArchivoAsync(dto.Imagen, "Playlists", "playlist");
+                    imagenUrl = await _blobService.SubirArchivoAsync(dto.Imagen, "Playlists", "playlist");
                 }
+
+                var playlist = new Playlist
+                {
+                    Nombre = dto.Nombre,
+                    EsPublica = dto.EsPublica,
+                    UsuarioId = usuario.Id,
+                    Imagen = imagenUrl ?? "https://appmelody.blob.core.windows.net/playlist-images/default.jpg" // Imagen por defecto
+                };
 
                 _context.Playlists.Add(playlist);
                 await _context.SaveChangesAsync();
@@ -315,7 +331,7 @@ namespace Melody.API.Controllers
 
         // DELETE: api/Playlists/5
         [HttpDelete("{id}")]
-        [Authorize]
+        [Authorize(Roles = "userpremium")]
         public async Task<IActionResult> EliminarPlaylist(int id)
         {
             try
@@ -352,7 +368,8 @@ namespace Melody.API.Controllers
 
         // GET: api/Playlists/buscar?q=rock - Buscar playlists públicas
         [HttpGet("buscar")]
-        public async Task<ActionResult<IEnumerable<object>>> BuscarPlaylists([FromQuery] string q)
+        [AllowAnonymous]
+        public async Task<ActionResult<IEnumerable<PlaylistDto>>> BuscarPlaylists([FromQuery] string q)
         {
             try
             {
@@ -362,18 +379,23 @@ namespace Melody.API.Controllers
                 }
 
                 var playlists = await _context.Playlists
-                    .Include(p => p.Usuario)
-                    .Include(p => p.PlaylistCanciones)
-                    .Where(p => p.EsPublica && p.Nombre.Contains(q))
-                    .Select(p => new
-                    {
-                        p.Id,
-                        p.Nombre,
-                        p.Imagen,
-                        TotalCanciones = p.PlaylistCanciones != null ? p.PlaylistCanciones.Count : 0,
-                        Creador = p.Usuario!.Nombre + " " + p.Usuario.Apellido
-                    })
-                    .Take(20)
+                   .Include(p => p.Usuario)
+                   .Include(p => p.PlaylistCanciones)
+                   .Where(p => p.EsPublica && p.Nombre.Contains(q))
+                   .Select(p => new PlaylistDto
+                   {
+                       Id = p.Id,
+                       Nombre = p.Nombre,
+                       Imagen = p.Imagen,
+                       EsPublica = p.EsPublica,
+                       TotalCanciones = p.PlaylistCanciones != null ? p.PlaylistCanciones.Count : 0,
+                       CreadorId = p.Usuario!.Id,
+                       CreadorNombre = p.Usuario.Nombre,
+                       CreadorApellido = p.Usuario.Apellido,
+                       CreadorFotoPerfil = p.Usuario.FotoPerfil,
+                       DuracionTotal = 0
+                   })
+                   .Take(20)
                     .ToListAsync();
 
                 return Ok(playlists);

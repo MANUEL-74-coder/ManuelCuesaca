@@ -1,0 +1,201 @@
+/* Variables actualizadas */
+:root {
+    --azul-oscuro: #1a1f3a;
+    --azul-principal: #2563eb;
+    --cyan: #06b6d4;
+    --morado: #7c3aed;
+    --rosa: #be185d;
+    --blanco: #ffffff;
+    --verde-exito: #10b981;
+    --rojo-error: #ef4444;
+    --gris-medio: #64748b;
+    --gris-claro: #f8fafc;
+    --gris-oscuro: #334155;
+    /* Fondo principal con transparencia reducida */
+    --fondo-principal: rgba(255, 255, 255, 0.85);
+    --sombra-principal: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* Contenedor principal */
+.content-wrapper {
+    background: var(--fondo-principal);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 24px;
+    padding: 2.5rem;
+    margin: 1rem auto;
+    max-width: 1000px;
+    box-shadow: var(--sombra-principal);
+}
+
+/* Títulos */
+h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, var(--azul-principal), var(--morado));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+h3 {
+    color: var(--gris-oscuro);
+    font-size: 1.5rem;
+    font-weight: 600;
+    text-align: center;
+    margin: 1rem 0;
+}
+
+h4 {
+    color: var(--gris-oscuro);
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+}
+
+/* Tabla */
+.table {
+    background: var(--blanco);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    border: none;
+    margin: 1.5rem 0;
+}
+
+    .table thead {
+        background: linear-gradient(135deg, var(--azul-principal), var(--cyan));
+    }
+
+        .table thead th {
+            border: none;
+            padding: 1.2rem 1.5rem;
+            font-weight: 700;
+            color: var(--blanco);
+            letter-spacing: 1px;
+        }
+
+    .table tbody td {
+        padding: 1rem 1.5rem;
+        border: none;
+        color: var(--gris-oscuro);
+        background: transparent;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        font-weight: 500;
+    }
+
+    .table tbody tr:hover {
+        background: rgba(37, 99, 235, 0.04);
+        transform: translateY(-1px);
+        transition: all 0.3s ease;
+    }
+
+    .table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+/* Botones */
+.btn {
+    border-radius: 25px;
+    padding: 0.8rem 2rem;
+    font-weight: 600;
+    border: none;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+    margin: 0.3rem;
+    font-size: 0.95rem;
+    letter-spacing: 0.5px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--azul-principal), var(--cyan));
+    color: var(--blanco);
+    box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, var(--rojo-error), #f87171);
+    color: var(--blanco);
+    box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3);
+}
+
+/* Formularios */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-control {
+    background: var(--blanco);
+    border: 2px solid rgba(37, 99, 235, 0.15);
+    border-radius: 12px;
+    color: var(--gris-oscuro);
+    padding: 1rem 1.25rem;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+
+    .form-control[readonly] {
+        background: var(--gris-claro);
+    }
+
+.control-label {
+    color: var(--gris-oscuro);
+}
+
+/* Información de detalles */
+.row dl {
+    background: var(--blanco);
+    padding: 1.5rem;
+    border-radius: 16px;
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1.5rem;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.5rem 2rem;
+    align-items: center;
+}
+
+.row dt {
+    color: var(--azul-principal);
+    font-weight: 700;
+    padding: 0.5rem 0;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.row dd {
+    color: var(--gris-oscuro);
+    font-weight: 600;
+    padding: 0.5rem 0;
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+/* Párrafos */
+p {
+    color: var(--gris-oscuro);
+    text-align: center;
+    margin: 1.5rem 0;
+    font-weight: 500;
+}
+
+/* Enlaces en tablas */
+td a {
+    color: var(--azul-principal);
+    font-weight: 600;
+    padding: 0.3rem 0.8rem;
+}
+
+/* Confirmación de eliminación */
+.content-wrapper h3 {
+    background: rgba(239, 68, 68, 0.1);
+    padding: 1rem;
+    border-radius: 12px;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}

@@ -47,7 +47,6 @@ namespace Melody.API.Controllers
         }
 
         // GET: api/Artistas/5 - Obtener artista específico (público)
-        // GET: api/Artistas/5 - Obtener artista específico (público)
         [HttpGet("{id}")]
         public async Task<ActionResult<ArtistaDto>> ObtenerArtista(int id)
         {
@@ -62,6 +61,15 @@ namespace Melody.API.Controllers
                 if (artista == null)
                 {
                     return NotFound("Artista no encontrado");
+                }
+
+                var usuarioActual = await _usuarioService.ObtenerUsuarioActualAsync();
+                bool estaSiguiendo = false;
+
+                if (usuarioActual != null)
+                {
+                    estaSiguiendo = await _context.Seguimientos
+                        .AnyAsync(s => s.UsuarioId == usuarioActual.Id && s.ArtistaId == id);
                 }
 
                 // Luego obtenemos las canciones por separado
@@ -91,6 +99,8 @@ namespace Melody.API.Controllers
                 var totalAlbums = await _context.Albums
                     .CountAsync(a => a.ArtistaId == id);
 
+                bool esMiPerfil = usuarioActual != null && usuarioActual.Id == artista.UsuarioId;
+
                 // Construimos el ArtistaDto
                 var artistaDto = new ArtistaDto
                 {
@@ -102,7 +112,9 @@ namespace Melody.API.Controllers
                     TotalSeguidores = artista.Seguidores?.Count ?? 0,
                     TotalCanciones = await _context.Canciones.CountAsync(c => c.ArtistaId == id),
                     TotalAlbums = totalAlbums,
-                    Canciones = canciones
+                    Canciones = canciones,
+                    EstaSiguiendo = estaSiguiendo,
+                    EsMiPerfil = esMiPerfil
                 };
 
                 return Ok(artistaDto);
@@ -113,79 +125,6 @@ namespace Melody.API.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, "Error al obtener el artista");
             }
         }
-        // GET: api/Artistas/5/detalle
-        [HttpGet("detalle/{id}")]
-        public async Task<ActionResult<ArtistaDto>> ObtenerArtistaDetalle(int id)
-        {
-            try
-            {
-                var artista = await _context.Artistas
-                    .Include(a => a.Usuario)
-                    .Where(a => a.Id == id)
-                    .FirstOrDefaultAsync();
-
-                if (artista == null)
-                {
-                    return NotFound("Artista no encontrado");
-                }
-
-                // Obtener canciones del artista
-                var canciones = await _context.Canciones
-                    .Include(c => c.Genero)
-                    .Include(c => c.Album)
-                    .Where(c => c.ArtistaId == id)
-                    .Select(c => new CancionDto
-                    {
-                        Id = c.Id,
-                        Titulo = c.Titulo,
-                        FechaLanzamiento = c.FechaLanzamiento,
-                        ArchivoAudioUrl = c.ArchivoAudio,
-                        PortadaUrl = c.PortadaUrl,
-                        Duracion = c.Duracion,
-                        GeneroId = c.GeneroId,
-                        GeneroNombre = c.Genero!.Nombre,
-                        AlbumId = c.AlbumId,
-                        AlbumNombre = c.Album != null ? c.Album.Titulo : "Sin Álbum",
-                        ArtistaId = c.ArtistaId,
-                        ArtistaNombre = artista.NombreArtista
-
-                    })
-                    .OrderByDescending(c => c.FechaLanzamiento)
-                    .ToListAsync();
-
-                // Contar álbumes únicos
-                var totalAlbums = await _context.Canciones
-                    .Where(c => c.ArtistaId == id && c.AlbumId != null)
-                    .Select(c => c.AlbumId)
-                    .Distinct()
-                    .CountAsync();
-
-                // Contar seguidores (si tienes tabla de seguimientos)
-                var totalSeguidores = await _context.Seguimientos
-                    .CountAsync(s => s.ArtistaId == id);
-
-                var artistaDto = new ArtistaDto
-                {
-                    Id = artista.Id,
-                    NombreArtista = artista.NombreArtista,
-                    Biografia = artista.Biografia,
-                    ImagenPerfil = artista.ImagenPerfil,
-                    TotalCanciones = canciones.Count,
-                    TotalAlbums = totalAlbums,
-                    TotalSeguidores = totalSeguidores,
-                    Canciones = canciones
-                };
-
-                return Ok(artistaDto);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al obtener detalles del artista con ID {Id}", id);
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error al obtener detalles del artista");
-            }
-        }
-
-
 
         // GET: api/Artistas/mi-perfil - Obtener perfil del artista autenticado
         [HttpGet("mi-perfil")]
@@ -198,41 +137,44 @@ namespace Melody.API.Controllers
                 if (usuario == null)
                 {
                     return Unauthorized("Usuario no autenticado");
-
                 }
+
                 var artista = await _context.Artistas
-                    .Include(a => a.Usuario)
-                    .Include(a => a.Canciones)
-                    .Include(a => a.Albums)
-                    .Include(a => a.Seguidores)
+                    .Include(a => a.Usuario)  // Solo incluir Usuario que sí necesitas
                     .FirstOrDefaultAsync(a => a.UsuarioId == usuario.Id);
+
                 if (artista == null)
                 {
                     return NotFound("Perfil de artista no encontrado");
                 }
-                var perfil = new
-                {
-                    artista.Id,
-                    artista.NombreArtista,
-                    artista.Biografia,
-                    artista.ImagenPerfil,
-                    Usuario = new
-                    {
-                        usuario.Nombre,
-                        usuario.Apellido,
-                        usuario.Email,
-                        usuario.FotoPerfil,
-                        usuario.FechaRegistro
-                    },
-                    Estadisticas = new
-                    {
-                        TotalCanciones = artista.Canciones?.Count ?? 0,
-                        TotalAlbums = artista.Albums?.Count ?? 0,
-                        TotalSeguidores = artista.Seguidores?.Count ?? 0
-                    }
-                };
-                return Ok(perfil);
 
+                // Obtener conteos por separado (más eficiente)
+                var totalCanciones = await _context.Canciones
+                    .CountAsync(c => c.ArtistaId == artista.Id);
+
+                var totalAlbums = await _context.Albums
+                    .CountAsync(a => a.ArtistaId == artista.Id);
+
+                var totalSeguidores = await _context.Seguimientos
+                    .CountAsync(s => s.ArtistaId == artista.Id);
+
+                var perfil = new ArtistaDto
+                {
+                    Id = artista.Id,
+                    NombreArtista = artista.NombreArtista,
+                    Biografia = artista.Biografia,
+                    ImagenPerfil = artista.ImagenPerfil,
+                    TotalCanciones = totalCanciones,
+                    TotalAlbums = totalAlbums,
+                    TotalSeguidores = totalSeguidores,
+                    FechaRegistro = usuario.FechaRegistro,
+                    Canciones = new List<CancionDto>(),
+                    NombreUsuario = usuario.Nombre,
+                    ApellidoUsuario = usuario.Apellido,
+                    EmailUsuario = usuario.Email
+                };
+
+                return Ok(perfil);
             }
             catch (Exception ex)
             {
