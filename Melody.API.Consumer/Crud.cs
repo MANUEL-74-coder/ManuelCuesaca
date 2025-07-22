@@ -103,22 +103,6 @@ namespace Melody.API.Consumer
                 throw new Exception($"Error al obtener datos: {response.ReasonPhrase}");
             }
         }
-        public static T GetArtistaDetalle(int artistaId)
-        {
-            using (var client = new HttpClient())
-            {
-                var response = client.GetAsync($"{Endpoint}/detalle/{artistaId}").Result;
-                if (response.IsSuccessStatusCode)
-                {
-                    var json = response.Content.ReadAsStringAsync().Result;
-                    return JsonConvert.DeserializeObject<T>(json);
-                }
-                else
-                {
-                    throw new Exception($"Error: {response.StatusCode}");
-                }
-            }
-        }
         public static async Task<T> CreateWithAuth<T>(T item, string token)
         {
             using var client = new HttpClient();
@@ -232,6 +216,23 @@ namespace Melody.API.Consumer
             {
                 var json = await response.Content.ReadAsStringAsync();
                 return JsonConvert.DeserializeObject<List<T>>(json) ?? new List<T>();
+            }
+            throw new HttpRequestException($"Error: {response.StatusCode}");
+        }
+        public static async Task<T> PostWithAuth(string action, object data, string token)
+        {
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            var json = JsonConvert.SerializeObject(data);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await client.PostAsync($"{Endpoint}/{action}", content);
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<T>(jsonResponse);
             }
             throw new HttpRequestException($"Error: {response.StatusCode}");
         }

@@ -9,7 +9,7 @@ internal class Program
 {
     private static void Main(string[] args)
     {
-        //Crud<AlbumDto>.Endpoint = "https://localhost:7115/api/Albums";
+        Crud<AlbumDto>.Endpoint = "https://localhost:7115/api/Albums";
         Crud<Album>.Endpoint = "https://localhost:7115/api/Albums";
         Crud<Playlist>.Endpoint = "https://localhost:7115/api/Playlists";
         Crud<CancionDto>.Endpoint = "https://localhost:7115/api/Canciones";
@@ -21,9 +21,10 @@ internal class Program
         Crud<Seguimiento>.Endpoint = "https://localhost:7115/api/Seguimientos";
         Crud<Artista>.Endpoint = "https://localhost:7115/api/Artistas";
         Crud<ArtistaDto>.Endpoint = "https://localhost:7115/api/Artistas";
-       // Crud<MiPerfilDto>.Endpoint = "https://localhost:7115/api/Usuarios";
+        Crud<MiPerfilDto>.Endpoint = "https://localhost:7115/api/Usuarios";
 
-
+        //Esto lo uso para mostrar los followers del artista
+        Crud<object>.Endpoint = "https://localhost:7115/api/Seguimientos";
 
         var builder = WebApplication.CreateBuilder(args);
 
