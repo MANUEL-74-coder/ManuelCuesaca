@@ -1,0 +1,51 @@
+﻿<!-- ============================================= -->
+<!-- EDITAR PERFIL ACTUALIZADO CON ESTILOS CORRECTOS -->
+@model Melody.Modelos.DTOs.ActualizarPerfilUsuarioDto
+@{
+    ViewData["Title"] = "Editar Perfil";
+}
+
+<div class="perfil-usuario">
+    <div class="seccion-perfil">
+        <h3>Editar Mi Perfil</h3>
+
+        <form asp-action="EditarPerfil" method="post" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <!-- Nombre -->
+            <div class="form-group">
+                <label asp-for="Nombre" class="control-label">Nombre</label>
+                <input asp-for="Nombre" class="form-control" placeholder="Ingresa tu nombre">
+                <span asp-validation-for="Nombre" class="text-danger"></span>
+            </div>
+
+            <!-- Apellido -->
+            <div class="form-group">
+                <label asp-for="Apellido" class="control-label">Apellido</label>
+                <input asp-for="Apellido" class="form-control" placeholder="Ingresa tu apellido">
+                <span asp-validation-for="Apellido" class="text-danger"></span>
+            </div>
+
+            <!-- Foto de Perfil -->
+            <div class="form-group">
+                <label asp-for="FotoPerfil" class="control-label">Foto de Perfil</label>
+                <input asp-for="FotoPerfil" type="file" class="form-control" accept="image/*">
+                <div class="form-text">Formatos permitidos: JPG, JPEG, PNG. Máximo 5MB.</div>
+                <span asp-validation-for="FotoPerfil" class="text-danger"></span>
+            </div>
+
+            <!-- Botones -->
+            <div class="form-actions">
+                <a href="@Url.Action("MiPerfil")" class="btn btn-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <link rel="stylesheet" href="~/css/usuarios.css" />
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

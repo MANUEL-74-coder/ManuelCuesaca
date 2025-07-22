@@ -1,0 +1,59 @@
+﻿@model IEnumerable<Melody.Modelos.Artista>
+@{
+    ViewData["Title"] = "Buscar Artistas";
+}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2>Resultados de Búsqueda</h2>
+            @if (!string.IsNullOrEmpty(ViewBag.TerminoBusqueda))
+            {
+                <p>Mostrando resultados para: "<strong>@ViewBag.TerminoBusqueda</strong>"</p>
+            }
+        </div>
+
+        <!-- Formulario de búsqueda -->
+        <form method="get" asp-action="Buscar" class="d-flex">
+            <input type="text" name="q" class="form-control me-2" placeholder="Buscar artistas..." value="@ViewBag.TerminoBusqueda">
+        </form>
+
+    </div>
+    @if (Model.Any())
+    {
+        <div class="row g-4">
+            @foreach (var artista in Model)
+            {
+                <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
+                    <div class="card h-100">
+                        @if (!string.IsNullOrEmpty(artista.ImagenPerfil))
+                        {
+                            <img src="@artista.ImagenPerfil" class="card-img-top" alt="@artista.NombreArtista" style="height: 300px; object-fit: cover;">
+                        }
+                        else
+                        {
+                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 300px;">
+                                <span class="text-muted">Sin imagen</span>
+                            </div>
+                        }
+                        <div class="card-body d-flex flex-column">
+                            <a href="@Url.Action("Details", new { id = artista.Id })" class="text-decoration-none">
+                                <h5 class="card-title text-dark">@artista.NombreArtista</h5>
+                            </a>
+                            <p class="text-white mb-2">Artista</p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <h4>No se encontraron artistas</h4>
+            <p>No hay artistas que coincidan con tu búsqueda "@ViewBag.TerminoBusqueda".</p>
+        </div>
+    }
+    <div class="mt-4">
+        <a href="@Url.Action("Index")" class="btn btn-primary">Volver a Artistas</a>
+    </div>
+</div>

@@ -17,4 +17,8 @@
     <ProjectReference Include="..\Melody.Modelos\Melody.Modelos.csproj" />
   </ItemGroup>
 
+	<ItemGroup>
+		<Folder Include="wwwroot\images\" />
+	</ItemGroup>
+	
 </Project>

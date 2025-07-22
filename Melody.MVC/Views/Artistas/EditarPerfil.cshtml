@@ -1,0 +1,56 @@
+﻿@model Melody.Modelos.DTOs.ActualizarPerfilArtistaDto
+@{
+    ViewData["Title"] = "Editar Perfil de Artista";
+}
+
+<div class="perfil-usuario">
+    <div class="seccion-perfil">
+        <h3>Editar Perfil de Artista</h3>
+
+        <form asp-action="EditarPerfil" method="post" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <!-- Nombre Artístico -->
+            <div class="form-group">
+                <label asp-for="NombreArtista" class="control-label">Nombre Artístico</label>
+                <input asp-for="NombreArtista" class="form-control" placeholder="Ingresa tu nombre artístico">
+                <span asp-validation-for="NombreArtista" class="text-danger"></span>
+            </div>
+
+            <!-- Biografía -->
+            <div class="form-group">
+                <label asp-for="Biografia" class="control-label">Biografía</label>
+                <textarea asp-for="Biografia" class="form-control" rows="4" placeholder="Cuéntanos sobre ti y tu música..."></textarea>
+                <div class="form-text">Describe tu trayectoria musical, influencias y estilo.</div>
+                <span asp-validation-for="Biografia" class="text-danger"></span>
+            </div>
+
+            <!-- Imagen de Perfil -->
+            <div class="form-group">
+                <label asp-for="ImagenPerfil" class="control-label">Imagen de Perfil</label>
+                <input asp-for="ImagenPerfil" type="file" class="form-control" accept="image/*">
+                <div class="form-text">Formatos permitidos: JPG, JPEG, PNG. Máximo 5MB.</div>
+                <span asp-validation-for="ImagenPerfil" class="text-danger"></span>
+            </div>
+
+            <!-- Mensaje informativo -->
+            <div class="mensaje-especial">
+                <p><strong>Nota:</strong> Para cambiar tu información personal (nombre real y foto de usuario), ve a tu perfil personal.</p>
+                <small>Este formulario solo edita tu información como artista.</small>
+            </div>
+
+            <!-- Botones -->
+            <div class="form-actions">
+                <a href="@Url.Action("MiPerfil")" class="btn btn-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <link rel="stylesheet" href="~/css/usuarios.css" />
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

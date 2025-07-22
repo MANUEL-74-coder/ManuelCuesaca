@@ -1,0 +1,46 @@
+﻿@model Melody.Modelos.DTOs.AlbumDto
+
+@{
+    ViewData["Title"] = "Eliminar Álbum";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Confirmar Eliminación</h4>
+                </div>
+                <div class="card-body text-center">
+                    @if (!string.IsNullOrEmpty(Model.PortadaUrl))
+                    {
+                        <img src="@Model.PortadaUrl" alt="@Model.Titulo" width="150" height="150" class="mb-3">
+                    }
+                    else
+                    {
+                        <div class="bg-light d-flex align-items-center justify-content-center mb-3" style="width: 150px; height: 150px; margin: 0 auto;">
+                            <span class="text-muted">Sin portada</span>
+                        </div>
+                    }
+
+                    <h5>@Model.Titulo</h5>
+                    <p class="text-muted">Por: @Model.NombreArtista</p>
+                    <p class="text-muted">@Model.TotalCanciones cancion(es)</p>
+
+                    <div class="alert alert-warning">
+                        <strong>¿Estás seguro de que deseas eliminar este álbum?</strong>
+                        <br>Esta acción no se puede deshacer.
+                    </div>
+
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="@Url.Action("MisAlbums")" class="btn btn-secondary">Cancelar</a>
+                        <form method="post" asp-action="Delete" style="display: inline;">
+                            <input type="hidden" name="id" value="@Model.Id" />
+                            <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

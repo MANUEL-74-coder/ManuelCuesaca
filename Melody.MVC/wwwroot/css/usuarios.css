@@ -1,0 +1,307 @@
+? /* Variables heredadas del sistema */
+:root {
+    --azul-oscuro: #1a1f3a;
+    --azul-principal: #2563eb;
+    --cyan: #06b6d4;
+    --morado: #7c3aed;
+    --rosa: #be185d;
+    --blanco: #ffffff;
+    --verde-exito: #10b981;
+    --rojo-error: #ef4444;
+    --gris-medio: #64748b;
+    --gris-claro: #f8fafc;
+    --gris-oscuro: #334155;
+    --fondo-principal: rgba(255, 255, 255, 0.85);
+    --sombra-principal: 0 10px 40px rgba(0, 0, 0, 0.15);
+    --gradiente-principal: linear-gradient(135deg, var(--azul-principal), var(--morado));
+    --gradiente-secundario: linear-gradient(135deg, var(--cyan), var(--azul-principal));
+}
+
+.mensaje-especial {
+    background: var(--blanco);
+    color: var(--azul-principal);
+    padding: 1.5rem;
+    border-radius: 12px;
+    text-align: center;
+    border: 2px solid rgba(37, 99, 235, 0.1);
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.08);
+}
+
+/* Contenedor prinicpal de perfil */
+.perfil-usuario {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Header de perfil */
+.perfil-header {
+    text-align: center;
+    background: var(--gradiente-principal);
+    color: var(--blanco);
+    padding: 3rem 2rem;
+    border-radius: 24px;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+    .perfil-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="white" opacity="0.1"/><circle cx="80" cy="40" r="1.5" fill="white" opacity="0.1"/><circle cx="40" cy="80" r="1" fill="white" opacity="0.1"/></svg>');
+        animation: float 20s infinite linear;
+    }
+
+@keyframes float {
+    0% {
+        transform: translateY(0) rotate(0deg);
+    }
+
+    100% {
+        transform: translateY(-10px) rotate(360deg);
+    }
+}
+
+/* Foto de perfil */
+.foto-perfil {
+    width: 220px;
+    height: 220px;
+    margin: 0 auto 1.5rem;
+    position: relative;
+    z-index: 2;
+}
+
+    .foto-perfil img {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid var(--blanco);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+
+.foto-placeholder {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: var(--gradiente-secundario);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 4px solid var(--blanco);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    font-size: 3.5rem; /* Aumentado de 2.5rem a 3.5rem para que las iniciales se vean proporcionalmente */
+    font-weight: 700;
+    color: var(--blanco);
+    letter-spacing: 2px;
+}
+
+/* Botón especial para artista */
+.btn-artista-especial {
+    background: var(--blanco);
+    color: var(--azul-principal);
+    padding: 0.8rem 2rem;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-block;
+    margin-top: 1rem;
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 2;
+}
+
+/* Sección de perfil */
+.seccion-perfil {
+    background: var(--fondo-principal);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--sombra-principal);
+    transition: transform 0.3s ease;
+}
+
+    .seccion-perfil:hover {
+        transform: translateY(-3px);
+    }
+
+    .seccion-perfil h3 {
+        color: var(--azul-principal);
+        font-size: 1.4rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid rgba(37, 99, 235, 0.2);
+        position: relative;
+    }
+
+        .seccion-perfil h3::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 60px;
+            height: 2px;
+            background: var(--gradiente-principal);
+            border-radius: 1px;
+        }
+/* Roles de usuario */
+.roles-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    margin-bottom: 1rem;
+}
+
+.badge-rol {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 500;
+    font-size: 0.85rem;
+    letter-spacing: 0.3px;
+    display: inline-block;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+    .badge-rol.userfree {
+        background: rgba(100, 116, 139, 0.1);
+        color: var(--gris-oscuro);
+        border: 1px solid rgba(100, 116, 139, 0.2);
+    }
+
+    .badge-rol.userpremium {
+        background: rgba(37, 99, 235, 0.1);
+        color: var(--azul-principal);
+        border: 1px solid rgba(37, 99, 235, 0.2);
+    }
+
+    .badge-rol.artista {
+        background: rgba(124, 58, 237, 0.1);
+        color: var(--morado);
+        border: 1px solid rgba(124, 58, 237, 0.2);
+    }
+
+    .badge-rol.admin {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--rojo-error);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .badge-rol:hover {
+        transform: none; /* Eliminé el efecto hover que lo hacía parecer clickeable */
+        box-shadow: none;
+    }
+
+.suscripcion-info {
+    background: var(--blanco);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid rgba(37, 99, 235, 0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* Enlaces rapidos */
+.enlaces-rapidos {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.enlace-rapido {
+    background: var(--blanco);
+    color: var(--gris-oscuro);
+    padding: 1rem 1.5rem;
+    border-radius: 15px;
+    text-decoration: none;
+}
+
+/* Formulario de edición */
+.form-group {
+    margin-bottom: 2rem;
+    position: relative;
+}
+
+    .form-group label {
+        color: var(--azul-principal);
+        font-weight: 500;
+    }
+
+.form-control {
+    background: var(--blanco);
+    border: 2px solid rgba(37, 99, 235, 0.15);
+    border-radius: 12px;
+    color: var(--gris-oscuro);
+    padding: 1rem 1.25rem;
+}
+
+
+.btn-primary {
+    background: var(--gradiente-principal);
+    color: var(--blanco);
+    box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, var(--gris-medio), var(--gris-oscuro));
+    color: var(--blanco);
+    box-shadow: 0 6px 20px rgba(100, 116, 139, 0.25);
+    border-radius: 15px
+}
+
+/* Alertas */
+.text-danger {
+    color: var(--rojo-error);
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+    display: block;
+}
+
+.alert {
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    border: none;
+    font-weight: 500;
+}
+
+.alert-success {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
+    color: var(--verde-exito);
+    border-left: 4px solid var(--verde-exito);
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05));
+    color: var(--rojo-error);
+    border-left: 4px solid var(--rojo-error);
+}
+
+/* Formulario para editar perfil */
+
+/* Botones */
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Mejoras para input file */
+.form-control[type="file"] {
+    position: relative;
+    background: var(--blanco);
+    border: 2px dashed rgba(37, 99, 235, 0.3);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    cursor: pointer;
+}

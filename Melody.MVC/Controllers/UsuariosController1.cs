@@ -1,14 +1,38 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Melody.API.Consumer;
+using Melody.Modelos;
+using Melody.Modelos.DTOs;
+using Melody.MVC.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Net.Http.Headers;
 
 namespace Melody.MVC.Controllers
 {
+    [Authorize]
     public class UsuariosController : Controller
     {
-        // GET: UsuariosController
-        public ActionResult Index()
+        private readonly AuthService _authService;
+
+        public UsuariosController(AuthService authService)
         {
-            return View();
+            _authService = authService;
+        }
+        // GET: Mi perfil
+        public async Task<IActionResult> MiPerfil()
+        {
+            try
+            {
+                var token = _authService.ObtenerToken();
+                var perfil = await Crud<MiPerfilDto>.GetWithAuth("mi-perfil", token);
+                ViewBag.CurrentUser = _authService.GetCurrentUser();
+                return View(perfil);
+            }
+            catch
+            {
+                TempData["Error"] = "Error al cargar el perfil";
+                return RedirectToAction("Index", "Home");
+            }
         }
 
         // GET: UsuariosController/Details/5
@@ -17,67 +41,84 @@ namespace Melody.MVC.Controllers
             return View();
         }
 
-        // GET: UsuariosController/Create
-        public ActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: UsuariosController/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
-        {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
-        }
 
         // GET: UsuariosController/Edit/5
-        public ActionResult Edit(int id)
+        public async Task<ActionResult> EditarPerfil()
         {
-            return View();
+            ViewBag.CurrentUser = _authService.GetCurrentUser();
+
+            try
+            {
+                var token = _authService.ObtenerToken();
+                var perfilActual = await Crud<MiPerfilDto>.GetWithAuth("mi-perfil", token);
+                var model = new ActualizarPerfilUsuarioDto
+                {
+                    Nombre = perfilActual.Nombre,
+                    Apellido = perfilActual.Apellido,
+                };
+                ViewBag.ImagenPerfilActual = perfilActual.FotoPerfil;
+
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Error al cargar el perfil del artista";
+                return RedirectToAction("MiPerfil");
+            }
         }
 
         // POST: UsuariosController/Edit/5
+        // POST: Actualizar perfil
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public async Task<IActionResult> EditarPerfil(ActualizarPerfilUsuarioDto model)
         {
+            if (!ModelState.IsValid)
+            {
+                ViewBag.CurrentUser = _authService.GetCurrentUser();
+                return View(model);
+            }
+
             try
             {
-                return RedirectToAction(nameof(Index));
+                var token = _authService.ObtenerToken();
+
+                using var formData = new MultipartFormDataContent();
+
+                if (!string.IsNullOrEmpty(model.Nombre))
+                    formData.Add(new StringContent(model.Nombre), "Nombre");
+
+                if (!string.IsNullOrEmpty(model.Apellido))
+                    formData.Add(new StringContent(model.Apellido), "Apellido");
+
+                if (model.FotoPerfil != null)
+                {
+                    var fotoContent = new StreamContent(model.FotoPerfil.OpenReadStream());
+                    fotoContent.Headers.ContentType = new MediaTypeHeaderValue(model.FotoPerfil.ContentType);
+                    formData.Add(fotoContent, "FotoPerfil", model.FotoPerfil.FileName);
+                }
+
+                var resultado = await Crud<MiPerfilDto>.UpdateWithFormData("mi-perfil", formData, token);
+
+
+                if (resultado)
+                {
+                    TempData["Success"] = "Perfil actualizado exitosamente";
+                    return RedirectToAction(nameof(MiPerfil));
+                }
+                else
+                {
+                    TempData["Error"] = "Error al actualizar el perfil";
+                }
             }
             catch
             {
-                return View();
+                TempData["Error"] = "Error al actualizar el perfil";
             }
+
+            ViewBag.CurrentUser = _authService.GetCurrentUser();
+            return View(model);
         }
 
-        // GET: UsuariosController/Delete/5
-        public ActionResult Delete(int id)
-        {
-            return View();
-        }
-
-        // POST: UsuariosController/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
-        {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
-        }
     }
 }

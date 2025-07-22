@@ -4,48 +4,273 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Melody.MVC</title>
+    <title>@ViewData["Title"] - Melody</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/Melody.MVC.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/melody-layout.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Melody.MVC</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Auth" asp-action="Salir">Cerrar Sesión</a>
-                        </li>
-
-                    </ul>
-                </div>
+    <div class="melody-container">
+        <!-- Sidebar -->
+        <aside class="melody-sidebar">
+            <div class="sidebar-header">
+                <h2 class="sidebar-logo">
+                    <i class="bi bi-music-note-beamed"></i>
+                    Melody
+                </h2>
             </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
+
+            <nav class="sidebar-nav">
+                <!-- Navegación común -->
+                <ul class="nav-section">
+                    <li class="nav-item">
+                        <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
+                            <span>Inicio</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-area="" asp-controller="Canciones" asp-action="Index">
+                            <span>Explorar</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-area="" asp-controller="Artistas" asp-action="Index">
+                            <span>Artistas</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-area="" asp-controller="Albums" asp-action="Index">
+                            <span>Álbumes</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-area="" asp-controller="Generos" asp-action="Index">
+                            <span>Géneros</span>
+                        </a>
+                    </li>
+                    <!-- 🎵 PLAYLISTS - Acceso para todos los usuarios (incluye no autenticados) -->
+                    <li class="nav-item">
+                        <a class="nav-link" asp-area="" asp-controller="Playlists" asp-action="Index">
+                            <span>Playlists</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- Navegación específica por rol -->
+                @if (User.IsInRole("admin"))
+                {
+                    <div class="nav-section">
+                        <h6 class="nav-section-title">Administración</h6>
+                        <ul>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Usuarios" asp-action="Index">
+                                    <span>Gestión de Usuarios</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Planes" asp-action="Index">
+                                    <span>Planes</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Suscripciones" asp-action="Estadisticas">
+                                    <span>Estadísticas</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Seguimientos" asp-action="MisSeguimientos">
+                                    <span>Reportes</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                }
+
+                @if (User.IsInRole("artista"))
+                {
+                    <div class="nav-section">
+                        <h6 class="nav-section-title">Mi Música</h6>
+                        <ul>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Artistas" asp-action="MiPerfil">
+                                    <span>Mi Perfil Artístico</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Canciones" asp-action="MisCanciones">
+                                    <span>Mis Canciones</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Albums" asp-action="MisAlbums">
+                                    <span>Mis Álbumes</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Canciones" asp-action="Create">
+                                    <span>Subir Música</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Seguimientos" asp-action="MisSeguimientos">
+                                    <span>Mis Seguidores</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                }
+
+                @if (User.IsInRole("userfree") || User.IsInRole("userpremium"))
+                {
+                    <div class="nav-section">
+                        <h6 class="nav-section-title">Tu Biblioteca</h6>
+                        <ul>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Seguimientos" asp-action="MisSeguimientos">
+                                    <span>Artistas Seguidos</span>
+                                </a>
+                            </li>
+                            @if (User.IsInRole("userpremium"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-area="" asp-controller="Suscripciones" asp-action="MiSuscripcion">
+                                        <span>Mi Suscripción</span>
+                                    </a>
+                                </li>
+                                <!-- 💎 SOLO PREMIUM - Gestión de playlists propias -->
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-area="" asp-controller="Playlists" asp-action="MisPlaylists">
+                                        <span>Mis Playlists</span>
+                                    </a>
+                                </li>
+                            }
+                            @if (User.IsInRole("userfree"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-area="" asp-controller="Planes" asp-action="Index">
+                                        <span>Mejorar a Premium</span>
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                }
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="melody-main">
+            <!-- Top Bar -->
+            <header class="melody-header">
+                <div class="header-content">
+                    <div class="header-left">
+                        <button class="btn-nav" id="toggle-sidebar">
+                            <i class="bi bi-list"></i>
+                        </button>
+                        <form method="get" asp-controller="Canciones" asp-action="Buscar" class="d-flex align-items-center">
+                            <div class="search-bar me-2">
+                                <i class="bi bi-search"></i>
+                                <input type="text" name="q" placeholder="   Buscar canciones" />
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                Buscar
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="header-right">
+                        @if (User.IsInRole("userfree"))
+                        {
+                            <a class="btn btn-premium" asp-area="" asp-controller="Planes" asp-action="Index">
+                                Explorar Premium
+                            </a>
+                        }
+                        @if (User.Identity.IsAuthenticated == true)
+                        {
+                            <div class="user-menu dropdown">
+                                <button class="user-avatar" data-bs-toggle="dropdown">
+                                    <i class="bi bi-person-circle"></i>
+                                    <span>@User.Identity.Name</span>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="dropdown-item" asp-area="" asp-controller="Usuarios" asp-action="MiPerfil">
+                                            <i class="bi bi-person"></i>
+                                            Mi Perfil
+                                        </a>
+                                    </li>
+
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item" asp-area="" asp-controller="Auth" asp-action="Salir">
+                                            <i class="bi bi-box-arrow-right"></i>
+                                            Cerrar Sesión
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        }
+                        else
+                        {
+                            <a class="btn btn-premium" asp-area="" asp-controller="Auth" asp-action="Login">
+                                Iniciar Sesión
+                            </a>
+                        }
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content Area -->
+            <main class="melody-content">
+                @RenderBody()
+            </main>
+        </div>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2025 - Melody.MVC - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <!-- Reproductor de audio fijo - SIEMPRE VISIBLE -->
+    <div id="globalAudioPlayer" class="fixed-audio-player">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Melody Player</h5>
+
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <img id="globalCurrentCover" src="/images/default-song.png" alt="Sin canción" width="50" height="50" class="rounded">
+                    <div>
+                        <div id="globalCurrentTitle" class="fw-bold">Selecciona una canción</div>
+                        <div id="globalCurrentArtist" class="text-muted">para comenzar a reproducir</div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 mb-3 justify-content-center">
+                    <button onclick="globalPreviousSong()" class="btn btn-light">
+                        <i class="bi bi-skip-backward-fill"></i>
+                    </button>
+                    <button id="globalPlayPauseBtn" onclick="globalTogglePlayPause()" class="btn btn-light">
+                        <i class="bi bi-play-fill"></i>
+                    </button>
+                    <button onclick="globalNextSong()" class="btn btn-light">
+                        <i class="bi bi-skip-forward-fill"></i>
+                    </button>
+                </div>
+
+                <div class="d-flex align-items-center gap-2">
+                    <span id="globalCurrentTime" class="text-light">0:00</span>
+                    <input type="range" id="globalProgressBar" min="0" max="100" value="0"
+                           onchange="globalSeekAudio(this.value)" class="form-range flex-grow-1">
+                    <span id="globalTotalTime" class="text-light">0:00</span>
+                </div>
+            </div>
         </div>
-    </footer>
+    </div>
+    <audio id="globalAudioElement" ontimeupdate="globalUpdateProgress()" onended="globalNextSong()"></audio>
+
+    <!-- Scripts existentes -->
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <!-- AGREGAR ESTA LÍNEA -->
+    <script src="~/js/global-audio-player.js" asp-append-version="true"></script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

@@ -1,0 +1,178 @@
+﻿@model Melody.Modelos.DTOs.ArtistaDto
+
+@{
+    ViewData["Title"] = Model.NombreArtista;
+}
+
+<div class="content-wrapper perfil-usuario">
+    <!-- Header del perfil público -->
+    <div class="perfil-header">
+        <div class="foto-perfil">
+            @if (!string.IsNullOrEmpty(Model.ImagenPerfil))
+            {
+                <img src="@Model.ImagenPerfil" alt="@Model.NombreArtista" />
+            }
+            else
+            {
+                <div class="foto-placeholder">
+                    <span>@Model.NombreArtista.Substring(0, 1)</span>
+                </div>
+            }
+        </div>
+
+        <h1>@Model.NombreArtista</h1>
+        <p>
+            <small>Miembro desde @Model.FechaRegistro.ToString("MMMM yyyy")</small>
+        </p>
+
+        <!-- Botón seguir/dejar de seguir -->
+        @if (ViewBag.CurrentUser != null)
+        {
+            if (!Model.EsMiPerfil)
+            {
+
+                <form asp-action="ToggleSeguir" method="post" style="display: inline;">
+                    <input type="hidden" name="artistaId" value="@Model.Id" />
+                    @if (Model.EstaSiguiendo)
+                    {
+                        <button type="submit" class="btn btn-secondary">Siguiendo</button>
+                    }
+                    else
+                    {
+                        <button type="submit" class="btn-artista-especial">Seguir</button>
+                    }
+                </form>
+            }
+        }
+        else
+        {
+            <a href="@Url.Action("Login", "Auth")" class="btn-artista-especial">Inicia sesión para seguir</a>
+        }
+    </div>
+
+    <!-- Estadísticas públicas -->
+    <div class="seccion-perfil">
+        <h3>Estadísticas</h3>
+        <div class="enlaces-rapidos">
+            <div class="enlace-rapido">
+                <strong>@Model.TotalSeguidores</strong>
+                <br>
+                <small>Seguidores</small>
+            </div>
+            <div class="enlace-rapido">
+                <strong>@Model.TotalCanciones</strong>
+                <br>
+                <small>Canciones</small>
+            </div>
+            <div class="enlace-rapido">
+                <strong>@Model.TotalAlbums</strong>
+                <br>
+                <small>Álbumes</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Biografía -->
+    @if (!string.IsNullOrEmpty(Model.Biografia))
+    {
+        <div class="seccion-perfil">
+            <h3>Biografía</h3>
+            <div class="suscripcion-info">
+                <p>@Model.Biografia</p>
+            </div>
+        </div>
+    }
+
+    <!-- Canciones populares -->
+    @if (Model.Canciones != null && Model.Canciones.Any())
+    {
+        <div class="seccion-perfil">
+            <h3>Canciones Populares</h3>
+            <div class="table">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Canción</th>
+                            <th>Álbum</th>
+                            <th>Género</th>
+                            <th>Duración</th>
+                            <th>Fecha</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var cancion in Model.Canciones.Take(10))
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@cancion.Titulo</strong>
+                                    @if (!string.IsNullOrEmpty(cancion.PortadaUrl))
+                                    {
+                                        <br>
+
+                                        <small>🎵</small>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(cancion.AlbumNombre))
+                                    {
+                                        @cancion.AlbumNombre
+                                    }
+                                    else
+                                    {
+                                        <em>Sencillo</em>
+                                    }
+                                </td>
+                                <td>@cancion.GeneroNombre</td>
+                                <td>
+                                    @if (cancion.Duracion.HasValue)
+                                    {
+                                        @($"{cancion.Duracion.Value.Minutes:D2}:{cancion.Duracion.Value.Seconds:D2}")
+                                    }
+                                    else
+                                    {
+                                        <em>-</em>
+                                    }
+                                </td>
+                                <td>@cancion.FechaLanzamiento.ToString("dd/MM/yyyy")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="seccion-perfil">
+            <div class="mensaje-especial">
+                <p>Este artista aún no ha publicado canciones</p>
+                <small>¡Síguelo para estar al tanto de sus próximos lanzamientos!</small>
+            </div>
+        </div>
+    }
+
+    <!-- Acciones para fans -->
+    <div class="seccion-perfil">
+        <h3>Descubre más</h3>
+        <div class="enlaces-rapidos">
+            <a href="@Url.Action("Index", "Artistas")" class="enlace-rapido">
+                Explorar más artistas
+                <br>
+                <small>Descubre nueva música</small>
+            </a>
+            @if (ViewBag.CurrentUser != null)
+            {
+                <a href="@Url.Action("MisPlaylists", "Playlists")" class="enlace-rapido">
+                    Mis Playlists
+                    <br>
+                    <small>Agregar a playlist</small>
+                </a>
+                <a href="@Url.Action("MisSeguimientos", "Seguimientos")" class="enlace-rapido">
+                    Mis Seguimientos
+                    <br>
+                    <small>Ver todos los artistas que sigues</small>
+                </a>
+            }
+        </div>
+    </div>
+</div>

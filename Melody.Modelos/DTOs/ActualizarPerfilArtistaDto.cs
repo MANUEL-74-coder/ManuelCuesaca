@@ -13,8 +13,5 @@ namespace Melody.Modelos.DTOs
         public string NombreArtista { get; set; } = string.Empty;
         public string? Biografia { get; set; }
         public IFormFile? ImagenPerfil { get; set; }
-        public string? Nombre { get; set; }
-        public string? Apellido { get; set; }
-        public IFormFile? FotoPerfil { get; set; }
     }
 }

@@ -1,0 +1,54 @@
+﻿@model List<Melody.Modelos.DTOs.AlbumDto>
+
+@{
+    ViewData["Title"] = "Buscar Álbumes";
+}
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Resultados de búsqueda: "@ViewBag.TerminoBusqueda"</h2>
+        <a href="@Url.Action("Index")" class="btn btn-secondary">Ver todos los álbumes</a>
+    </div>
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="row g-4">
+            @foreach (var album in Model)
+            {
+                <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
+                    <div class="card h-100">
+                        @if (!string.IsNullOrEmpty(album.PortadaUrl))
+                        {
+                            <img src="@album.PortadaUrl" class="card-img-top" alt="@album.Titulo" style="height: 300px; object-fit: cover;">
+                        }
+                        else
+                        {
+                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 300px;">
+                                <span class="text-muted">Sin portada</span>
+                            </div>
+                        }
+
+                        <div class="card-body d-flex flex-column">
+                            <a href="@Url.Action("Details", new { id = album.Id })" class="text-decoration-none">
+                                <h5 class="card-title text-dark">@album.Titulo</h5>
+                            </a>
+                            <p class="card-text">
+                                Por: @album.NombreArtista<br>
+                                <small class="text-muted">@album.GeneroNombre</small><br>
+                                <small class="text-muted">@album.TotalCanciones cancion(es)</small>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <h4>No se encontraron álbumes</h4>
+            <p>No se encontraron álbumes que coincidan con tu búsqueda "@ViewBag.TerminoBusqueda".</p>
+            <a href="@Url.Action("Index")" class="btn btn-primary">Ver todos los álbumes</a>
+        </div>
+    }
+</div>

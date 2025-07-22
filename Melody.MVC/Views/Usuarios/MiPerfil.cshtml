@@ -1,0 +1,107 @@
+﻿@model Melody.Modelos.DTOs.MiPerfilDto
+
+@{
+    ViewData["Title"] = "Mi Perfil";
+}
+
+<div class="content-wrapper perfil-usuario">
+    <!-- Header del perfil -->
+    <div class="perfil-header">
+        <div class="foto-perfil">
+            @if (!string.IsNullOrEmpty(Model.FotoPerfil))
+            {
+                <img src="@Model.FotoPerfil" alt="Foto de perfil" />
+            }
+            else
+            {
+                <div class="foto-placeholder">
+                    <span>@Model.Nombre.Substring(0, 1)@Model.Apellido.Substring(0, 1)</span>
+                </div>
+            }
+        </div>
+
+        <h1>@Model.Nombre @Model.Apellido</h1>
+        <p>@Model.Email</p>
+        <a href="@Url.Action("EditarPerfil", "Usuarios")" class="btn-artista-especial">Editar Perfil</a>
+    </div>
+
+    <!-- Tipo de cuenta -->
+    <div class="seccion-perfil">
+        <h3>Tipo de Cuenta</h3>
+        <div class="roles-container">
+            @foreach (var rol in Model.Roles)
+            {
+                <span class="badge-rol @(rol.ToLower())">
+                    @switch (rol.ToLower())
+                    {
+                        case "userfree":
+                            @("Usuario Gratuito")
+                            break;
+                        case "userpremium":
+                            @("Usuario Premium")
+                            break;
+                        case "artista":
+                            @("Artista")
+                            break;
+                        case "admin":
+                            @("Administrador")
+                            break;
+                        default:
+                            @rol
+                            break;
+                    }
+                </span>
+            }
+        </div>
+
+        @if (Model.Roles.Contains("artista"))
+        {
+            <a href="@Url.Action("MiPerfil", "Artistas")" class="btn-artista-especial">Ver mi perfil de artista</a>
+        }
+    </div>
+
+    <!-- Suscripción -->
+    <div class="seccion-perfil">
+        <h3>Suscripción</h3>
+        @if (Model.TieneSuscripcionActiva)
+        {
+            <div class="suscripcion-info">
+                <p><strong>Plan actual:</strong> @Model.PlanNombre</p>
+                <p><strong>Precio:</strong> $@Model.PlanPrecio/mes</p>
+                <p><strong>Válida hasta:</strong> @Model.SuscripcionFechaFin?.ToString("dd/MM/yyyy")</p>
+                <p><strong>Desde:</strong> @Model.SuscripcionFechaInicio?.ToString("dd/MM/yyyy")</p>
+            </div>
+        }
+        else
+        {
+            @if (Model.Roles.Contains("admin"))
+            {
+                <div class="mensaje-especial">
+                    <p>Cuenta de Administrador</p>
+                    <small>Acceso completo a todas las funciones</small>
+                </div>
+            }
+            else if (Model.Roles.Contains("artista"))
+            {
+                <div class="mensaje-especial">
+                    <p>Cuenta de Artista</p>
+                    <small>Acceso para subir y gestionar tu música</small>
+                </div>
+            }
+            else
+            {
+                <div class="suscripcion-info" style="color:black">
+                    <p style="color:black">Cuenta gratuita</p>
+                    <a href="@Url.Action("Index", "Planes")" class="btn btn-primary">Actualizar a Premium</a>
+                </div>
+            }
+        }
+    </div>
+
+</div>
+@section Scripts {
+    <link rel="stylesheet" href="~/css/usuarios.css" />
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}   

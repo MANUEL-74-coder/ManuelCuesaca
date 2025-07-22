@@ -3,34 +3,34 @@
     ViewData["Title"] = "Eliminar género musical";
 }
 
-<div class="container mt-4">
-    <h1 class="mb-3 text-danger"><i class="bi bi-trash"></i> @ViewData["Title"]</h1>
-    <div class="alert alert-warning" role="alert">
-        <i class="bi bi-exclamation-triangle"></i>
-        ¡Si hay contenido asociado a este género musical no podrás eliminarlo!
-    </div>
-    <h3 class="text-center mb-4">¿Estás seguro de eliminar este género musical?</h3>
+<div class="content-wrapper">
+    <h1>@ViewData["Title"]</h1>
+    <p>¡Si hay contenido asociado a este género músical no podrás eliminarlo!</p>
+    <h3 style="text-align: center;">¿Estás seguro de eliminar este género musical?</h3>
 
-    <div class="row justify-content-center">
+    <div>
         <div class="col-md-6">
             <dl class="row">
-                <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Id)</dt>
-                <dd class="col-sm-8">@Html.DisplayFor(model => model.Id)</dd>
-                <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Nombre)</dt>
-                <dd class="col-sm-8">@Html.DisplayFor(model => model.Nombre)</dd>
+                <dt class="col-sm-4">
+                    @Html.DisplayNameFor(model => model.Id)
+                </dt>
+                <dd class="col-sm-8">
+                    @Html.DisplayFor(model => model.Id)
+                </dd>
+                <dt class="col-sm-4">
+                    @Html.DisplayNameFor(model => model.Nombre)
+                </dt>
+                <dd class="col-sm-8">
+                    @Html.DisplayFor(model => model.Nombre)
+                </dd>
             </dl>
         </div>
-    </div>
 
-    <form asp-action="Delete" method="post" class="mt-3">
-        <input type="hidden" asp-for="Id" />
-        <button type="submit" class="btn btn-danger me-2">
-            <i class="bi bi-trash"></i> Eliminar
-        </button>
-        <a asp-action="Index" class="btn btn-secondary">
-            <i class="bi bi-arrow-left"></i> Regresar a Géneros
-        </a>
-    </form>
+        <form asp-action="Delete">
+            <input type="submit" value="Eliminar" class="btn btn-danger" /> |
+            <a asp-action="Index">Regresar a Géneros</a>
+        </form>
+    </div>
 </div>
 
 @section Scripts {

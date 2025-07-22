@@ -1,0 +1,107 @@
+﻿@model Melody.Modelos.DTOs.ArtistaDto
+
+@{
+    ViewData["Title"] = "Mi Perfil de Artista";
+}
+
+<div class="content-wrapper perfil-usuario">
+    <!-- Header del perfil de artista -->
+    <div class="perfil-header">
+        <div class="foto-perfil">
+            @if (!string.IsNullOrEmpty(Model.ImagenPerfil))
+            {
+                <img src="@Model.ImagenPerfil" alt="Imagen de perfil del artista" />
+            }
+            else
+            {
+                <div class="foto-placeholder">
+                    <span>@Model.NombreArtista.Substring(0, 1)</span>
+                </div>
+            }
+        </div>
+
+        <h1>@Model.NombreArtista</h1>
+        <p>
+            @Model.NombreUsuario @Model.ApellidoUsuario
+            <br>
+            @Model.EmailUsuario
+            <br>
+            <small>Miembro desde @Model.FechaRegistro.ToString("MMMM yyyy")</small>
+        </p>
+        <a href="@Url.Action("EditarPerfil", "Artistas")" class="btn-artista-especial">Editar Perfil de Artista</a>
+    </div>
+
+    <!-- Biografía -->
+    @if (!string.IsNullOrEmpty(Model.Biografia))
+    {
+        <div class="seccion-perfil">
+            <h3>Biografía</h3>
+            <div class="suscripcion-info" style="color:black">
+                <p>@Model.Biografia</p>
+            </div>
+        </div>
+    }
+
+    <!-- Estadísticas del artista -->
+    <div class="seccion-perfil">
+        <h3>Mis Estadísticas</h3>
+        <div class="enlaces-rapidos">
+            <div class="enlace-rapido">
+                <small>Canciones Publicadas: </small>
+                <strong>@Model.TotalCanciones</strong>
+            </div>
+            <div class="enlace-rapido">
+                <small>Álbumes Creados: </small>
+                <strong>@Model.TotalAlbums</strong>
+            </div>
+            <div class="enlace-rapido">
+                <small>Seguidores: </small>
+                <strong>@Model.TotalSeguidores</strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gestión de contenido -->
+    <div class="seccion-perfil">
+        <h3>Gestionar Mi Música</h3>
+        <div class="enlaces-rapidos">
+            <a href="@Url.Action("MisCanciones", "Canciones")" class="enlace-rapido">
+                Mis Canciones
+            </a>
+            <a href="@Url.Action("MisAlbums", "Albums")" class="enlace-rapido">
+                Mis Álbumes
+            </a>
+            <a href="@Url.Action("Create", "Canciones")" class="enlace-rapido">
+                Publicar nueva canción
+            </a>
+            <a href="@Url.Action("Create", "Albums")" class="enlace-rapido">
+                Nuevo Álbum Musical
+            </a>
+        </div>
+    </div>
+
+    <!-- Mi audiencia -->
+    <div class="seccion-perfil">
+        <h3>Mi Audiencia</h3>
+        <div class="enlaces-rapidos">
+            <a href="@Url.Action("Details", "Artistas", new { id = Model.Id })" class="enlace-rapido">
+                Como me ven otros usuarios
+            </a>
+        </div>
+    </div>
+
+    <!-- Perfil de usuario base -->
+    <div class="seccion-perfil">
+        <h3>Mi Cuenta de Usuario</h3>
+        <div class="mensaje-especial">
+            <p>También tienes un perfil de usuario personal</p>
+            <a href="@Url.Action("MiPerfil", "Usuarios")" class="btn-artista-especial">Ver Mi Perfil Personal</a>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <link rel="stylesheet" href="~/css/usuarios.css" />
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

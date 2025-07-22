@@ -1,0 +1,93 @@
+﻿@model Melody.Modelos.DTOs.AlbumDto
+@{
+    ViewData["Title"] = Model.Titulo;
+    var currentUser = ViewBag.CurrentUser as Melody.Modelos.Auth.UserSessionInfo;
+    var artistaActualId = ViewBag.ArtistaActualId as int?;
+    var esArtistaPropietario = currentUser?.IsArtista == true && artistaActualId == Model.ArtistaId;
+}
+
+<div class="container-fluid">
+    <div class="d-flex align-items-end gap-3 my-4">
+        <img src="@(string.IsNullOrEmpty(Model.PortadaUrl) ? "/images/default-album.png" : Model.PortadaUrl)"
+             alt="@Model.Titulo" width="200" height="200" class="rounded shadow">
+        <div>
+            <p class="text-muted">ÁLBUM</p>
+            <h1 class="display-4 fw-bold mb-2">@Model.Titulo</h1>
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <a href="/Artistas/Details/@Model.ArtistaId" class="text-decoration-none fw-bold">@Model.NombreArtista</a>
+                <span>•</span>
+                <span>@Model.FechaLanzamiento.Year</span>
+                <span>•</span>
+                <span>@Model.TotalCanciones cancion(es)</span>
+            </div>
+        </div>
+    </div>
+    @if (Model.Canciones != null && Model.Canciones.Any())
+    {
+        <div class="mb-4">
+            <button onclick="playAllSongs()" class="btn btn-success btn-lg rounded-pill px-4">
+                ▶️ Reproducir Álbum
+            </button>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col" class="text-center">#</th>
+                        <th scope="col">Título</th>
+                        <th scope="col" class="text-center">Duración</th>
+                        @if (esArtistaPropietario)
+                        {
+                            <th scope="col" class="text-center">Gestión</th>
+                        }
+                        <th scope="col" class="text-center">Acción</th> <!-- Movido al final -->
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 0; i < Model.Canciones.Count; i++)
+                    {
+                        var cancion = Model.Canciones[i];
+                        <tr>
+                            <td class="text-center">@(i + 1)</td>
+                            <td>
+                                <a href="@Url.Action("Details", "Canciones", new { id = cancion.Id })"
+                                   class="text-decoration-none text-primary fw-bold">
+                                    @cancion.Titulo
+                                </a>
+                            </td>
+                            <td class="text-center">
+                                @(cancion.Duracion?.ToString(@"m\:ss") ?? "0:00")
+                            </td>
+                            @if (esArtistaPropietario)
+                            {
+                                <td class="text-center">
+                                    <form method="post" action="@Url.Action("QuitarDeAlbum", "Canciones")" style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="cancionId" value="@cancion.Id" />
+                                        <button type="submit" class="btn btn-outline-danger btn-sm"
+                                                onclick="return confirm('¿Quitar &quot;@cancion.Titulo&quot; de este álbum?')">
+                                            Quitar
+                                        </button>
+                                    </form>
+                                </td>
+                            }
+                            <td class="text-center">
+                                <!-- Movido al final -->
+                                <button onclick="playSong('@cancion.ArchivoAudioUrl', '@cancion.Titulo', '@cancion.ArtistaNombre', '@cancion.PortadaUrl', @cancion.Id)"
+                                        class="btn btn-success btn-sm">
+                                    ▶️ Reproducir
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <h4>Este álbum no tiene canciones</h4>
+            <p>Aún no se han agregado canciones a este álbum.</p>
+        </div>
+    }
+</div>

@@ -17,7 +17,12 @@ namespace Melody.Modelos.DTOs
         public int TotalAlbums { get; set; }
         public int TotalSeguidores { get; set; }
         public DateTime FechaRegistro { get; set; }
+        public bool EstaSiguiendo { get; set; } = false;
+        public bool EsMiPerfil { get; set; } = false;
         public List<CancionDto> Canciones { get; set; } = new List<CancionDto>();
+        public string? NombreUsuario { get; set; }
+        public string? ApellidoUsuario { get; set; }
+        public string? EmailUsuario { get; set; }
     }
 
 }
