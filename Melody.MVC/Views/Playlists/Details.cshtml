@@ -1,0 +1,117 @@
+﻿@model Melody.Modelos.DTOs.PlaylistDto
+@{
+    ViewData["Title"] = Model.Nombre;
+    var currentUser = ViewBag.CurrentUser as Melody.Modelos.Auth.UserSessionInfo;
+    var esPropietario = currentUser != null &&
+                       int.TryParse(currentUser.UserId, out int userId) &&
+                       userId == Model.CreadorId;
+}
+
+<div class="container-fluid">
+    <div class="d-flex align-items-end gap-3 my-4">
+        <img src="@(string.IsNullOrEmpty(Model.Imagen) ? "/images/default-playlist.png" : Model.Imagen)"
+             alt="@Model.Nombre" width="200" height="200" class="rounded shadow">
+        <div>
+            <p class="text-muted">PLAYLIST</p>
+            <h1 class="display-4 fw-bold mb-2">@Model.Nombre</h1>
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <span class="fw-bold">@Model.CreadorNombre @Model.CreadorApellido</span>
+                <span>•</span>
+                <span>@Model.TotalCanciones cancion(es)</span>
+                @if (Model.DuracionTotal > 0)
+                {
+                    <span>•</span>
+                    <span>@Math.Round(Model.DuracionTotal, 0) min aprox</span>
+                }
+                <span>•</span>
+                <span class="badge @(Model.EsPublica ? "bg-success" : "bg-secondary")">
+                    @(Model.EsPublica ? "Pública" : "Privada")
+                </span>
+            </div>
+        </div>
+    </div>
+
+    @if (Model.Canciones != null && Model.Canciones.Any())
+    {
+        <div class="mb-4">
+            <button onclick="playAllSongs()" class="btn btn-success btn-lg rounded-pill px-4">
+                ▶️ Reproducir Playlist
+            </button>
+            @if (esPropietario)
+            {
+                <a href="@Url.Action("Edit", new { id = Model.Id })" class="btn btn-outline-warning ms-2">
+                    ✏️ Editar Playlist
+                </a>
+            }
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col" class="text-center">#</th>
+                        <th scope="col">Título</th>
+                        <th scope="col">Artista</th>
+                        <th scope="col" class="text-center">Duración</th>
+                        @if (esPropietario)
+                        {
+                            <th scope="col" class="text-center">Gestión</th>
+                        }
+                        <th scope="col" class="text-center">Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 0; i < Model.Canciones.Count; i++)
+                    {
+                        var cancion = Model.Canciones[i];
+                        <tr>
+                            <td class="text-center">@(i + 1)</td>
+                            <td>
+                                <a href="@Url.Action("Details", "Canciones", new { id = cancion.Id })"
+                                   class="text-decoration-none text-primary fw-bold">
+                                    @cancion.Titulo
+                                </a>
+                            </td>
+                            <td>@cancion.ArtistaNombre</td>
+                            <td class="text-center">
+                                @(cancion.Duracion?.ToString(@"m\:ss") ?? "0:00")
+                            </td>
+                            @if (esPropietario)
+                            {
+                                <td class="text-center">
+                                    <form method="post" action="@Url.Action("QuitarDePlaylist", "PlaylistsCanciones")" style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="playlistId" value="@Model.Id" />
+                                        <input type="hidden" name="cancionId" value="@cancion.Id" />
+                                        <button type="submit" class="btn btn-outline-danger btn-sm"
+                                                onclick="return confirm('¿Quitar &quot;@cancion.Titulo&quot; de esta playlist?')">
+                                            Quitar
+                                        </button>
+                                    </form>
+                                </td>
+                            }
+                            <td class="text-center">
+                                <button onclick="playSong('@cancion.ArchivoAudioUrl', '@cancion.Titulo', '@cancion.ArtistaNombre', '@cancion.PortadaUrl', @cancion.Id)"
+                                        class="btn btn-success btn-sm">
+                                    ▶️ Reproducir
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <h4>Esta playlist está vacía</h4>
+            <p>Aún no se han agregado canciones a esta playlist.</p>
+            @if (esPropietario)
+            {
+                <a href="@Url.Action("Index", "Canciones")" class="btn btn-primary">
+                    Explorar canciones para agregar
+                </a>
+            }
+        </div>
+    }
+</div>

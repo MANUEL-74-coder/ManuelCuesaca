@@ -1,0 +1,191 @@
+﻿<!-- Views/Playlists/Index.cshtml -->
+@model List<Melody.Modelos.DTOs.PlaylistDto>
+@{
+    ViewData["Title"] = "Playlists";
+    var currentUser = ViewBag.CurrentUser as Melody.Modelos.Auth.UserSessionInfo;
+}
+
+<div class="container">
+    <!-- Header con búsqueda -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2>Playlists Públicas</h2>
+            <p class="text-muted">Descubre playlists creadas por otros usuarios</p>
+        </div>
+
+        <!-- Formulario de búsqueda -->
+        <div class="d-flex gap-2">
+            <form method="get" asp-action="Buscar" class="d-flex">
+                <input type="text" name="q" class="form-control me-2" placeholder="Buscar playlists..." style="min-width: 250px;">
+                <button type="submit" class="btn btn-outline-primary">
+                    <i class="fas fa-search"></i> Buscar
+                </button>
+            </form>
+
+            <!-- Botón para crear playlist (solo usuarios premium) -->
+            @if (currentUser?.IsUserPremium == true)
+            {
+                <a asp-action="Create" class="btn btn-success ms-2">
+                    <i class="fas fa-plus"></i> Crear Playlist
+                </a>
+            }
+        </div>
+    </div>
+
+    <!-- Mensajes -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Navegación rápida para usuarios premium -->
+    @if (currentUser?.IsUserPremium == true)
+    {
+        <div class="mb-4">
+            <div class="btn-group" role="group">
+                <a href="@Url.Action("Index")" class="btn btn-outline-primary active">
+                    <i class="fas fa-globe"></i> Públicas
+                </a>
+                <a href="@Url.Action("MisPlaylists")" class="btn btn-outline-primary">
+                    <i class="fas fa-user"></i> Mis Playlists
+                </a>
+            </div>
+        </div>
+    }
+
+    <!-- Lista de playlists -->
+    @if (Model != null && Model.Any())
+    {
+        <div class="row g-4">
+            @foreach (var playlist in Model)
+            {
+                <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
+                    <div class="card h-100 playlist-card">
+                        <!-- Imagen de la playlist -->
+                        @if (!string.IsNullOrEmpty(playlist.Imagen))
+                        {
+                            <img src="@playlist.Imagen"
+                                 class="card-img-top"
+                                 alt="@playlist.Nombre"
+                                 style="height: 250px; object-fit: cover;">
+                        }
+                        else
+                        {
+                            <div class="card-img-top bg-gradient d-flex align-items-center justify-content-center"
+                                 style="height: 250px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                <i class="fas fa-music text-white" style="font-size: 4rem; opacity: 0.8;"></i>
+                            </div>
+                        }
+
+                        <!-- Información de la playlist -->
+                        <div class="card-body d-flex flex-column">
+                            <a href="@Url.Action("Details", new { id = playlist.Id })"
+                               class="text-decoration-none">
+                                <h5 class="card-title text-dark mb-2" title="@playlist.Nombre">
+                                    @playlist.Nombre
+                                </h5>
+                            </a>
+
+                            <div class="mb-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-user"></i>
+                                    Por: <strong>@playlist.CreadorNombre @playlist.CreadorApellido</strong>
+                                </small>
+                            </div>
+
+                            <div class="mb-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-music"></i>
+                                    @playlist.TotalCanciones cancion(es)
+                                </small>
+                                @if (playlist.DuracionTotal > 0)
+                                {
+                                    <br>
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock"></i>
+                                        @Math.Round(playlist.DuracionTotal, 0) min aprox
+                                    </small>
+                                }
+                            </div>
+
+                            <!-- Badge de pública -->
+                            <div class="mb-3">
+                                <span class="badge bg-success">
+                                    <i class="fas fa-globe"></i> Pública
+                                </span>
+                            </div>
+
+                            <!-- Botones de acción -->
+                            <div class="mt-auto">
+                                <div class="d-grid gap-2">
+                                    <a href="@Url.Action("Details", new { id = playlist.Id })"
+                                       class="btn btn-primary btn-sm">
+                                        <i class="fas fa-play"></i> Ver Playlist
+                                    </a>
+
+                                    @if (playlist.TotalCanciones > 0)
+                                    {
+                                        <button onclick="playPlaylist(@playlist.Id)"
+                                                class="btn btn-success btn-sm">
+                                            <i class="fas fa-play-circle"></i> Reproducir
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Paginación futura (opcional) -->
+        @if (Model.Count >= 20)
+        {
+            <div class="text-center mt-4">
+                <p class="text-muted">Mostrando las primeras @Model.Count playlists</p>
+            </div>
+        }
+    }
+    else
+    {
+        <!-- Estado vacío -->
+        <div class="text-center py-5">
+            <div class="mb-4">
+                <i class="fas fa-music" style="font-size: 5rem; color: #6c757d; opacity: 0.5;"></i>
+            </div>
+            <h4 class="text-muted">No hay playlists públicas aún</h4>
+            <p class="text-muted">Sé el primero en crear una playlist pública para compartir con la comunidad</p>
+
+            @if (currentUser?.IsUserPremium == true)
+            {
+                <a href="@Url.Action("Create")" class="btn btn-primary mt-3">
+                    <i class="fas fa-plus"></i> Crear mi primera playlist
+                </a>
+            }
+            else if (currentUser == null)
+            {
+                <a href="/Account/Login" class="btn btn-primary mt-3">
+                    <i class="fas fa-sign-in-alt"></i> Iniciar sesión para crear playlists
+                </a>
+            }
+            else
+            {
+                <p class="mt-3">
+                    <a href="/Planes" class="btn btn-outline-primary">
+                        <i class="fas fa-crown"></i> Hazte Premium para crear playlists
+                    </a>
+                </p>
+            }
+        </div>
+    }
+</div>

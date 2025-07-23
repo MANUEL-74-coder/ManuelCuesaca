@@ -30,7 +30,6 @@
         {
             if (!Model.EsMiPerfil)
             {
-
                 <form asp-action="ToggleSeguir" method="post" style="display: inline;">
                     <input type="hidden" name="artistaId" value="@Model.Id" />
                     @if (Model.EstaSiguiendo)
@@ -97,6 +96,7 @@
                             <th>Género</th>
                             <th>Duración</th>
                             <th>Fecha</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -104,11 +104,12 @@
                         {
                             <tr>
                                 <td>
-                                    <strong>@cancion.Titulo</strong>
+                                    <a href="@Url.Action("Details", "Canciones", new { id = cancion.Id })" class="text-decoration-none">
+                                        <strong>@cancion.Titulo</strong>
+                                    </a>
                                     @if (!string.IsNullOrEmpty(cancion.PortadaUrl))
                                     {
                                         <br>
-
                                         <small>🎵</small>
                                     }
                                 </td>
@@ -134,6 +135,34 @@
                                     }
                                 </td>
                                 <td>@cancion.FechaLanzamiento.ToString("dd/MM/yyyy")</td>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        <!-- Botón reproducir -->
+                                        <button onclick="playSong('@cancion.ArchivoAudioUrl', '@cancion.Titulo', '@cancion.ArtistaNombre', '@cancion.PortadaUrl', @cancion.Id)"
+                                                class="btn btn-success btn-sm">
+                                            ▶️
+                                        </button>
+
+                                        <!-- Botón Me Gusta - Solo para usuarios free/premium -->
+                                        @if (currentUser != null && (currentUser.IsUserFree || currentUser.IsUserPremium))
+                                        {
+                                            <button type="button" onclick="toggleMeGusta(@cancion.Id, this)"
+                                                    class="btn btn-outline-secondary btn-sm me-gusta-btn"
+                                                    data-cancion-id="@cancion.Id"
+                                                    data-es-favorito="@cancion.EsFavorito.ToString().ToLower()"
+                                                    title="@(cancion.EsFavorito ? "Quitar de favoritos" : "Agregar a favoritos")">
+                                                @if (cancion.EsFavorito)
+                                                {
+                                                    <span style="color: red;">♥</span>
+                                                }
+                                                else
+                                                {
+                                                    <span style="color: gray;">♡</span>
+                                                }
+                                            </button>
+                                        }
+                                    </div>
+                                </td>
                             </tr>
                         }
                     </tbody>
@@ -146,7 +175,6 @@
         <div class="seccion-perfil">
             <div class="mensaje-especial">
                 <p>Este artista aún no ha publicado canciones</p>
-                <small>¡Síguelo para estar al tanto de sus próximos lanzamientos!</small>
             </div>
         </div>
     }
@@ -160,19 +188,72 @@
                 <br>
                 <small>Descubre nueva música</small>
             </a>
-            @if (ViewBag.CurrentUser != null)
-            {
-                <a href="@Url.Action("MisPlaylists", "Playlists")" class="enlace-rapido">
-                    Mis Playlists
-                    <br>
-                    <small>Agregar a playlist</small>
-                </a>
-                <a href="@Url.Action("MisSeguimientos", "Seguimientos")" class="enlace-rapido">
-                    Mis Seguimientos
-                    <br>
-                    <small>Ver todos los artistas que sigues</small>
-                </a>
-            }
         </div>
     </div>
 </div>
+
+<!-- JavaScript para Me Gusta (igual que en Details de canciones) -->
+<script>
+    function toggleMeGusta(cancionId, buttonElement) {
+        buttonElement.disabled = true;
+
+        fetch('/Canciones/ToggleMeGustaAjax', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'cancionId=' + cancionId
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const isCurrentlyFavorite = buttonElement.dataset.esFavorito === 'true';
+                const newState = !isCurrentlyFavorite;
+                actualizarIconoCorazon(buttonElement, newState);
+                buttonElement.dataset.esFavorito = newState.toString();
+                showToast(data.message, 'success');
+            } else {
+                showToast(data.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('Error al procesar favorito', 'error');
+        })
+        .finally(() => {
+            buttonElement.disabled = false;
+        });
+    }
+
+    function actualizarIconoCorazon(buttonElement, esFavorito) {
+        const heartSpan = buttonElement.querySelector('span');
+
+        if (esFavorito) {
+            heartSpan.innerHTML = '♥';
+            heartSpan.style.color = 'red';
+            buttonElement.title = 'Quitar de favoritos';
+        } else {
+            heartSpan.innerHTML = '♡';
+            heartSpan.style.color = 'gray';
+            buttonElement.title = 'Agregar a favoritos';
+        }
+    }
+
+    function showToast(message, type) {
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+        toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        toast.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+        `;
+
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            if (toast.parentElement) {
+                toast.remove();
+            }
+        }, 3000);
+    }
+</script>

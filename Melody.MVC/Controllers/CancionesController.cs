@@ -1,16 +1,15 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Melody.Modelos.DTOs;
 using Melody.MVC.Services;
 using Melody.API.Consumer;
 using Melody.Modelos;
 using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Newtonsoft.Json;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Melody.MVC.Controllers
 {
-    [Authorize] // Base: requiere autenticación
+    [Authorize]
     public class CancionesController : Controller
     {
         private readonly AuthService _authService;
@@ -36,24 +35,71 @@ namespace Melody.MVC.Controllers
                 return View(new List<CancionDto>());
             }
         }
-        // GET: Detalles de canción (público)
-        [Authorize]
-        public IActionResult Details(int id)
+
+        [AllowAnonymous] // ← CAMBIO 1: Era [Authorize]
+        public async Task<IActionResult> Details(int id)
         {
             try
             {
-                var cancion = Crud<CancionDto>.GetById(id);
-                if (cancion == null)
+                CancionDto cancion;
+                ArtistaDto artista;
+
+                if (_authService.IsAuthenticated()) // ← CAMBIO 2: Verificar autenticación
                 {
-                    return NotFound("Canción no encontrada");
+                    // Si está logueado, usar método con token
+                    var token = _authService.ObtenerToken();
+                    cancion = await Crud<CancionDto>.GetByIdWithAuth<CancionDto>(id, token); // ← CAMBIO 3: Con token
+                    if (cancion == null)
+                    {
+                        return NotFound("Canción no encontrada");
+                    }
+
+                    if (cancion.ArtistaId <= 0)
+                    {
+                        return NotFound("Artista no válido");
+                    }
+
+                    // Obtener artista CON autenticación 
+                    artista = await Crud<ArtistaDto>.GetByIdWithAuth<ArtistaDto>(cancion.ArtistaId, token); // ← CAMBIO 4: Con token
+
+                    // Cargar playlists del usuario si es premium
+                    if (User.IsInRole("userpremium"))
+                    {
+                        try
+                        {
+                            Crud<PlaylistDto>.Endpoint = "https://localhost:7108/api/Playlists";
+                            var playlists = await Crud<PlaylistDto>.GetListWithAuth("mis-playlists", token);
+                            ViewBag.MisPlaylists = playlists ?? new List<PlaylistDto>();
+                        }
+                        catch
+                        {
+                            ViewBag.MisPlaylists = new List<PlaylistDto>();
+                        }
+                    }
+                    else
+                    {
+                        ViewBag.MisPlaylists = new List<PlaylistDto>();
+                    }
+                }
+                else
+                {
+                    // Si no está logueado, usar método sin token
+                    cancion = Crud<CancionDto>.GetById(id);
+                    if (cancion == null)
+                    {
+                        return NotFound("Canción no encontrada");
+                    }
+
+                    if (cancion.ArtistaId <= 0)
+                    {
+                        return NotFound("Artista no válido");
+                    }
+
+                    // Obtener artista SIN autenticación
+                    artista = Crud<ArtistaDto>.GetById(cancion.ArtistaId);
+                    ViewBag.MisPlaylists = new List<PlaylistDto>();
                 }
 
-                if (cancion.ArtistaId <= 0)
-                {
-                    return NotFound("Artista no válido");
-                }
-
-                var artista = Crud<ArtistaDto>.GetById(cancion.ArtistaId);
                 if (artista == null)
                 {
                     return NotFound("Artista no encontrado");
@@ -78,13 +124,75 @@ namespace Melody.MVC.Controllers
                 ViewBag.Artista = artista;
                 ViewBag.CancionActualId = id;
 
-                // Pasamos la canción como modelo principal
                 return View(cancion);
             }
             catch (Exception ex)
             {
                 return NotFound($"Error: {ex.Message}");
             }
+        }
+
+        // POST: Toggle Me Gusta - AJAX (Sin DTOs, sin redirección)
+        [HttpPost]
+        [Authorize(Roles = "userfree,userpremium")]
+        public async Task<IActionResult> ToggleMeGustaAjax(int cancionId)
+        {
+            try
+            {
+                var token = _authService.ObtenerToken();
+
+                // Configurar endpoint específico para MeGusta
+                Crud<MeGusta>.Endpoint = "https://localhost:7108/api/MeGusta"; // Cambia por tu URL
+
+                // Llamar al endpoint toggle con el ID de la canción
+                var resultado = await Crud<MeGusta>.PostWithAuth($"toggle/{cancionId}", null, token);
+
+                if (resultado != null)
+                {
+                    return Json(new { success = true, message = "Favorito actualizado" });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Error al actualizar favorito" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Error al procesar favorito" });
+            }
+        }
+
+        // POST: Agregar canción a playlist - SIN DTOs
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "userpremium")]
+        public async Task<IActionResult> AgregarAPlaylist(int cancionId, int playlistId)
+        {
+            try
+            {
+                var token = _authService.ObtenerToken();
+
+                // Configurar endpoint específico para PlaylistsCanciones
+                Crud<PlaylistCancion>.Endpoint = "https://localhost:7108/api/PlaylistsCanciones"; // Cambia por tu URL
+
+                // Llamar al endpoint con query parameters
+                var resultado = await Crud<PlaylistCancion>.PostWithAuth($"?playlistId={playlistId}&cancionId={cancionId}", null, token);
+
+                if (resultado != null)
+                {
+                    TempData["Success"] = "Canción agregada a la playlist exitosamente";
+                }
+                else
+                {
+                    TempData["Error"] = "Error al agregar la canción a la playlist";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Error al agregar la canción a la playlist";
+            }
+
+            return RedirectToAction("Details", new { id = cancionId });
         }
 
         // GET: Formulario para crear canción
@@ -106,6 +214,7 @@ namespace Melody.MVC.Controllers
                 Text = g.Nombre
             }).ToList();
         }
+
         private async Task<List<SelectListItem>> GetMisAlbums()
         {
             var token = _authService.ObtenerToken();
@@ -116,6 +225,7 @@ namespace Melody.MVC.Controllers
                 Text = a.Titulo
             }).ToList();
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "artista")]
@@ -180,6 +290,7 @@ namespace Melody.MVC.Controllers
             ViewBag.CurrentUser = _authService.GetCurrentUser();
             return View(model);
         }
+
         // GET: Mis canciones - SOLO ARTISTAS
         [Authorize(Roles = "artista")]
         public async Task<IActionResult> MisCanciones()
@@ -201,6 +312,7 @@ namespace Melody.MVC.Controllers
                 return View(new List<CancionDto>());
             }
         }
+
         [HttpGet]
         [Authorize(Roles = "artista")]
         public async Task<IActionResult> ConfirmarDelete(int id)
@@ -226,8 +338,6 @@ namespace Melody.MVC.Controllers
             }
         }
 
-        // En tu CancionesController.cs, ajusta el método Delete así:
-
         // POST: Canciones/Delete/5 - Eliminar directamente desde el modal
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -237,7 +347,6 @@ namespace Melody.MVC.Controllers
             try
             {
                 var token = _authService.ObtenerToken();
-
                 var resultado = await Crud<CancionDto>.DeleteWithAuth(id, token);
 
                 if (resultado)
@@ -256,7 +365,6 @@ namespace Melody.MVC.Controllers
 
             return RedirectToAction(nameof(MisCanciones));
         }
-
 
         // GET: Formulario para editar canción
         [Authorize(Roles = "artista")]
@@ -348,6 +456,7 @@ namespace Melody.MVC.Controllers
             ViewBag.CurrentUser = _authService.GetCurrentUser();
             return View(model);
         }
+
         // POST: Agregar canción a álbum
         [HttpPost]
         [Authorize(Roles = "artista")]

@@ -22,6 +22,7 @@ internal class Program
         Crud<Artista>.Endpoint = "https://localhost:7115/api/Artistas";
         Crud<ArtistaDto>.Endpoint = "https://localhost:7115/api/Artistas";
         Crud<MiPerfilDto>.Endpoint = "https://localhost:7115/api/Usuarios";
+        Crud<PlaylistDto>.Endpoint = "https://localhost:7115/api/Playlists";
 
         //Esto lo uso para mostrar los followers del artista
         Crud<object>.Endpoint = "https://localhost:7115/api/Seguimientos";

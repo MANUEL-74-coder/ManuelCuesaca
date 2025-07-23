@@ -21,7 +21,10 @@ namespace Melody.Modelos.DTOs
         public string CreadorApellido { get; set; } = string.Empty;
         public string? CreadorFotoPerfil { get; set; }
 
+        // Agregamos fecha de creación
+        public DateTime FechaCreacion { get; set; }
+
         // Lista de canciones (para la vista de detalles)
-        public List<CancionDto>? Canciones { get; set; }
+        public List<CancionPlaylistDto>? Canciones { get; set; }
     }
 }

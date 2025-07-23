@@ -1,0 +1,54 @@
+﻿@model Melody.Modelos.DTOs.CrearPlaylistDto
+@{
+    ViewData["Title"] = "Crear Playlist";
+}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Crear Nueva Playlist</h4>
+                </div>
+                <div class="card-body">
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger">
+                            @TempData["Error"]
+                        </div>
+                    }
+                    <form asp-action="Create" method="post" enctype="multipart/form-data">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                        <div class="mb-3">
+                            <label asp-for="Nombre" class="form-label">Nombre de la Playlist *</label>
+                            <input asp-for="Nombre" class="form-control" placeholder="Ingresa el nombre de tu playlist">
+                            <span asp-validation-for="Nombre" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input asp-for="EsPublica" class="form-check-input" type="checkbox">
+                                <label asp-for="EsPublica" class="form-check-label">
+                                    Hacer playlist pública
+                                </label>
+                            </div>
+                            <small class="form-text text-muted">Las playlists públicas pueden ser vistas por otros usuarios</small>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Imagen" class="form-label">Imagen de la Playlist</label>
+                            <input asp-for="Imagen" type="file" class="form-control" accept="image/*">
+                            <span asp-validation-for="Imagen" class="text-danger"></span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <a href="@Url.Action("MisPlaylists")" class="btn btn-secondary">Cancelar</a>
+                            <button type="submit" class="btn btn-primary">Crear Playlist</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

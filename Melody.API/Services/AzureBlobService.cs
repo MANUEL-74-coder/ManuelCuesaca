@@ -59,7 +59,7 @@ public class AzureBlobService : IAzureBlobService
         "portadas" => "portadas",
         "albums" => "album-images",
         "perfiles" => "perfiles",
-        "playlists" => "playlist-images",
+        "playlists" => "playlists-images",
         _ => contenedor.ToLower()
     };
 }

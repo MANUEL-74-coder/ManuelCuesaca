@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Melody.Modelos.DTOs
+namespace Melody.Modelos.PayPal
 {
-    public class CambiarRolDto
+    public class CrearOrdenRequest
     {
-        public string NuevoRol { get; set; }
+        public int PlanId { get; set; }
     }
 }
