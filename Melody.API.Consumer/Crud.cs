@@ -147,6 +147,14 @@ namespace Melody.API.Consumer
             var response = await client.DeleteAsync($"{Endpoint}/{id}");
             return response.IsSuccessStatusCode;
         }
+        public static async Task<bool> DeleteWithAuth(string endpoint, string token)
+        {
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            var response = await client.DeleteAsync($"{Endpoint}/{endpoint}");
+            return response.IsSuccessStatusCode;
+        }
         public static async Task<bool> UpdateWithAuth(int id, MultipartFormDataContent formData, string token)
         {
             using var client = new HttpClient();

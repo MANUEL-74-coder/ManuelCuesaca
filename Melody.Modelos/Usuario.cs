@@ -20,5 +20,7 @@ namespace Melody.Modelos
 
         // Relación con Artista
         public Artista? Artista { get; set; }
+        public List<MeGusta>? CancionesMeGusta { get; set; }
+        public List<SuscripcionMiembro>? MiembrosDe { get; set; }
     }
 }

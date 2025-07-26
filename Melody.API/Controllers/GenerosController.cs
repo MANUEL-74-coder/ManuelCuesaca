@@ -36,6 +36,7 @@ namespace Melody.API.Controllers
                     TotalAlbums = g.Albums != null ? g.Albums.Count : 0,
                     TotalCanciones = g.Canciones != null ? g.Canciones.Count : 0
                 })
+                .OrderBy(g => g.Nombre)
                 .ToListAsync();
             return Ok(generos);
         }
@@ -112,8 +113,10 @@ namespace Melody.API.Controllers
             // Verificar si el nombre del género ya existe
             var nombreExistente = await _context.Generos
                 .FirstOrDefaultAsync(g => g.Nombre.ToLower() == genero.Nombre.ToLower());
+
             if (nombreExistente != null)
                 return BadRequest("Ya existe un género con el mismo nombre.");
+
             _context.Generos.Add(genero);
             await _context.SaveChangesAsync();
 

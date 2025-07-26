@@ -23,6 +23,7 @@ namespace Melody.API.Controllers
 
         // GET: api/Planes
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<Plan>>> ObtenerPLanes()
         {
             try
@@ -51,6 +52,7 @@ namespace Melody.API.Controllers
 
         // GET: api/Planes/5
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult<Plan>> ObtenerPlan(int id)
         {
             try
@@ -89,46 +91,66 @@ namespace Melody.API.Controllers
         // PUT: api/Planes/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> ActualizarPlan(int id, Plan plan)
         {
-            if (id != plan.Id)
-            {
-                return BadRequest();
-            }
-
-            var planExistente = await _context.Planes.FindAsync(id);
-            if (planExistente == null)
-            {
-                return NotFound();
-            }
-            // Verificar si el nombre del plan ya existe
-            var planConMismoNombre = await _context.Planes
-                .Where(p => p.Id != id && p.Nombre.ToLower() == plan.Nombre.ToLower())
-                .FirstOrDefaultAsync();
-            if (planConMismoNombre != null)
-            {
-                return BadRequest("Ya existe un plan con ese nombre.");
-            }
-
-            _context.Entry(plan).State = EntityState.Modified;
-
             try
             {
+                if (id != plan.Id)
+                {
+                    return BadRequest("El ID del plan no coincide");
+                }
+
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var planExistente = await _context.Planes.FindAsync(id);
+                if (planExistente == null)
+                {
+                    return NotFound("Plan no encontrado");
+                }
+
+                // Verificar si el nombre del plan ya existe
+                var planConMismoNombre = await _context.Planes
+                    .Where(p => p.Id != id && p.Nombre.ToLower() == plan.Nombre.ToLower())
+                    .FirstOrDefaultAsync();
+
+                if (planConMismoNombre != null)
+                {
+                    return BadRequest("Ya existe un plan con ese nombre.");
+                }
+
+                planExistente.Nombre = plan.Nombre;
+                planExistente.Descripcion = plan.Descripcion;
+                planExistente.Precio = plan.Precio;
+                planExistente.DuracionDias = plan.DuracionDias;
+                planExistente.NumeroUsuarios = plan.NumeroUsuarios;
+
                 await _context.SaveChangesAsync();
+
+                return Ok(new
+                {
+                    mensaje = "Plan actualizado con éxito",
+                    plan = planExistente
+                });
             }
             catch (DbUpdateConcurrencyException)
             {
                 if (!PlanExists(id))
                 {
-                    return NotFound();
+                    return NotFound("Plan no encontrado");
                 }
                 else
                 {
                     throw;
                 }
             }
-
-            return NoContent();
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Error al actualizar el plan: {ex.Message}");
+            }
         }
 
         // POST: api/Planes
@@ -193,7 +215,7 @@ namespace Melody.API.Controllers
         // GET: api/Planes/estadisticas - Estadísticas de planes (admin)
         [HttpGet("estadisticas")]
         [Authorize(Roles = "admin")]
-        public async Task<ActionResult<object>> ObtenerEstadisticasPlanes()
+        public async Task<ActionResult<Plan>> ObtenerEstadisticasPlanes()
         {
             try
             {

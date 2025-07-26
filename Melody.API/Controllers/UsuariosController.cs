@@ -12,6 +12,7 @@ namespace Melody.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class UsuariosController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -80,16 +81,12 @@ namespace Melody.API.Controllers
 
         // GET: api/Usuarios/5
         [HttpGet("{id}")]
-        [Authorize]
+        [Authorize(Roles = "admin")]
         public async Task<ActionResult<Usuario>> ObtenerUsuario(int id)
         {
             try
             {
                 var usuarioActual = await _usuarioService.ObtenerUsuarioActualAsync();
-                if (usuarioActual == null)
-                {
-                    return Unauthorized("Usuario no autenticado");
-                }
 
                 // Verificar si es admin o el mismo usuario
                 var rolesActual = await _userManager.GetRolesAsync(usuarioActual);
@@ -142,17 +139,11 @@ namespace Melody.API.Controllers
         //GET: api/Usuarios/mi-perfil - Obtiene el perfil del usuario autenticado
 
         [HttpGet("mi-perfil")]
-        [Authorize]
         public async Task<ActionResult<MiPerfilDto>> ObtenerMiPerfil()
         {
             try
             {
                 var usuario = await _usuarioService.ObtenerUsuarioActualAsync();
-                if (usuario == null)
-                {
-                    return Unauthorized("Usuario no autenticado");
-                }
-
                 var roles = await _userManager.GetRolesAsync(usuario);
                 var suscripcionActiva = await _context.Suscripciones
                     .Include(s => s.Plan)
@@ -196,10 +187,7 @@ namespace Melody.API.Controllers
                     return BadRequest(ModelState);
                 }
                 var usuarioActual = await _usuarioService.ObtenerUsuarioActualAsync();
-                if (usuarioActual == null)
-                {
-                    return Unauthorized();
-                }
+
                 //Acutalizar foto de perfil si se proporciona
                 if (dto.FotoPerfil != null)
                 {

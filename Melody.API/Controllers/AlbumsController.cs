@@ -18,10 +18,10 @@ namespace Melody.API.Controllers
         private readonly AppDbContext _context;
         private readonly IAzureBlobService _blobService;
         private readonly IUsuarioService _usuarioService;
-        private readonly ILogger<ArtistasController> _logger;
+        private readonly ILogger<AlbumsController> _logger;
 
         public AlbumsController(AppDbContext context, IAzureBlobService blobService,
-                                IUsuarioService usuarioService, ILogger<ArtistasController> logger)
+                                IUsuarioService usuarioService, ILogger<AlbumsController> logger)
         {
             _context = context;
             _blobService = blobService;
@@ -30,6 +30,7 @@ namespace Melody.API.Controllers
         }
         // GET: api/Albums
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<AlbumDto>>> ObtenerAlbums()
         {
             try
@@ -69,10 +70,6 @@ namespace Melody.API.Controllers
             try
             {
                 var artista = await _usuarioService.ObtenerArtistaActualAsync();
-                if (artista == null)
-                {
-                    return BadRequest("El usuario actual no tiene un artista asociado.");
-                }
 
                 var albums = await _context.Albums
                     .Include(a => a.Artista)
@@ -91,22 +88,30 @@ namespace Melody.API.Controllers
             }
         }
 
-        // GET: api/Albums/5
+        // GET: api/Albums/5 - ACTUALIZADO con EsFavorito
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult<AlbumDto>> ObtenerAlbum(int id)
         {
             try
             {
+                // Obtener usuario actual para verificar favoritos
+                var usuario = await _usuarioService.ObtenerUsuarioActualAsync();
+                var usuarioId = usuario?.Id;
+
                 var album = await _context.Albums
                     .Include(a => a.Artista)
                     .Include(a => a.Genero)
                     .Include(a => a.Canciones)
                     .FirstOrDefaultAsync(a => a.Id == id);
+
                 if (album == null)
                 {
                     return NotFound();
                 }
+
                 var canciones = await _context.Canciones
+                    .Include(c => c.Artista)
                     .Where(c => c.AlbumId == id)
                     .Select(c => new CancionDto
                     {
@@ -116,10 +121,14 @@ namespace Melody.API.Controllers
                         PortadaUrl = c.PortadaUrl,
                         FechaLanzamiento = c.FechaLanzamiento,
                         ArchivoAudioUrl = c.ArchivoAudio,
-                        ArtistaNombre = c.Artista!.NombreArtista
+                        ArtistaId = c.ArtistaId,
+                        ArtistaNombre = c.Artista!.NombreArtista,
+                        EsFavorito = usuarioId.HasValue &&
+                                   _context.MeGustas.Any(mg => mg.UsuarioId == usuarioId.Value && mg.CancionId == c.Id)
                     })
                     .OrderBy(c => c.FechaLanzamiento)
                     .ToListAsync();
+
                 var resultado = new AlbumDto
                 {
                     Id = album.Id,
@@ -128,10 +137,12 @@ namespace Melody.API.Controllers
                     PortadaUrl = album.PortadaUrl,
                     ArtistaId = album.Artista!.Id,
                     NombreArtista = album.Artista.NombreArtista,
+                    GeneroId = album.GeneroId,
                     GeneroNombre = album.Genero!.Nombre,
                     TotalCanciones = canciones.Count,
                     Canciones = canciones
                 };
+
                 return Ok(resultado);
             }
             catch (Exception ex)
@@ -154,10 +165,7 @@ namespace Melody.API.Controllers
                     return BadRequest(ModelState);
                 }
                 var artista = await _usuarioService.ObtenerArtistaActualAsync();
-                if (artista == null)
-                {
-                    return BadRequest("El usuario actual no tiene un artista asociado.");
-                }
+
                 var albumExistente = await _context.Albums
                     .FirstOrDefaultAsync(a => a.Id == id && a.ArtistaId == artista.Id);
                 if (albumExistente == null)
@@ -218,10 +226,7 @@ namespace Melody.API.Controllers
                 }
 
                 var artista = await _usuarioService.ObtenerArtistaActualAsync();
-                if (artista == null)
-                {
-                    return BadRequest("El usuario actual no tiene un artista asociado.");
-                }
+
                 string portadaUrl = null;
 
                 // Subir portada si se proporciona
@@ -277,7 +282,6 @@ namespace Melody.API.Controllers
             try
             {
                 var artista = await _usuarioService.ObtenerArtistaActualAsync();
-                if (artista == null) return BadRequest("Usuario no es artista");
 
                 var album = await _context.Albums.FindAsync(id);
                 if (album == null || album.ArtistaId != artista.Id)
@@ -309,10 +313,7 @@ namespace Melody.API.Controllers
             try
             {
                 var artista = await _usuarioService.ObtenerArtistaActualAsync();
-                if (artista == null)
-                {
-                    return BadRequest("El usuario actual no tiene un artista asociado.");
-                }
+
                 var album = await _context.Albums
                     .Include(a => a.Canciones)
                     .FirstOrDefaultAsync(a => a.Id == id && a.ArtistaId == artista.Id);

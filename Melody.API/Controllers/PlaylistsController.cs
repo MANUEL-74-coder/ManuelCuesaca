@@ -54,7 +54,9 @@ namespace Melody.API.Controllers
                         {
                             Id = playlist.Id,
                             Nombre = playlist.Nombre ?? "Sin nombre",
-                            Imagen = playlist.Imagen,
+                            Imagen = !string.IsNullOrEmpty(playlist.Imagen)
+                            ? playlist.Imagen
+                            : "https://appmelody.blob.core.windows.net/playlists-images/default.jpg",
                             EsPublica = playlist.EsPublica,
                             TotalCanciones = totalCanciones,
                             CreadorId = usuario?.Id ?? 0,
@@ -82,7 +84,7 @@ namespace Melody.API.Controllers
             }
         }
 
-        // GET: api/Playlists/5
+        // GET: api/Playlists/5 - CORREGIDO para usar CancionPlaylistDto
         [HttpGet("{id}")]
         [Authorize]
         public async Task<ActionResult<PlaylistDto>> ObtenerPlaylist(int id)
@@ -99,29 +101,37 @@ namespace Melody.API.Controllers
                 }
 
                 // Verificar permisos
-                var usuarioActual = await _usuarioService.ObtenerUsuarioActualAsync();
-                if (!playlist.EsPublica && (usuarioActual == null || playlist.UsuarioId != usuarioActual.Id))
+                if (!playlist.EsPublica)
                 {
-                    return StatusCode(StatusCodes.Status403Forbidden, "No tienes permisos para ver esta playlist");
+                    var usuarioActual = await _usuarioService.ObtenerUsuarioActualAsync();
+                    if (playlist.UsuarioId != usuarioActual.Id)
+                    {
+                        return StatusCode(StatusCodes.Status403Forbidden, "No tienes permisos para ver esta playlist");
+                    }
                 }
 
-                // Obtener canciones de la playlist
+                // Obtener canciones de la playlist CON ID de relación
                 var canciones = await _context.PlaylistsCanciones
                     .Include(pc => pc.Cancion)
                     .ThenInclude(c => c.Artista)
                     .Include(pc => pc.Cancion)
+                    .ThenInclude(c => c.Album)
+                    .Include(pc => pc.Cancion)
                     .ThenInclude(c => c.Genero)
                     .Where(pc => pc.PlaylistId == id)
-                    .Select(pc => new CancionDto
+                    .Select(pc => new CancionPlaylistDto
                     {
-                        Id = pc.Cancion!.Id,
-                        Titulo = pc.Cancion.Titulo,
-                        Duracion = pc.Cancion.Duracion,
-                        PortadaUrl = pc.Cancion.PortadaUrl,
+                        PlaylistCancionId = pc.Id, // ¡IMPORTANTE! ID de la relación
+                        CancionId = pc.Cancion!.Id,
+                        CancionTitulo = pc.Cancion.Titulo,
                         ArchivoAudioUrl = pc.Cancion.ArchivoAudio,
-                        FechaLanzamiento = pc.Cancion.FechaLanzamiento,
+                        PortadaUrl = pc.Cancion.PortadaUrl,
+                        Duracion = pc.Cancion.Duracion,
+                        ArtistaId = pc.Cancion.ArtistaId,
                         ArtistaNombre = pc.Cancion.Artista!.NombreArtista,
-                        GeneroNombre = pc.Cancion.Genero!.Nombre
+                        AlbumNombre = pc.Cancion.Album != null ? pc.Cancion.Album.Titulo : "Sin Álbum",
+                        GeneroNombre = pc.Cancion.Genero!.Nombre,
+                        FechaAgregada = DateTime.Now // Puedes agregar este campo a tu modelo si lo necesitas
                     })
                     .ToListAsync();
 
@@ -137,6 +147,7 @@ namespace Melody.API.Controllers
                     CreadorNombre = playlist.Usuario.Nombre,
                     CreadorApellido = playlist.Usuario.Apellido,
                     CreadorFotoPerfil = playlist.Usuario.FotoPerfil,
+                    FechaCreacion = DateTime.Now, // O agregalo a tu modelo Playlist
                     Canciones = canciones
                 };
 
@@ -149,7 +160,6 @@ namespace Melody.API.Controllers
             }
         }
 
-
         // GET: api/Playlists/mis-playlists - Obtener mis playlists
         [HttpGet("mis-playlists")]
         [Authorize(Roles = "userpremium")]
@@ -158,10 +168,6 @@ namespace Melody.API.Controllers
             try
             {
                 var usuario = await _usuarioService.ObtenerUsuarioActualAsync();
-                if (usuario == null)
-                {
-                    return Unauthorized("Usuario no autenticado");
-                }
 
                 var playlists = await _context.Playlists
                     .Include(p => p.PlaylistCanciones)
@@ -206,10 +212,6 @@ namespace Melody.API.Controllers
                 }
 
                 var usuario = await _usuarioService.ObtenerUsuarioActualAsync();
-                if (usuario == null)
-                {
-                    return Unauthorized("Usuario no autenticado");
-                }
 
                 var playlist = await _context.Playlists
                     .FirstOrDefaultAsync(p => p.Id == id && p.UsuarioId == usuario.Id);
@@ -276,10 +278,6 @@ namespace Melody.API.Controllers
                 }
 
                 var usuario = await _usuarioService.ObtenerUsuarioActualAsync();
-                if (usuario == null)
-                {
-                    return Unauthorized("Usuario no autenticado");
-                }
 
                 string imagenUrl = null;
 
@@ -302,7 +300,7 @@ namespace Melody.API.Controllers
                     Nombre = dto.Nombre,
                     EsPublica = dto.EsPublica,
                     UsuarioId = usuario.Id,
-                    Imagen = imagenUrl ?? "https://appmelody.blob.core.windows.net/playlist-images/default.jpg" // Imagen por defecto
+                    Imagen = imagenUrl ?? "https://appmelody.blob.core.windows.net/playlists-images/default.jpg" // Imagen por defecto
                 };
 
                 _context.Playlists.Add(playlist);
@@ -337,10 +335,6 @@ namespace Melody.API.Controllers
             try
             {
                 var usuario = await _usuarioService.ObtenerUsuarioActualAsync();
-                if (usuario == null)
-                {
-                    return Unauthorized("Usuario no autenticado");
-                }
 
                 var playlist = await _context.Playlists
                     .Include(p => p.PlaylistCanciones)

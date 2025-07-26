@@ -6,62 +6,39 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Melody.Modelos;
-using Microsoft.AspNetCore.Identity;
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
-using Melody.Modelos.DTOs;
+using Melody.API.Services;
 
 namespace Melody.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class PlaylistsCancionesController : ControllerBase
     {
         private readonly AppDbContext _context;
-
-        private readonly UserManager<Usuario> _userManager;
+        private readonly IUsuarioService _usuarioService;
         private readonly ILogger<PlaylistsCancionesController> _logger;
 
-        public PlaylistsCancionesController(AppDbContext context, UserManager<Usuario> userManager, ILogger<PlaylistsCancionesController> logger)
+        public PlaylistsCancionesController(AppDbContext context, IUsuarioService usuarioService, ILogger<PlaylistsCancionesController> logger)
         {
             _context = context;
-            _userManager = userManager;
+            _usuarioService = usuarioService;
             _logger = logger;
         }
 
-        // Helper method para obtener usuario actual
-        private async Task<Usuario?> ObtenerUsuarioActualAsync()
-        {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (!int.TryParse(userIdClaim, out int userId))
-                return null;
 
-            return await _userManager.FindByIdAsync(userId.ToString());
-        }
-
-
-        // POST: api/PlaylistsCanciones
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        // POST: api/PlaylistsCanciones?playlistId=1&cancionId=5
         [HttpPost]
-        [Authorize]
-        public async Task<ActionResult<object>> AgregarCancionAPlylist([FromBody] AgregarCancionPlaylistDto dto)
+        public async Task<ActionResult<PlaylistCancion>> AgregarCancionAPlaylist([FromQuery] int playlistId, [FromQuery] int cancionId)
         {
             try
             {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
-
-                var usuario = await ObtenerUsuarioActualAsync();
-                if (usuario == null)
-                {
-                    return Unauthorized("Usuario no autenticado");
-                }
+                var usuario = await _usuarioService.ObtenerUsuarioActualAsync();
 
                 // Verificar que la playlist existe y es del usuario
                 var playlist = await _context.Playlists
-                    .FirstOrDefaultAsync(p => p.Id == dto.PlaylistId && p.UsuarioId == usuario.Id);
+                    .FirstOrDefaultAsync(p => p.Id == playlistId && p.UsuarioId == usuario.Id);
 
                 if (playlist == null)
                 {
@@ -71,7 +48,7 @@ namespace Melody.API.Controllers
                 // Verificar que la canción existe
                 var cancion = await _context.Canciones
                     .Include(c => c.Artista)
-                    .FirstOrDefaultAsync(c => c.Id == dto.CancionId);
+                    .FirstOrDefaultAsync(c => c.Id == cancionId);
 
                 if (cancion == null)
                 {
@@ -80,7 +57,7 @@ namespace Melody.API.Controllers
 
                 // Verificar si la canción ya está en la playlist
                 var relacionExistente = await _context.PlaylistsCanciones
-                    .FirstOrDefaultAsync(pc => pc.PlaylistId == dto.PlaylistId && pc.CancionId == dto.CancionId);
+                    .FirstOrDefaultAsync(pc => pc.PlaylistId == playlistId && pc.CancionId == cancionId);
 
                 if (relacionExistente != null)
                 {
@@ -89,8 +66,8 @@ namespace Melody.API.Controllers
 
                 var playlistCancion = new PlaylistCancion
                 {
-                    PlaylistId = dto.PlaylistId,
-                    CancionId = dto.CancionId
+                    PlaylistId = playlistId,
+                    CancionId = cancionId
                 };
 
                 _context.PlaylistsCanciones.Add(playlistCancion);
@@ -102,17 +79,10 @@ namespace Melody.API.Controllers
                 return Ok(new
                 {
                     mensaje = "Canción agregada a la playlist con éxito",
-                    playlistCancion = new
-                    {
-                        playlistCancion.Id,
-                        Playlist = new { playlist.Id, playlist.Nombre },
-                        Cancion = new
-                        {
-                            cancion.Id,
-                            cancion.Titulo,
-                            Artista = cancion.Artista!.NombreArtista
-                        }
-                    }
+                    playlistCancionId = playlistCancion.Id,
+                    playlistNombre = playlist.Nombre,
+                    cancionTitulo = cancion.Titulo,
+                    artistaNombre = cancion.Artista!.NombreArtista
                 });
             }
             catch (Exception ex)
@@ -121,19 +91,13 @@ namespace Melody.API.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, "Error al agregar canción a playlist");
             }
         }
-
         // DELETE: api/PlaylistsCanciones/5
         [HttpDelete("{id}")]
-        [Authorize]
         public async Task<IActionResult> EliminarCancionDePlaylist(int id)
         {
             try
             {
-                var usuario = await ObtenerUsuarioActualAsync();
-                if (usuario == null)
-                {
-                    return Unauthorized("Usuario no autenticado");
-                }
+                var usuario = await _usuarioService.ObtenerUsuarioActualAsync();
 
                 var playlistCancion = await _context.PlaylistsCanciones
                     .Include(pc => pc.Playlist)
@@ -161,8 +125,8 @@ namespace Melody.API.Controllers
                 return Ok(new
                 {
                     mensaje = "Canción eliminada de la playlist con éxito",
-                    cancion = playlistCancion.Cancion.Titulo,
-                    playlist = playlistCancion.Playlist.Nombre
+                    cancionTitulo = playlistCancion.Cancion.Titulo,
+                    playlistNombre = playlistCancion.Playlist.Nombre
                 });
             }
             catch (Exception ex)
@@ -171,18 +135,14 @@ namespace Melody.API.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, "Error al eliminar canción de playlist");
             }
         }
-        // GET: api/PlaylistCanciones/verificar?playlistId=1&cancionId=5 - Verificar si canción está en playlist
+
+        // GET: api/PlaylistsCanciones/verificar?playlistId=1&cancionId=5
         [HttpGet("verificar")]
-        [Authorize]
-        public async Task<ActionResult<object>> VerificarCancionEnPlaylist([FromQuery] int playlistId, [FromQuery] int cancionId)
+        public async Task<ActionResult> VerificarCancionEnPlaylist([FromQuery] int playlistId, [FromQuery] int cancionId)
         {
             try
             {
-                var usuario = await ObtenerUsuarioActualAsync();
-                if (usuario == null)
-                {
-                    return Unauthorized("Usuario no autenticado");
-                }
+                var usuario = await _usuarioService.ObtenerUsuarioActualAsync();
 
                 // Verificar que la playlist es del usuario
                 var playlist = await _context.Playlists
@@ -193,14 +153,15 @@ namespace Melody.API.Controllers
                     return NotFound("Playlist no encontrada o no tienes permisos");
                 }
 
-                var enPlaylist = await _context.PlaylistsCanciones
-                    .AnyAsync(pc => pc.PlaylistId == playlistId && pc.CancionId == cancionId);
+                var playlistCancion = await _context.PlaylistsCanciones
+                    .FirstOrDefaultAsync(pc => pc.PlaylistId == playlistId && pc.CancionId == cancionId);
 
                 return Ok(new
                 {
                     playlistId = playlistId,
                     cancionId = cancionId,
-                    enPlaylist = enPlaylist
+                    enPlaylist = playlistCancion != null,
+                    playlistCancionId = playlistCancion?.Id
                 });
             }
             catch (Exception ex)

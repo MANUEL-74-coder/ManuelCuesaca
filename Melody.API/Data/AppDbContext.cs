@@ -37,6 +37,8 @@ public class AppDbContext : IdentityDbContext<Usuario, IdentityRole<int>, int>
 
 
     public DbSet<Melody.Modelos.Usuario> Usuarios { get; set; } = default!;
+    public DbSet<Melody.Modelos.SuscripcionMiembro> SuscripcionMiembros { get; set; } = default!;
+    public DbSet<Melody.Modelos.MeGusta> MeGustas { get; set; } = default!;
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

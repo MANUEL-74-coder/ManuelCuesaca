@@ -32,6 +32,7 @@ namespace Melody.API.Controllers
         //Obtener todos los artistas públicos
         // GET: api/Artistas 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> ObtenerArtistas()
         {
             try
@@ -48,10 +49,14 @@ namespace Melody.API.Controllers
 
         // GET: api/Artistas/5 - Obtener artista específico (público)
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult<ArtistaDto>> ObtenerArtista(int id)
         {
             try
             {
+                var usuario = await _usuarioService.ObtenerUsuarioActualAsync();
+                var usuarioId = usuario?.Id;
+
                 // Primero obtenemos los datos básicos del artista
                 var artista = await _context.Artistas
                     .Include(a => a.Usuario)
@@ -65,14 +70,13 @@ namespace Melody.API.Controllers
 
                 var usuarioActual = await _usuarioService.ObtenerUsuarioActualAsync();
                 bool estaSiguiendo = false;
-
                 if (usuarioActual != null)
                 {
                     estaSiguiendo = await _context.Seguimientos
                         .AnyAsync(s => s.UsuarioId == usuarioActual.Id && s.ArtistaId == id);
                 }
 
-                // Luego obtenemos las canciones por separado
+                // Luego obtenemos las canciones por separado CON EsFavorito
                 var canciones = await _context.Canciones
                     .Include(c => c.Genero)
                     .Where(c => c.ArtistaId == id)
@@ -89,7 +93,10 @@ namespace Melody.API.Controllers
                         AlbumNombre = c.Album != null ? c.Album.Titulo : null,
                         ArtistaId = c.ArtistaId,
                         ArtistaNombre = artista.NombreArtista,
-                        ArchivoAudioUrl = c.ArchivoAudio ?? string.Empty
+                        ArchivoAudioUrl = c.ArchivoAudio ?? string.Empty,
+                        // ¡AGREGAR ESTO! - EsFavorito
+                        EsFavorito = usuarioId.HasValue &&
+                                   _context.MeGustas.Any(mg => mg.UsuarioId == usuarioId.Value && mg.CancionId == c.Id)
                     })
                     .OrderByDescending(c => c.FechaLanzamiento)
                     .Take(10)
@@ -134,10 +141,6 @@ namespace Melody.API.Controllers
             try
             {
                 var usuario = await _usuarioService.ObtenerUsuarioActualAsync();
-                if (usuario == null)
-                {
-                    return Unauthorized("Usuario no autenticado");
-                }
 
                 var artista = await _context.Artistas
                     .Include(a => a.Usuario)  // Solo incluir Usuario que sí necesitas
@@ -195,10 +198,6 @@ namespace Melody.API.Controllers
                 }
 
                 var usuario = await _usuarioService.ObtenerUsuarioActualAsync();
-                if (usuario == null)
-                {
-                    return Unauthorized("Usuario no autenticado");
-                }
 
                 var artista = await _context.Artistas
                     .FirstOrDefaultAsync(a => a.UsuarioId == usuario.Id);
@@ -257,6 +256,7 @@ namespace Melody.API.Controllers
 
         // GET: api/Artistas/buscar?q=nombre - Buscar artistas
         [HttpGet("buscar")]
+        [AllowAnonymous]
         public async Task<ActionResult> BuscarArtistas([FromQuery] string q)
         {
             try

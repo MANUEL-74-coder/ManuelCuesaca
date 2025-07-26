@@ -21,5 +21,6 @@ namespace Melody.Modelos
         public Usuario? Usuario { get; set; }
         public Plan? Plan { get; set; }
         public List<Pago>? Pagos { get; set; }
+        public List<SuscripcionMiembro>? Miembros { get; set; }
     }
 }

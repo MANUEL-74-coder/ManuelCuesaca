@@ -30,21 +30,29 @@ namespace Melody.API.Controllers
             _usuarioService = usuarioService;
         }
 
-        // GET: api/Canciones
+        // GET: api/Canciones - CORREGIDO para devolver CancionDto
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult> ObtenerCanciones()
         {
             try
             {
+                var usuario = await _usuarioService.ObtenerUsuarioActualAsync();
+                var usuarioId = usuario?.Id;
+
                 var canciones = await _context.Canciones
                     .Include(c => c.Artista)
-                    .Select(c => new
+                    .Select(c => new CancionDto // ¡CAMBIAR A CancionDto!
                     {
-                        c.Id,
-                        c.Titulo,
+                        Id = c.Id,
+                        Titulo = c.Titulo,
                         ArchivoAudioUrl = c.ArchivoAudio,
                         PortadaUrl = c.PortadaUrl,
-                        ArtistaNombre = c.Artista!.NombreArtista
+                        ArtistaNombre = c.Artista!.NombreArtista,
+                        ArtistaId = c.ArtistaId,
+                        // ¡INCLUIR EsFavorito!
+                        EsFavorito = usuarioId.HasValue &&
+                                   _context.MeGustas.Any(mg => mg.UsuarioId == usuarioId.Value && mg.CancionId == c.Id)
                     })
                     .OrderByDescending(c => c.Id)
                     .ToListAsync();
@@ -57,33 +65,41 @@ namespace Melody.API.Controllers
             }
         }
 
-        // GET: api/Canciones/5
+        // GET: api/Canciones/5 - CORREGIDO para devolver CancionDto
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult> ObtenerCancion(int id)
         {
             try
             {
+                var usuario = await _usuarioService.ObtenerUsuarioActualAsync();
+                var usuarioId = usuario?.Id;
+
                 var cancion = await _context.Canciones
                     .Include(c => c.Artista)
                     .Include(c => c.Genero)
                     .Include(c => c.Album)
                     .Where(c => c.Id == id)
-                    .Select(c => new
+                    .Select(c => new CancionDto // ¡CAMBIAR A CancionDto!
                     {
-                        c.Id,
-                        c.Titulo,
-                        c.FechaLanzamiento,
+                        Id = c.Id,
+                        Titulo = c.Titulo,
+                        FechaLanzamiento = c.FechaLanzamiento,
                         ArchivoAudioUrl = c.ArchivoAudio,
                         PortadaUrl = c.PortadaUrl,
-                        c.Duracion,
-                        c.GeneroId,
+                        Duracion = c.Duracion,
+                        GeneroId = c.GeneroId,
                         GeneroNombre = c.Genero!.Nombre,
-                        c.AlbumId,
+                        AlbumId = c.AlbumId,
                         AlbumNombre = c.Album != null ? c.Album.Titulo : "Sin Álbum",
-                        c.ArtistaId,
-                        ArtistaNombre = c.Artista!.NombreArtista
+                        ArtistaId = c.ArtistaId,
+                        ArtistaNombre = c.Artista!.NombreArtista,
+                        // ¡INCLUIR EsFavorito!
+                        EsFavorito = usuarioId.HasValue &&
+                                   _context.MeGustas.Any(mg => mg.UsuarioId == usuarioId.Value && mg.CancionId == c.Id)
                     })
                     .FirstOrDefaultAsync();
+
                 if (cancion == null)
                 {
                     return NotFound();
@@ -96,6 +112,7 @@ namespace Melody.API.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, "Error al obtener la canción");
             }
         }
+
         // PUT: api/Canciones/agregar-album/5
         [HttpPut("agregar-album/{id}")]
         [Authorize(Roles = "artista")]
@@ -151,7 +168,6 @@ namespace Melody.API.Controllers
         }
 
         // PUT: api/Canciones/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         [Authorize(Roles = "artista")]
         public async Task<IActionResult> ActualizarCancion(int id, [FromForm] ActualizarCancionDto cancion)
@@ -163,10 +179,7 @@ namespace Melody.API.Controllers
                     return BadRequest(ModelState);
                 }
                 var artista = await _usuarioService.ObtenerArtistaActualAsync();
-                if (artista == null)
-                {
-                    return BadRequest("El usuario no es un artista válido");
-                }
+
                 var cancionExistente = await _context.Canciones.FindAsync(id);
                 if (cancionExistente == null || cancionExistente.ArtistaId != artista.Id)
                 {
@@ -225,7 +238,6 @@ namespace Melody.API.Controllers
         }
 
         // POST: api/canciones/subir
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost("subir")]
         [Authorize(Roles = "artista")]
         public async Task<ActionResult> SubircCancion([FromForm] CancionCrearDto cancion)
@@ -237,10 +249,6 @@ namespace Melody.API.Controllers
                     return BadRequest(ModelState);
                 }
                 var artista = await _usuarioService.ObtenerArtistaActualAsync();
-                if (artista == null)
-                {
-                    return BadRequest("El usuario no es un artista válido");
-                }
 
                 //Validar archivo de audio
                 var (audioValido, audioError) = ValidacionService.ValidarArchivo(
@@ -314,16 +322,7 @@ namespace Melody.API.Controllers
         {
             try
             {
-                var usuarioActual = await _usuarioService.ObtenerUsuarioActualAsync();
-                if (usuarioActual == null)
-                {
-                    return Unauthorized("Usuario no autenticado");
-                }
-                var artista = await _context.Artistas.FirstOrDefaultAsync(a => a.UsuarioId == usuarioActual.Id);
-                if (artista == null)
-                {
-                    return BadRequest("El usuario no es un artista válido");
-                }
+                var artista = await _usuarioService.ObtenerArtistaActualAsync();
                 var canciones = await _context.Canciones
                     .Include(c => c.Artista)
                     .Include(c => c.Genero)
@@ -355,17 +354,13 @@ namespace Melody.API.Controllers
             }
         }
 
-
         // DELETE: api/Canciones/5
         [HttpDelete("{id}")]
         [Authorize(Roles = "artista,admin")]
         public async Task<IActionResult> DeleteCancion(int id)
         {
             var usuarioActual = await _usuarioService.ObtenerUsuarioActualAsync();
-            if (usuarioActual == null)
-            {
-                return Unauthorized("Usuario no autenticado");
-            }
+
             var cancion = await _context.Canciones.FindAsync(id);
             if (cancion == null)
             {
@@ -400,8 +395,8 @@ namespace Melody.API.Controllers
             }
         }
 
-        // GET: api/Canciones/buscar?q=termino - Buscar canciones
         [HttpGet("buscar")]
+        [AllowAnonymous]
         public async Task<ActionResult> BuscarCanciones([FromQuery] string q)
         {
             try
@@ -410,6 +405,10 @@ namespace Melody.API.Controllers
                 {
                     return BadRequest("El término de búsqueda es requerido");
                 }
+
+                // Usar el servicio que ya tienes
+                var usuario = await _usuarioService.ObtenerUsuarioActualAsync();
+                var usuarioId = usuario?.Id;
 
                 var canciones = await _context.Canciones
                     .Include(c => c.Artista)
@@ -421,7 +420,10 @@ namespace Melody.API.Controllers
                         Titulo = c.Titulo,
                         ArchivoAudioUrl = c.ArchivoAudio,
                         PortadaUrl = c.PortadaUrl,
-                        ArtistaNombre = c.Artista!.NombreArtista
+                        ArtistaNombre = c.Artista!.NombreArtista,
+                        // Agregar EsFavorito
+                        EsFavorito = usuarioId.HasValue &&
+                                   _context.MeGustas.Any(mg => mg.UsuarioId == usuarioId.Value && mg.CancionId == c.Id)
                     })
                     .Take(20)
                     .ToListAsync();

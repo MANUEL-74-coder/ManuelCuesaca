@@ -6,11 +6,13 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Melody.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [AllowAnonymous]
     public class AuthController : ControllerBase
     {
         private readonly UserManager<Usuario> _userManager;
