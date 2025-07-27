@@ -24,8 +24,6 @@ namespace Melody.API.Controllers
             _usuarioService = usuarioService;
             _logger = logger;
         }
-        // Reemplazar el método toggle en tu MeGustaController API con este:
-
         // POST: api/MeGusta/toggle/{cancionId} - Toggle agregar/quitar de favoritos
         [HttpPost("toggle/{cancionId}")]
         public async Task<ActionResult<object>> ToggleMeGusta(int cancionId)
@@ -129,6 +127,7 @@ namespace Melody.API.Controllers
                         ArtistaId = mg.Cancion.ArtistaId,
                         ArtistaNombre = mg.Cancion.Artista!.NombreArtista,
                         AlbumNombre = mg.Cancion.Album != null ? mg.Cancion.Album.Titulo : "Sin Álbum",
+                        AlbumId = mg.Cancion.AlbumId,
                         GeneroNombre = mg.Cancion.Genero!.Nombre
                     })
                     .OrderByDescending(mg => mg.FechaAgregado)
@@ -140,40 +139,6 @@ namespace Melody.API.Controllers
             {
                 _logger.LogError(ex, "Error al obtener canciones favoritas");
                 return StatusCode(500, "Error al obtener canciones favoritas");
-            }
-        }
-        [HttpGet("mis-favoritos-ids")]
-        [Authorize(Roles = "userfree,userpremium")]
-        public async Task<ActionResult<List<int>>> ObtenerMisFavoritosIds([FromQuery] string ids)
-        {
-            try
-            {
-                var usuario = await _usuarioService.ObtenerUsuarioActualAsync();
-
-                if (string.IsNullOrEmpty(ids))
-                    return Ok(new List<int>());
-
-                // Convertir string de IDs a lista de enteros
-                var cancionIds = ids.Split(',')
-                    .Where(id => int.TryParse(id, out _))
-                    .Select(int.Parse)
-                    .ToList();
-
-                if (!cancionIds.Any())
-                    return Ok(new List<int>());
-
-                // Obtener IDs de canciones que están en favoritos
-                var favoritosIds = await _context.MeGustas
-                    .Where(mg => mg.UsuarioId == usuario.Id && cancionIds.Contains(mg.CancionId))
-                    .Select(mg => mg.CancionId)
-                    .ToListAsync();
-
-                return Ok(favoritosIds);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al obtener IDs de favoritos");
-                return Ok(new List<int>());
             }
         }
     }

@@ -1,0 +1,168 @@
+﻿/* HERO SECTION */
+.hero-section {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 30px;
+    align-items: flex-end;
+}
+
+.hero-icon {
+    width: 200px;
+    height: 200px;
+    background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.favorite-icon {
+    font-size: 72px;
+}
+
+.content-type {
+    margin: 0 0 10px 0;
+    font-size: 12px;
+    color: #666;
+}
+
+.playlist-title {
+    margin: 0 0 15px 0;
+    font-size: 32px;
+    font-weight: bold;
+}
+
+.playlist-meta {
+    color: #666;
+}
+
+/* LISTA */
+.list-header, .song-item {
+    display: grid;
+    grid-template-columns: 40px 1fr 150px 120px 150px 80px 100px 120px;
+    gap: 15px;
+    padding: 10px 15px;
+    align-items: center;
+}
+
+.list-header {
+    font-size: 12px;
+    color: #666;
+    border-bottom: 1px solid #eee;
+}
+
+.song-item {
+    border-bottom: 1px solid #f8f9fa;
+}
+
+.song-info {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.song-image {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 3px;
+}
+
+.song-number {
+    text-align: center;
+    color: #666;
+}
+
+.song-link {
+    font-weight: 600;
+    text-decoration: none;
+    color: #000;
+}
+
+.artist-link, .album-link {
+    text-decoration: none;
+    color: #666;
+}
+
+.no-album {
+    color: #999;
+    font-style: italic;
+}
+
+.song-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    padding: 5px;
+    cursor: pointer;
+}
+
+/* ESTADOS */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.primary-button {
+    background: #000;
+    color: white;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 5px;
+}
+
+.alert {
+    padding: 15px;
+    margin: 20px 0;
+    border-radius: 5px;
+}
+
+.success-alert {
+    background: #d4edda;
+    color: #155724;
+}
+
+.error-alert {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* RESPONSIVE */
+@media (max-width: 1024px) {
+    .hero-section {
+        flex-direction: column;
+        gap: 20px;
+        text-align: center;
+        align-items: center;
+    }
+
+    .hero-icon {
+        width: 150px;
+        height: 150px;
+    }
+
+    .favorite-icon {
+        font-size: 48px;
+    }
+
+    .list-header, .song-item {
+        grid-template-columns: 1fr auto;
+    }
+
+    .song-item {
+        padding: 15px;
+        background: #fff;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .list-header .col-artist, .list-header .col-genre, .list-header .col-album, .list-header .col-duration, .list-header .col-date, .list-header .col-num,
+    .song-number, .song-artist, .song-genre, .song-album, .song-duration, .song-date {
+        display: none;
+    }
+}

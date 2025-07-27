@@ -1,0 +1,114 @@
+﻿/* SEGUIMIENTOS */
+.page-header {
+    margin-bottom: 30px;
+}
+
+.subtitle {
+    margin: 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.seguimientos-list {
+    border-top: 1px solid #eee;
+}
+
+.seguimiento-item {
+    display: flex;
+    align-items: center;
+    padding: 20px 0;
+    border-bottom: 1px solid #eee;
+    gap: 15px;
+}
+
+.artista-image img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.no-image {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    color: #6c757d;
+}
+
+.artista-info {
+    flex-grow: 1;
+}
+
+.artista-name {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 5px;
+    text-decoration: none;
+    color: #000;
+    display: block;
+}
+
+.verified-badge {
+    background: #007bff;
+    color: white;
+    font-size: 12px;
+    padding: 2px 6px;
+    border-radius: 50%;
+}
+
+.artista-details {
+    margin: 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.unfollow-button {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 3px;
+    font-size: 14px;
+}
+
+.primary-button {
+    background: #000;
+    color: white;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 5px;
+}
+
+.alert {
+    padding: 15px;
+    margin: 20px 0;
+    border-radius: 5px;
+}
+
+.success-alert {
+    background: #d4edda;
+    color: #155724;
+}
+
+.error-alert {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .seguimiento-item {
+        flex-direction: column;
+        gap: 15px;
+    }
+}

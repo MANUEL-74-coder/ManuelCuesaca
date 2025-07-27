@@ -5,120 +5,110 @@
     var totalFavoritos = ViewBag.TotalFavoritos as int? ?? 0;
 }
 
-<div class="container-fluid">
-    <!-- Header -->
-    <div class="d-flex align-items-center gap-3 my-4">
-        <div style="width: 200px; height: 200px; background: linear-gradient(135deg, #ff6b6b, #ee5a52); display: flex; align-items: center; justify-content: center; border-radius: 8px;">
-            <span style="font-size: 72px;">❤️</span>
+<div class="favoritos-index">
+    <div class="hero-section">
+        <div class="hero-icon">
+            <span class="favorite-icon">❤️</span>
         </div>
-        <div>
-            <p class="text-uppercase text-muted mb-1">PLAYLIST</p>
-            <h1 class="display-4 fw-bold mb-2">Canciones que me gustan</h1>
-            <p class="text-muted">
-                @currentUser?.UserName • @totalFavoritos canciones
-            </p>
+        <div class="hero-info">
+            <p class="content-type">PLAYLIST</p>
+            <h1 class="playlist-title">Canciones que me gustan</h1>
+            <div class="playlist-meta">
+                <span>@currentUser?.UserName • @totalFavoritos canciones</span>
+            </div>
         </div>
     </div>
 
-    <!-- Lista de canciones favoritas -->
     @if (Model.Any())
     {
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead class="table-light">
-                    <tr>
-                        <th scope="col" class="text-center">#</th>
-                        <th scope="col">Portada</th>
-                        <th scope="col">Título</th>
-                        <th scope="col">Artista</th>
-                        <th scope="col">Álbum</th>
-                        <th scope="col" class="text-center">Duración</th>
-                        <th scope="col" class="text-center">Agregado</th>
-                        <th scope="col" class="text-center">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @for (int i = 0; i < Model.Count; i++)
-                    {
-                        var favorito = Model[i];
-                        <tr>
-                            <td class="text-center">@(i + 1)</td>
-                            <td>
-                                <img src="@(string.IsNullOrEmpty(favorito.PortadaUrl) ? "/images/default-song.png" : favorito.PortadaUrl)"
-                                     alt="@favorito.CancionTitulo" width="40" height="40" class="rounded">
-                            </td>
-                            <td>
-                                <a href="@Url.Action("Details", "Canciones", new { id = favorito.CancionId })"
-                                   class="text-decoration-none text-primary fw-bold">
-                                    @favorito.CancionTitulo
-                                </a>
-                            </td>
-                            <td>
-                                <a href="@Url.Action("Details", "Artistas", new { id = favorito.ArtistaId })"
-                                   class="text-decoration-none">
-                                    @favorito.ArtistaNombre
-                                </a>
-                            </td>
-                            <td>@favorito.AlbumNombre</td>
-                            <td class="text-center">
-                                @(favorito.Duracion?.ToString(@"m\:ss") ?? "0:00")
-                            </td>
-                            <td class="text-center">
-                                @favorito.FechaAgregado.ToString("dd/MM/yyyy")
-                            </td>
-                            <td class="text-center">
-                                <div class="d-flex gap-2 justify-content-center">
-                                    <!-- Botón reproducir -->
-                                    <button onclick="playSong('@favorito.ArchivoAudioUrl', '@favorito.CancionTitulo', '@favorito.ArtistaNombre', '@favorito.PortadaUrl', @favorito.CancionId)"
-                                            class="btn btn-success btn-sm" title="Reproducir">
-                                        ▶️
-                                    </button>
+        <div class="songs-list">
+            <div class="list-header">
+                <span class="col-num">#</span>
+                <span class="col-song">Canción</span>
+                <span class="col-artist">Artista</span>
+                <span class="col-genre">Género</span>
+                <span class="col-album">Álbum</span>
+                <span class="col-duration">Duración</span>
+                <span class="col-date">Agregado</span>
+                <span class="col-actions">Acciones</span>
+            </div>
 
-                                    <!-- Botón quitar de favoritos -->
-                                    <form asp-action="QuitarFavorito" method="post" class="d-inline">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="cancionId" value="@favorito.CancionId" />
-                                        <button type="submit" class="btn btn-outline-danger btn-sm"
-                                                title="Quitar de favoritos"
-                                                onclick="return confirm('¿Estás seguro de quitar esta canción de tus favoritos?')">
-                                            💔
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+            @for (int i = 0; i < Model.Count; i++)
+            {
+                var favorito = Model[i];
+                <div class="song-item">
+                    <span class="song-number">@(i + 1)</span>
+
+                    <div class="song-info">
+                        <img src="@(string.IsNullOrEmpty(favorito.PortadaUrl) ? "/images/default-song.png" : favorito.PortadaUrl)"
+                             alt="@favorito.CancionTitulo" class="song-image">
+                        <div class="song-text">
+                            <a href="@Url.Action("Details", "Canciones", new { id = favorito.CancionId })" class="song-link">@favorito.CancionTitulo</a>
+                        </div>
+                    </div>
+
+                    <span class="song-artist">
+                        <a href="@Url.Action("Details", "Artistas", new { id = favorito.ArtistaId })" class="artist-link">@favorito.ArtistaNombre</a>
+                    </span>
+
+                    <span class="song-genre">@favorito.GeneroNombre</span>
+
+                    <span class="song-album">
+                        @if (!string.IsNullOrEmpty(favorito.AlbumNombre) && favorito.AlbumNombre != "Sin Álbum")
+                        {
+                            <a href="@Url.Action("Details", "Albums", new { id = favorito.AlbumId })" class="album-link">@favorito.AlbumNombre</a>
+                        }
+                        else
+                        {
+                            <span class="no-album">Sin Álbum</span>
+                        }
+                    </span>
+
+                    <span class="song-duration">@(favorito.Duracion?.ToString(@"m\:ss") ?? "0:00")</span>
+
+                    <span class="song-date">@favorito.FechaAgregado.ToString("dd/MM/yyyy")</span>
+
+                    <div class="song-actions">
+                        <button onclick="playSong('@favorito.ArchivoAudioUrl', '@favorito.CancionTitulo', '@favorito.ArtistaNombre', '@favorito.PortadaUrl', @favorito.CancionId)"
+                                class="action-btn play-btn">
+                            ▶️
+                        </button>
+
+                        <button type="button" onclick="toggleMeGusta(@favorito.CancionId, this)" class="action-btn remove-btn"
+                                data-cancion-id="@favorito.CancionId" data-es-favorito="true"
+                                title="Quitar de favoritos">
+                            💔
+                        </button>
+                    </div>
+                </div>
+            }
         </div>
     }
     else
     {
-        <!-- Estado vacío -->
-        <div class="text-center py-5">
-            <div style="font-size: 80px; opacity: 0.3;">💔</div>
-            <h3 class="text-muted mt-3">No tienes canciones favoritas</h3>
-            <p class="text-muted">Explora música y agrega canciones a tus favoritos</p>
-            <a href="@Url.Action("Index", "Canciones")" class="btn btn-primary">
-                Explorar Música
-            </a>
+        <div class="empty-state">
+            <div class="empty-icon">💔</div>
+            <h4>No tienes canciones favoritas</h4>
+            <p>Explora música y agrega canciones a tus favoritos</p>
+            <a href="@Url.Action("Index", "Canciones")" class="primary-button">Explorar Música</a>
         </div>
     }
 </div>
 
-<!-- Mostrar mensajes -->
 @if (TempData["Success"] != null)
 {
-    <div class="alert alert-success alert-dismissible fade show position-fixed top-0 end-0 m-3" role="alert" style="z-index: 9999;">
+    <div class="alert success-alert">
         @TempData["Success"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 }
 
 @if (TempData["Error"] != null)
 {
-    <div class="alert alert-danger alert-dismissible fade show position-fixed top-0 end-0 m-3" role="alert" style="z-index: 9999;">
+    <div class="alert error-alert">
         @TempData["Error"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/favoritos.css" asp-append-version="true" />
 }

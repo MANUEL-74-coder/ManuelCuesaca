@@ -4,97 +4,77 @@
     var currentUser = ViewBag.CurrentUser as Melody.Modelos.Usuario;
 }
 
-<div class="container">
-    <div class="row">
-        <div class="col-12">
-            <!-- Header -->
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h2>Todas las suscripciones</h2>
-                    <p>Sigues a @Model.Count() artistas</p>
-                </div>
-            </div>
+<div class="seguimientos-index">
+    <div class="page-header">
+        <div class="header-info">
+            <h2>Mis Seguimientos</h2>
+            <p class="subtitle">Sigues a @Model.Count() artistas</p>
+        </div>
+    </div>
 
-            @if (Model.Any())
+    @if (Model.Any())
+    {
+        <div class="seguimientos-list">
+            @foreach (var seguimiento in Model)
             {
-                <!-- Lista de seguimientos -->
-                <div class="subscriptions-list">
-                    @foreach (var seguimiento in Model)
-                    {
-                        <div class="d-flex align-items-center py-3 border-bottom">
-                            <!-- Avatar -->
-                            <div class="me-3">
-                                @if (!string.IsNullOrEmpty(seguimiento.Artista?.ImagenPerfil))
-                                {
-                                    <img src="@seguimiento.Artista.ImagenPerfil"
-                                         alt="@seguimiento.Artista.NombreArtista"
-                                         class="rounded-circle"
-                                         style="width: 68px; height: 68px; object-fit: cover;">
-                                }
-                                else
-                                {
-                                    <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center"
-                                         style="width: 68px; height: 68px;">
-                                        <i class="fas fa-user text-white"></i>
-                                    </div>
-                                }
-                            </div>
+                <div class="seguimiento-item">
+                    <div class="artista-image">
+                        @if (!string.IsNullOrEmpty(seguimiento.Artista?.ImagenPerfil))
+                        {
+                            <img src="@seguimiento.Artista.ImagenPerfil" alt="@seguimiento.Artista.NombreArtista">
+                        }
+                        else
+                        {
+                            <div class="no-image">👤</div>
+                        }
+                    </div>
 
-                            <!-- Información del artista -->
-                            <div class="flex-grow-1">
-                                <div class="d-flex align-items-center mb-1">
-                                    <h5 class="mb-0 me-2">@seguimiento.Artista?.NombreArtista</h5>
-                                    <span class="badge bg-primary">✓</span>
-                                </div>
+                    <div class="artista-info">
+                        <a href="@Url.Action("Details", "Artistas", new { id = seguimiento.Artista?.Id })" class="artista-name">
+                            @seguimiento.Artista?.NombreArtista
+                            <span class="verified-badge">✓</span>
+                        </a>
+                        <p class="artista-details">
+                            @@@(seguimiento.Artista?.NombreArtista?.ToLower().Replace(" ", "")) •
+                            Siguiendo desde @seguimiento.FechaSeguimiento.ToString("dd/MM/yyyy")
+                        </p>
+                    </div>
 
-                                <p class="text-muted mb-1">
-                                    @@@(seguimiento.Artista?.NombreArtista?.ToLower().Replace(" ", "")) •
-                                    Siguiendo desde @seguimiento.FechaSeguimiento.ToString("dd/MM/yyyy")
-                                </p>
-                            </div>
-
-                            <!-- Acciones -->
-                            <div class="ms-3">
-                                <div class="d-flex gap-2">
-                                    <a href="@Url.Action("Details", "Artistas", new { id = seguimiento.Artista?.Id })"
-                                       class="btn btn-outline-secondary btn-sm">
-                                        Ver perfil
-                                    </a>
-
-                                    <form asp-controller="Artistas" asp-action="ToggleSeguir" method="post" class="d-inline">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="artistaId" value="@seguimiento.Artista?.Id" />
-                                        <button type="submit" class="btn btn-outline-primary btn-sm">
-                                            Dejar de Seguir
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    }
-                </div>
-            }
-            else
-            {
-                <div class="text-center py-5">
-                    <h4 class="text-muted">No sigues a ningún artista aún</h4>
-                    <p class="text-muted">Descubre nuevos artistas y comienza a seguir a tus favoritos</p>
-                    <a href="@Url.Action("Index", "Artistas")" class="btn btn-primary">Explorar Artistas</a>
+                    <div class="artista-actions">
+                        <form asp-controller="Artistas" asp-action="ToggleSeguir" method="post" class="unfollow-form">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="artistaId" value="@seguimiento.Artista?.Id" />
+                            <button type="submit" class="unfollow-button">Dejar de Seguir</button>
+                        </form>
+                    </div>
                 </div>
             }
         </div>
-    </div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <div class="empty-icon">🎤</div>
+            <h4>No sigues a ningún artista aún</h4>
+            <p>Descubre nuevos artistas y comienza a seguir a tus favoritos</p>
+            <a href="@Url.Action("Index", "Artistas")" class="primary-button">Explorar Artistas</a>
+        </div>
+    }
 </div>
 
 @if (TempData["Success"] != null)
 {
-    <div class="alert alert-success mt-3">
+    <div class="alert success-alert">
         @TempData["Success"]
     </div>
 }
 @if (TempData["Error"] != null)
 {
-    <div class="alert alert-danger mt-3">
+    <div class="alert error-alert">
         @TempData["Error"]
     </div>
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/seguimientos.css" asp-append-version="true" />
 }
