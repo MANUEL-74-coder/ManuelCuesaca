@@ -1,0 +1,55 @@
+﻿@{
+    ViewData["Title"] = "Remover Miembro";
+    var suscripcionId = ViewBag.SuscripcionId as int? ?? 0;
+    var usuarioId = ViewBag.UsuarioId as int? ?? 0;
+    var nombreMiembro = ViewBag.NombreMiembro as string ?? "Miembro";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card border-warning">
+                <div class="card-header bg-warning text-dark text-center">
+                    <h4><i class="fas fa-user-minus"></i> Remover Miembro</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info text-center">
+                        <h6>¿Remover a este miembro?</h6>
+                        <h5 class="text-primary">@nombreMiembro</h5>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-exclamation-triangle"></i> Consecuencias:</h6>
+                        <ul class="mb-0">
+                            <li>Perderá el acceso premium <strong>inmediatamente</strong></li>
+                            <li>Sus playlists premium se volverán básicas</li>
+                            <li>No podrá descargar más música</li>
+                            <li>Podrás volver a agregarlo más tarde si hay espacio</li>
+                        </ul>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <form asp-action="RemoverMiembro" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="suscripcionId" value="@suscripcionId" />
+                            <input type="hidden" name="usuarioId" value="@usuarioId" />
+                            <button type="submit" class="btn btn-danger btn-lg">
+                                <i class="fas fa-user-minus"></i> Sí, Remover Miembro
+                            </button>
+                        </form>
+
+                        <a asp-action="Miembros" asp-route-id="@suscripcionId" class="btn btn-success btn-lg">
+                            <i class="fas fa-arrow-left"></i> No, Mantener Miembro
+                        </a>
+                    </div>
+
+                    <div class="text-center mt-3">
+                        <small class="text-muted">
+                            Esta acción se puede revertir agregando al miembro nuevamente.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

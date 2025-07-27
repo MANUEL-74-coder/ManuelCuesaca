@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Melody.MVC.Controllers
 {
-    [Authorize] // Base: requiere autenticación
+    [Authorize]
     public class AlbumsController : Controller
     {
         private readonly AuthService _authService;
@@ -36,28 +36,62 @@ namespace Melody.MVC.Controllers
             }
         }
 
-        // GET: Detalles de álbum (público)
-        [AllowAnonymous]
+        // GET: Detalles de álbum 
         public async Task<IActionResult> Details(int id)
         {
             try
             {
-                var album = Crud<AlbumDto>.GetById(id);
-                ViewBag.CurrentUser = _authService.GetCurrentUser();
-                var currentUser = _authService.GetCurrentUser();
-                if (currentUser?.IsArtista == true)
+                AlbumDto album;
+
+                if (_authService.IsAuthenticated())
                 {
+                    // Si está logueado, usar método con token
                     var token = _authService.ObtenerToken();
-                    try
+                    album = await Crud<AlbumDto>.GetByIdWithAuth<AlbumDto>(id, token);
+
+                    ViewBag.Artista = await Crud<ArtistaDto>.GetByIdWithAuth<ArtistaDto>(album.ArtistaId, token);
+
+                    var currentUser = _authService.GetCurrentUser();
+                    if (currentUser?.IsArtista == true)
                     {
-                        var artista = await Crud<ArtistaDto>.GetWithAuth("mi-perfil", token);
-                        ViewBag.ArtistaActualId = artista?.Id;
+                        try
+                        {
+                            var artista = await Crud<ArtistaDto>.GetWithAuth("mi-perfil", token);
+                            ViewBag.ArtistaActualId = artista?.Id;
+                        }
+                        catch
+                        {
+                            ViewBag.ArtistaActualId = null;
+                        }
                     }
-                    catch
+
+                    // Cargar playlists del usuario si es premium
+                    if (currentUser?.IsUserPremium == true)
                     {
-                        ViewBag.ArtistaActualId = null;
+                        try
+                        {
+                            var playlists = await Crud<PlaylistDto>.GetListWithAuth("mis-playlists", token);
+                            ViewBag.MisPlaylists = playlists ?? new List<PlaylistDto>();
+                        }
+                        catch
+                        {
+                            ViewBag.MisPlaylists = new List<PlaylistDto>();
+                        }
+                    }
+                    else
+                    {
+                        ViewBag.MisPlaylists = new List<PlaylistDto>();
                     }
                 }
+                else
+                {
+                    // Si no está logueado, usar método sin token
+                    album = Crud<AlbumDto>.GetById(id);
+                    ViewBag.ArtistaActualId = null;
+                    ViewBag.MisPlaylists = new List<PlaylistDto>();
+                }
+
+                ViewBag.CurrentUser = _authService.GetCurrentUser();
                 return View(album);
             }
             catch
@@ -200,8 +234,8 @@ namespace Melody.MVC.Controllers
             try
             {
                 var album = Crud<AlbumDto>.GetById(id);
-                ViewBag.Generos = GetGeneros();
                 ViewBag.CurrentUser = _authService.GetCurrentUser();
+                ViewBag.Generos = GetGeneros();
 
                 var model = new ActualizarAlbumDto
                 {

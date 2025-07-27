@@ -1,0 +1,47 @@
+﻿<!-- Views/Pagos/ProcesarPago.cshtml -->
+@{
+    ViewData["Title"] = "Procesar Pago";
+}
+@if (ViewBag.Debug != null)
+{
+    <div class="alert alert-info">DEBUG: @ViewBag.Debug</div>
+}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header text-center bg-primary text-white">
+                    <h4><i class="fas fa-credit-card"></i> Procesar Pago</h4>
+                </div>
+                <div class="card-body text-center">
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger">@TempData["Error"]</div>
+                    }
+
+                    <div class="mb-3">
+                        <h5>Orden ID: <span class="text-muted">@ViewBag.OrderId</span></h5>
+                        <h3 class="text-success">Monto: $@ViewBag.Monto</h3>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <strong><i class="fas fa-info-circle"></i> Simulación PayPal</strong><br>
+                        En producción, serías redirigido a PayPal.<br>
+                        Para esta demo, haz clic en "Confirmar Pago".
+                    </div>
+
+                    <form asp-action="CapturarPago" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-success btn-lg mb-3">
+                            <i class="fas fa-check-circle"></i> Confirmar Pago
+                        </button>
+                    </form>
+
+                    <a asp-controller="Planes" asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Cancelar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

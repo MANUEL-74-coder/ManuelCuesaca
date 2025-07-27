@@ -24,6 +24,7 @@ namespace Melody.Modelos.DTOs
         public string ArtistaNombre { get; set; } = string.Empty;
 
         // Información del álbum/género
+        public int? AlbumId { get; set; }
         public string? AlbumNombre { get; set; }
         public string GeneroNombre { get; set; } = string.Empty;
     }

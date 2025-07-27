@@ -65,9 +65,9 @@
         <h3>Suscripción</h3>
         @if (Model.TieneSuscripcionActiva)
         {
-            <div class="suscripcion-info">
+            <div class="suscripcion-info" style="color: black">
                 <p><strong>Plan actual:</strong> @Model.PlanNombre</p>
-                <p><strong>Precio:</strong> $@Model.PlanPrecio/mes</p>
+                <p><strong>Precio:</strong> $@Model.PlanPrecio</p>
                 <p><strong>Válida hasta:</strong> @Model.SuscripcionFechaFin?.ToString("dd/MM/yyyy")</p>
                 <p><strong>Desde:</strong> @Model.SuscripcionFechaInicio?.ToString("dd/MM/yyyy")</p>
             </div>
@@ -97,7 +97,7 @@
             }
         }
     </div>
-
+ 
 </div>
 @section Scripts {
     <link rel="stylesheet" href="~/css/usuarios.css" />

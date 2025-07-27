@@ -1,0 +1,67 @@
+﻿<!-- Views/Pagos/MisPagos.cshtml -->
+@model List<Melody.Modelos.Pago>
+@{
+    ViewData["Title"] = "Historial de Pagos";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>@ViewBag.Title</h2>
+        <a asp-action="Planes" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Nueva Suscripción
+        </a>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th><i class="fas fa-calendar"></i> Fecha</th>
+                        <th><i class="fas fa-tag"></i> Plan</th>
+                        <th><i class="fas fa-dollar-sign"></i> Monto</th>
+                        <th><i class="fas fa-credit-card"></i> Método</th>
+                        <th><i class="fas fa-cog"></i> Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var pago in Model)
+                    {
+                        <tr>
+                            <td>@pago.FechaPago.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>
+                                <span class="badge bg-primary">@pago.Suscripcion?.Plan?.Nombre</span>
+                            </td>
+                            <td class="text-success fw-bold">$@pago.Monto</td>
+                            <td>
+                                <i class="fab fa-paypal text-primary"></i> @pago.MetodoPago
+                            </td>
+                            <td>
+                                <a href="@Url.Action("DescargarPDF", new { pagoId = pago.Id })"
+                                   class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-download"></i> PDF
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info text-center">
+            <h5><i class="fas fa-receipt"></i> No tienes pagos registrados</h5>
+            <p>Cuando realices tu primera compra, aparecerá aquí.</p>
+            <a asp-controller="Planes" asp-action="Index" class="btn btn-primary">
+                <i class="fas fa-shopping-cart"></i> Ver Planes
+            </a>
+        </div>
+    }
+</div>

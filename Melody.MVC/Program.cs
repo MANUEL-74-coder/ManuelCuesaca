@@ -4,6 +4,7 @@ using Melody.Modelos;
 using Melody.MVC.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using static System.Net.WebRequestMethods;
+using Melody.Modelos.DTO;
 
 internal class Program
 {
@@ -12,6 +13,7 @@ internal class Program
         Crud<AlbumDto>.Endpoint = "https://localhost:7115/api/Albums";
         Crud<Album>.Endpoint = "https://localhost:7115/api/Albums";
         Crud<Playlist>.Endpoint = "https://localhost:7115/api/Playlists";
+        Crud<PlaylistDto>.Endpoint = "https://localhost:7115/api/Playlists";
         Crud<CancionDto>.Endpoint = "https://localhost:7115/api/Canciones";
         Crud<Genero>.Endpoint = "https://localhost:7115/api/Generos";
         Crud<Plan>.Endpoint = "https://localhost:7115/api/Planes";
@@ -22,10 +24,16 @@ internal class Program
         Crud<Artista>.Endpoint = "https://localhost:7115/api/Artistas";
         Crud<ArtistaDto>.Endpoint = "https://localhost:7115/api/Artistas";
         Crud<MiPerfilDto>.Endpoint = "https://localhost:7115/api/Usuarios";
-        Crud<PlaylistDto>.Endpoint = "https://localhost:7115/api/Playlists";
-
+        Crud<Usuario>.Endpoint = "https://localhost:7115/api/Usuarios";
+        Crud<MeGustaDto>.Endpoint = "https://localhost:7115/api/MeGusta";
+        Crud<MeGusta>.Endpoint = "https://localhost:7115/api/MeGusta";
+        Crud<CapturarPagoResponseDto>.Endpoint = "https://localhost:7115/api/Pagos";
+        Crud<CrearOrdenResponseDto>.Endpoint = "https://localhost:7115/api/Pagos";
+        Crud<MiembrosFamiliaResponseDto>.Endpoint = "https://localhost:7115/api/Suscripciones";
+        Crud<MiSuscripcionResponseDto>.Endpoint = "https://localhost:7115/api/Suscripciones";
         //Esto lo uso para mostrar los followers del artista
         Crud<object>.Endpoint = "https://localhost:7115/api/Seguimientos";
+        //Crud<dynamic>.Endpoint = "https://localhost:7115/api/Pagos";
 
         var builder = WebApplication.CreateBuilder(args);
 

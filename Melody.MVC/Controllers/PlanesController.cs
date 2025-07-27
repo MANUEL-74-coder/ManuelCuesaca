@@ -2,13 +2,14 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Melody.Modelos;
+using Melody.Modelos.PayPal;
 using Melody.API.Consumer;
 using System.Threading.Tasks;
 using Melody.MVC.Services;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Melody.MVC.Controllers
 {
-    [Authorize(Roles = "admin")]
     public class PlanesController : Controller
     {
 
@@ -19,18 +20,17 @@ namespace Melody.MVC.Controllers
             _authService = authService;
         }
         // GET: PlanesController
-        public async Task<ActionResult> Index()
+        public ActionResult Index()
         {
-            var token = _authService.ObtenerToken();
-            var data = Crud<Plan>.GetAllWithAuth<Plan>(token);
-            return View();
+            var data = Crud<Plan>.GetAll();
+            return View(data);
         }
 
+
         // GET: PlanesController/Details/5
-        public async Task<ActionResult> Details(int id)
+        public ActionResult Details(int id)
         {
-            var token = _authService.ObtenerToken();
-            var data = Crud<Plan>.GetByIdWithAuth<Plan>(id, token);
+            var data = Crud<Plan>.GetById(id);
             return View(data);
         }
 
@@ -43,57 +43,80 @@ namespace Melody.MVC.Controllers
         // POST: PlanesController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public async Task<ActionResult> Create(Plan data)
         {
             try
             {
+                var token = _authService.ObtenerToken();
+                await Crud<Plan>.CreateWithAuth(data, token);
                 return RedirectToAction(nameof(Index));
             }
-            catch
+            catch (Exception ex)
             {
-                return View();
+                TempData["Error"] = "Error al crear el plan";
+                ModelState.AddModelError("", ex.Message);
+                return View(data);
             }
         }
 
         // GET: PlanesController/Edit/5
         public ActionResult Edit(int id)
         {
-            return View();
+            var data = Crud<Plan>.GetById(id);
+            return View(data);
         }
 
         // POST: PlanesController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public async Task<ActionResult> Edit(int id, Plan data)
         {
             try
             {
-                return RedirectToAction(nameof(Index));
+                var token = _authService.ObtenerToken();
+                var resultado = await Crud<Plan>.Update(id, data, token);
+
+                if (resultado)
+                {
+                    TempData["Success"] = "Género actualizado exitosamente";
+                    return RedirectToAction(nameof(Index));
+                }
+                else
+                {
+                    TempData["Error"] = "No se pudo actualizar el género";
+                    return View(data);
+                }
             }
-            catch
+            catch (Exception ex)
             {
-                return View();
+                TempData["Error"] = "Error al cargar sus canciones";
+                ModelState.AddModelError("", ex.Message);
+                return View(data);
             }
         }
 
         // GET: PlanesController/Delete/5
         public ActionResult Delete(int id)
         {
-            return View();
+            var data = Crud<Plan>.GetById(id);
+            return View(data);
         }
 
         // POST: PlanesController/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
+        public async Task<ActionResult> Delete(int id, Plan data)
         {
             try
             {
+                var token = _authService.ObtenerToken();
+                var resutado = await Crud<Plan>.DeleteWithAuth(id, token);
                 return RedirectToAction(nameof(Index));
             }
-            catch
+            catch (Exception ex)
             {
-                return View();
+                ModelState.AddModelError("", ex.Message);
+                return View(data);
             }
         }
     }

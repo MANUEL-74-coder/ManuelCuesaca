@@ -1,11 +1,29 @@
-﻿using System.Text;
+﻿using System.Net.Http.Headers;
+using System.Text;
 using Newtonsoft.Json;
 
 namespace Melody.API.Consumer
 {
+    public static class AuthConfig
+    {
+        public static string Token { get; set; }
+    }
+
     public static class Crud<T>
     {
         public static string Endpoint { get; set; }
+
+        private static HttpClient GetAuthenticatedClient()
+        {
+            var client = new HttpClient();
+            if (!string.IsNullOrEmpty(AuthConfig.Token))
+            {
+                client.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", AuthConfig.Token);
+            }
+            return client;
+        }
+
         public static List<T> GetAll()
         {
             using (var client = new HttpClient())
@@ -22,9 +40,28 @@ namespace Melody.API.Consumer
                 }
             }
         }
+
+        // MÉTODOS BÁSICOS CON AUTH AUTOMÁTICO
+        public static List<T> GetAllBearer()
+        {
+            using (var client = GetAuthenticatedClient())
+            {
+                var response = client.GetAsync(Endpoint).Result;
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = response.Content.ReadAsStringAsync().Result;
+                    return JsonConvert.DeserializeObject<List<T>>(json);
+                }
+                else
+                {
+                    throw new Exception($"Error al obtener datos: {response.ReasonPhrase}");
+                }
+            }
+        }
+
         public static T GetById(int id)
         {
-            using (var client = new HttpClient())
+            using (var client = GetAuthenticatedClient())
             {
                 var response = client.GetAsync($"{Endpoint}/{id}").Result;
                 if (response.IsSuccessStatusCode)
@@ -41,7 +78,7 @@ namespace Melody.API.Consumer
 
         public static List<T> GetBy(string campo, int id)
         {
-            using (var client = new HttpClient())
+            using (var client = GetAuthenticatedClient())
             {
                 var response = client.GetAsync($"{Endpoint}/{campo}/{id}").Result;
                 if (response.IsSuccessStatusCode)
@@ -55,6 +92,58 @@ namespace Melody.API.Consumer
                 }
             }
         }
+
+        public static T Create(T item)
+        {
+            using (var client = GetAuthenticatedClient())
+            {
+                var response = client.PostAsync(
+                        Endpoint,
+                        new StringContent(
+                            JsonConvert.SerializeObject(item),
+                            Encoding.UTF8,
+                            "application/json"
+                        )
+                    ).Result;
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = response.Content.ReadAsStringAsync().Result;
+                    return JsonConvert.DeserializeObject<T>(json);
+                }
+                else
+                {
+                    throw new Exception($"Error: {response.StatusCode}");
+                }
+            }
+        }
+
+        public static bool Update(int id, T item)
+        {
+            using (var client = GetAuthenticatedClient())
+            {
+                var response = client.PutAsync(
+                        $"{Endpoint}/{id}",
+                        new StringContent(
+                            JsonConvert.SerializeObject(item),
+                            Encoding.UTF8,
+                            "application/json"
+                        )
+                    ).Result;
+
+                return response.IsSuccessStatusCode;
+            }
+        }
+
+        public static bool Delete(int id)
+        {
+            using (var client = GetAuthenticatedClient())
+            {
+                var response = client.DeleteAsync($"{Endpoint}/{id}").Result;
+                return response.IsSuccessStatusCode;
+            }
+        }
+
         public static async Task<bool> PutWithAuth(string action, object data, string token)
         {
             using var client = new HttpClient();

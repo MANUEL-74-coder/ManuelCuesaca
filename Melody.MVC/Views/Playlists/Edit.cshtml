@@ -1,50 +1,69 @@
 ﻿@model Melody.Modelos.DTOs.ActualizarPlaylistDto
+
 @{
     ViewData["Title"] = "Editar Playlist";
+    var playlistId = ViewBag.PlaylistId;
+    var imagenActual = ViewBag.ImagenActual;
 }
-<div class="container">
+
+<div class="container mt-4">
     <div class="row justify-content-center">
         <div class="col-md-8">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="@Url.Action("MisPlaylists")">Mis Playlists</a></li>
+                    <li class="breadcrumb-item active">Editar Playlist</li>
+                </ol>
+            </nav>
+
             <div class="card">
                 <div class="card-header">
-                    <h4>Editar Playlist</h4>
+                    <h4 class="mb-0">Editar Playlist</h4>
                 </div>
                 <div class="card-body">
+
                     @if (TempData["Error"] != null)
                     {
                         <div class="alert alert-danger">
                             @TempData["Error"]
                         </div>
                     }
+
                     <form asp-action="Edit" method="post" enctype="multipart/form-data">
-                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
                         <div class="mb-3">
                             <label asp-for="Nombre" class="form-label">Nombre de la Playlist</label>
-                            <input asp-for="Nombre" class="form-control" placeholder="Ingresa el nombre de tu playlist">
+                            <input asp-for="Nombre" class="form-control">
                             <span asp-validation-for="Nombre" class="text-danger"></span>
                         </div>
+
                         <div class="mb-3">
-                            <div class="form-check">
-                                <input asp-for="EsPublica" class="form-check-input" type="checkbox">
-                                <label asp-for="EsPublica" class="form-check-label">
-                                    Hacer playlist pública
-                                </label>
-                            </div>
-                            <small class="form-text text-muted">Las playlists públicas pueden ser vistas por otros usuarios</small>
-                        </div>
-                        <div class="mb-3">
-                            <label asp-for="Imagen" class="form-label">Nueva Imagen</label>
+                            <label asp-for="Imagen" class="form-label">Nueva Imagen de Portada</label>
                             <input asp-for="Imagen" type="file" class="form-control" accept="image/*">
                             <span asp-validation-for="Imagen" class="text-danger"></span>
-                            @if (!string.IsNullOrEmpty(ViewBag.ImagenActual as string))
-                            {
-                                <small class="form-text text-muted">Imagen actual:</small>
-                                <img src="@ViewBag.ImagenActual" alt="Imagen actual" class="mt-2" style="max-width: 100px; height: auto;">
-                            }
                         </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Visibilidad</label>
+                            <div class="form-check">
+                                <input asp-for="EsPublica" class="form-check-input" type="radio" value="false">
+                                <label class="form-check-label">
+                                    <strong>Privada</strong> - Solo tú puedes verla
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input asp-for="EsPublica" class="form-check-input" type="radio" value="true">
+                                <label class="form-check-label">
+                                    <strong>Pública</strong> - Todos pueden verla
+                                </label>
+                            </div>
+                        </div>
+
                         <div class="d-flex justify-content-between">
-                            <a href="@Url.Action("MisPlaylists")" class="btn btn-secondary">Cancelar</a>
-                            <button type="submit" class="btn btn-primary">Actualizar Playlist</button>
+                            <a href="@Url.Action("MisPlaylists")" class="btn btn-secondary">❌ Cancelar</a>
+                            <button type="submit" class="btn btn-primary">💾 Actualizar Playlist</button>
                         </div>
                     </form>
                 </div>
@@ -52,6 +71,7 @@
         </div>
     </div>
 </div>
+
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");

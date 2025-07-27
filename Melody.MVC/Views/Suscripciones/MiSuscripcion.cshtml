@@ -1,0 +1,98 @@
+﻿@{
+    ViewData["Title"] = "Mi Suscripción";
+}
+
+<div class="container mt-4">
+    <h2>Mi Suscripción Premium</h2>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    @if (Model?.tienesSuscripcion == true)
+    {
+        <div class="card">
+            <div class="card-header">
+                <h4>Plan: @Model.suscripcion.Plan.Nombre</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Fecha de Inicio:</strong> @DateTime.Parse(Model.suscripcion.FechaInicio.ToString()).ToString("dd/MM/yyyy")</p>
+                        <p><strong>Fecha de Fin:</strong> @DateTime.Parse(Model.suscripcion.FechaFin.ToString()).ToString("dd/MM/yyyy")</p>
+                        <p><strong>Días Restantes:</strong> @Model.suscripcion.DiasRestantes días</p>
+                    </div>
+                    <div class="col-md-6">
+                        @if (Model.esPropietario == true)
+                        {
+                            <p><strong>Total de Usuarios:</strong> @Model.suscripcion.TotalUsuarios / @Model.suscripcion.Plan.NumeroUsuarios</p>
+                            <p><strong>Espacios Disponibles:</strong> @Model.suscripcion.EspaciosDisponibles</p>
+
+                            <div class="mt-3">
+                                <a href="@Url.Action("MiembrosFamiliares", new { id = Model.suscripcion.Id })"
+                                   class="btn btn-primary">Gestionar Miembros Familiares</a>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-info">
+                                <p><strong>Eres miembro familiar</strong></p>
+                                <p>Esta suscripción es administrada por el propietario principal.</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                @if (Model.esPropietario == true)
+                {
+                    <hr />
+                    <div class="text-center">
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#cancelarModal">
+                            Cancelar Suscripción
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-warning">
+            <h4>No tienes una suscripción activa</h4>
+            <p>@Model?.mensaje</p>
+            <a href="@Url.Action("Index", "Planes")" class="btn btn-primary">Ver Planes Disponibles</a>
+        </div>
+    }
+</div>
+
+@if (Model?.esPropietario == true)
+{
+    <!-- Modal Cancelar -->
+    <div class="modal fade" id="cancelarModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar Cancelación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Estás seguro de que deseas cancelar tu suscripción?</p>
+                    <p class="text-warning"><strong>Advertencia:</strong> Esto también cancelará el acceso premium de todos los miembros familiares.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, mantener</button>
+                    <form method="post" action="@Url.Action("CancelarSuscripcion")" style="display:inline;">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.suscripcion.Id" />
+                        <button type="submit" class="btn btn-danger">Sí, cancelar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+}

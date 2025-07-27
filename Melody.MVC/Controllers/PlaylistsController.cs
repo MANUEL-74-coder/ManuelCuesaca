@@ -35,7 +35,7 @@ namespace Melody.MVC.Controllers
             }
         }
         // GET: Mis playlist solo para usuarios premium
-        [Authorize(Roles = "userpremium")]
+        [Authorize(Roles = "userpremium,userfree")]
         public async Task<IActionResult> MisPlaylists()
         {
             try
@@ -143,7 +143,7 @@ namespace Melody.MVC.Controllers
         }
 
         // GET: PlaylistsController/Edit/5
-        [Authorize(Roles = "userpremium")]
+        [Authorize(Roles = "userpremium,userfree")]
         public async Task<ActionResult> Edit(int id)
         {
             try
@@ -189,7 +189,7 @@ namespace Melody.MVC.Controllers
         // POST: PlaylistsController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "userpremium")]
+        [Authorize(Roles = "userpremium,userfree")]
         public async Task<ActionResult> Edit(int id, ActualizarPlaylistDto dto)
         {
             ViewBag.CurrentUser = _authService.GetCurrentUser();
@@ -255,7 +255,7 @@ namespace Melody.MVC.Controllers
 
         // GET: Confirmar eliminación
         [HttpGet]
-        [Authorize(Roles = "userpremium")]
+        [Authorize(Roles = "userpremium,userfree")]
         public async Task<ActionResult> ConfirmarDelete(int id)
         {
             try
@@ -275,7 +275,7 @@ namespace Melody.MVC.Controllers
         // POST: Eliminar playlist
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "userpremium")]
+        [Authorize(Roles = "userpremium,userfree")]
         public async Task<ActionResult> Delete(int id)
         {
             try
@@ -302,7 +302,7 @@ namespace Melody.MVC.Controllers
         // POST: Eliminar canción de playlist - AGREGAR ESTE MÉTODO
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "userpremium")]
+        [Authorize(Roles = "userpremium,userfree")]
         public async Task<IActionResult> EliminarCancion(int playlistCancionId, int playlistId)
         {
             try

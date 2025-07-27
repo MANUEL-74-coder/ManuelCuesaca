@@ -1,110 +1,106 @@
-﻿@model IEnumerable<Melody.Modelos.DTOs.PlaylistDto>
+﻿@model List<Melody.Modelos.DTOs.PlaylistDto>
 @{
     ViewData["Title"] = "Mis Playlists";
+    var currentUser = ViewBag.CurrentUser as Melody.Modelos.Auth.UserSessionInfo;
+    var totalPlaylists = ViewBag.TotalPlaylists as int? ?? 0;
 }
 
-<div class="container">
-    <div class="row">
-        <div class="col-12">
-            <!-- Header -->
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h2>Mis Playlists</h2>
-                    <p>
-                        <a asp-action="Create" class="btn btn-primary">Crear nueva Playlist</a>
-                    </p>
-                </div>
+<div class="mis-playlists">
+    <div class="page-header">
+        <div class="header-info">
+            <h2>Mis Playlists</h2>
+            <p class="subtitle">@totalPlaylists playlists creadas</p>
+        </div>
+        @if (currentUser?.IsUserPremium == true)
+        {
+            <a href="@Url.Action("Create")" class="primary-button">➕ Crear Playlist</a>
+        }
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert success-alert">
+            @TempData["Success"]
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert error-alert">
+            @TempData["Error"]
+        </div>
+    }
+
+    @if (Model.Any())
+    {
+        @if (currentUser?.IsUserFree == true && Model.Any())
+        {
+            <div class="alert info-alert">
+                ℹ️ <strong>Usuario Gratuito:</strong> Puedes gestionar tus playlists existentes, pero necesitas ser Premium para crear nuevas.
+                <a href="@Url.Action("Index", "Suscripciones")">Actualizar a Premium</a>
             </div>
-
-            <!-- Messages -->
-            @if (TempData["Success"] != null)
+        }
+        <div class="playlists-list">
+            @for (int i = 0; i < Model.Count; i++)
             {
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    @TempData["Success"]
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            }
-            @if (TempData["Error"] != null)
-            {
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    @TempData["Error"]
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            }
+                var playlist = Model[i];
 
-            @if (Model.Any())
-            {
-                <!-- Lista de playlists -->
-                <div class="playlists-list">
-                    @foreach (var item in Model)
-                    {
-                        <div class="d-flex align-items-center py-3 border-bottom">
-                            <!-- Imagen de la playlist -->
-                            <div class="me-3">
-                                @if (!string.IsNullOrEmpty(item.Imagen))
-                                {
-                                    <img src="@item.Imagen"
-                                         alt="@item.Nombre"
-                                         class="rounded"
-                                         style="width: 68px; height: 68px; object-fit: cover;">
-                                }
-                                else
-                                {
-                                    <div class="rounded bg-secondary d-flex align-items-center justify-content-center"
-                                         style="width: 68px; height: 68px;">
-                                        <i class="fas fa-music text-white"></i>
-                                    </div>
-                                }
-                            </div>
+                <div class="playlist-item">
+                    <span class="playlist-number">@(i + 1)</span>
+                    <div class="playlist-image">
+                        @if (!string.IsNullOrEmpty(playlist.Imagen))
+                        {
+                            <img src="@playlist.Imagen" alt="@playlist.Nombre">
+                        }
+                        else
+                        {
+                            <div class="no-image">🎵</div>
+                        }
+                    </div>
 
-                            <!-- Información de la playlist -->
-                            <div class="flex-grow-1">
-                                <div class="d-flex align-items-center mb-1">
-                                    <h5 class="mb-0 me-2">@item.Nombre</h5>
-                                    <span class="badge @(item.EsPublica ? "bg-success" : "bg-secondary") ms-2">
-                                        @(item.EsPublica ? "Pública" : "Privada")
-                                    </span>
-                                </div>
+                    <div class="playlist-info">
+                        <a href="@Url.Action("Details", new { id = playlist.Id })" class="playlist-title">@playlist.Nombre</a>
+                        <p class="playlist-details">
+                            @playlist.TotalCanciones canciones
+                            @if (playlist.DuracionTotal > 0)
+                            {
+                                <span> • @Math.Round(playlist.DuracionTotal, 0) min</span>
+                            }
+                        </p>
+                        <span class="playlist-badge">@(playlist.EsPublica ? "🌐 Pública" : "🔒 Privada")</span>
+                    </div>
 
-                                <p class="text-muted mb-1">
-                                    <strong>@item.CreadorNombre @item.CreadorApellido</strong> •
-                                    <span class="text-info">@item.TotalCanciones cancion(es)</span>
-                                    @if (item.DuracionTotal > 0)
-                                    {
-                                        <span> • @Math.Round(item.DuracionTotal, 0) min</span>
-                                    }
-                                </p>
-                            </div>
-
-                            <!-- Acciones -->
-                            <div class="ms-3">
-                                <div class="d-flex gap-2">
-                                    <a href="@Url.Action("Details", new { id = item.Id })"
-                                       class="btn btn-outline-info btn-sm">
-                                        Details
-                                    </a>
-                                    <a href="@Url.Action("Edit", new { id = item.Id })"
-                                       class="btn btn-outline-warning btn-sm">
-                                        Edit
-                                    </a>
-                                    <a href="@Url.Action("ConfirmarDelete", new { id = item.Id })"
-                                       class="btn btn-outline-danger btn-sm">
-                                        Delete
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    }
-                </div>
-            }
-            else
-            {
-                <div class="text-center py-5">
-                    <h4 class="text-muted">No tienes playlists aún</h4>
-                    <p class="text-muted">Crea tu primera playlist para comenzar</p>
-                    <a href="@Url.Action("Create")" class="btn btn-primary">Crear nueva Playlist</a>
+                    <div class="playlist-actions">
+                        @if (currentUser?.IsUserPremium == true || currentUser?.IsUserFree == true)
+                        {
+                            <a href="@Url.Action("Edit", new { id = playlist.Id })" class="edit-button">✏️</a>
+                            <a href="@Url.Action("ConfirmarDelete", new { id = playlist.Id })" class="delete-button">🗑️</a>
+                        }
+                    </div>
                 </div>
             }
         </div>
-    </div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <div class="empty-icon">🎵</div>
+            <h4>No tienes playlists</h4>
+            @if (currentUser?.IsUserPremium == true)
+            {
+                <p>Crea tu primera playlist para organizar tu música</p>
+                <a href="@Url.Action("Create")" class="primary-button">➕ Crear mi primera playlist</a>
+            }
+            else
+            {
+                <p>Las playlists que creaste cuando eras premium aparecerán aquí</p>
+                <a href="@Url.Action("Index", "Suscripciones")" class="primary-button">🎵 Hazte Premium</a>
+            }
+
+        </div>
+
+    }
 </div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/playlist.css" asp-append-version="true" />
+}

@@ -102,7 +102,6 @@ namespace Melody.MVC.Controllers
         [Authorize(Roles = "admin")]
         public ActionResult Delete(int id)
         {
-            var token = _authService.ObtenerToken();
             var data = Crud<Genero>.GetById(id);
             return View(data);
         }

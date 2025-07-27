@@ -34,11 +34,23 @@ namespace Melody.MVC.Controllers
                 return RedirectToAction("Index", "Home");
             }
         }
+        // GET: UsuariosController/Details/5
+        public async Task<ActionResult> Index(int id)
+        {
+            var token = _authService.ObtenerToken();
+            var data = await Crud<Usuario>.GetAllWithAuth<Usuario>(token);
+            return View(data);
+        }
+
 
         // GET: UsuariosController/Details/5
-        public ActionResult Details(int id)
+        [Authorize(Roles = "admin")]
+        public async Task<ActionResult> Details(int id)
         {
-            return View();
+            var token = _authService.ObtenerToken();
+            var data = await Crud<Usuario>.GetByIdWithAuth<Usuario>(id, token);
+
+            return View(data);
         }
 
 

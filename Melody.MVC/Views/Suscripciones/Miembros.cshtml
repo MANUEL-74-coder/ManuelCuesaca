@@ -1,0 +1,189 @@
+﻿@model Melody.Modelos.DTOs.MiembrosFamiliaResponseDto
+@{
+    ViewData["Title"] = "Gestión Familiar";
+    var suscripcionId = ViewBag.SuscripcionId as int? ?? 0;
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-users"></i> @ViewData["Title"]</h2>
+        <a asp-action="MisSuscripciones" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Volver a Mi Suscripción
+        </a>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+
+    <div class="row">
+        <!-- Información del plan familiar -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h6><i class="fas fa-info-circle"></i> Plan Familiar</h6>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <h4>@Model.TotalUsuarios / @(Model.TotalUsuarios + Model.EspaciosDisponibles)</h4>
+                        <small class="text-muted">Usuarios activos</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Propietario:</strong><br>
+                        <span class="text-success">@Model.UsuarioPrincipalNombre</span><br>
+                        <small class="text-muted">@Model.UsuarioPrincipalEmail</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Espacios disponibles:</strong>
+                        @if (Model.EspaciosDisponibles > 0)
+                        {
+                            <span class="badge bg-success">@Model.EspaciosDisponibles</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning">0 (Plan completo)</span>
+                        }
+                    </div>
+
+                    @if (Model.PuedeAgregarMas)
+                    {
+                        <hr>
+                        <button type="button" class="btn btn-success btn-sm d-grid"
+                                onclick="showAddForm()">
+                            <i class="fas fa-user-plus"></i> Agregar Miembro
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de miembros -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h6><i class="fas fa-list"></i> Miembros Familiares</h6>
+                </div>
+                <div class="card-body">
+                    @if (Model.Miembros != null && Model.Miembros.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Miembro</th>
+                                        <th>Fecha de unión</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var miembro in Model.Miembros)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <strong>@miembro.Nombre @miembro.Apellido</strong><br>
+                                                <small class="text-muted">@miembro.Email</small>
+                                            </td>
+                                            <td>@miembro.FechaUnion.ToString("dd/MM/yyyy")</td>
+                                            <td>
+                                                <a asp-action="ConfirmarRemover"
+                                                   asp-route-suscripcionId="@suscripcionId"
+                                                   asp-route-usuarioId="@miembro.UsuarioId"
+                                                   asp-route-nombre="@miembro.Nombre @miembro.Apellido"
+                                                   class="btn btn-outline-danger btn-sm">
+                                                    <i class="fas fa-user-minus"></i> Remover
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="fas fa-users fa-2x text-muted mb-3"></i>
+                            <h6>No hay miembros familiares</h6>
+                            <p class="text-muted">Invita a familiares para compartir tu suscripción premium.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulario para agregar miembro (oculto por defecto) -->
+    @if (Model.PuedeAgregarMas)
+    {
+        <div class="row mt-4" id="addMemberForm" style="display: none;">
+            <div class="col-md-6 mx-auto">
+                <div class="card border-success">
+                    <div class="card-header bg-success text-white">
+                        <h6><i class="fas fa-user-plus"></i> Agregar Nuevo Miembro</h6>
+                    </div>
+                    <div class="card-body">
+                        <form asp-action="AgregarMiembro" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="suscripcionId" value="@suscripcionId" />
+
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email del miembro:</label>
+                                <input type="email" class="form-control" id="email" name="email"
+                                       placeholder="usuario@ejemplo.com" required>
+                                <div class="form-text">
+                                    El usuario debe estar registrado en Melody con este email.
+                                </div>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-user-plus"></i> Agregar Miembro
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="hideAddForm()">
+                                    Cancelar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Información adicional -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h6><i class="fas fa-info-circle"></i> Información importante</h6>
+                    <ul class="mb-0 small text-muted">
+                        <li>Los miembros familiares obtienen acceso premium completo</li>
+                        <li>Pueden crear sus propias playlists y descargar música</li>
+                        <li>El propietario puede remover miembros en cualquier momento</li>
+                        <li>Si cancelas la suscripción, todos los miembros pierden el acceso</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showAddForm() {
+        document.getElementById('addMemberForm').style.display = 'block';
+        document.getElementById('email').focus();
+    }
+
+    function hideAddForm() {
+        document.getElementById('addMemberForm').style.display = 'none';
+        document.getElementById('email').value = '';
+    }
+</script>

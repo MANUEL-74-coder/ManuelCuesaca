@@ -85,7 +85,7 @@ internal class Program
         builder.Services.AddScoped<IUsuarioService, UsuarioService>();
         builder.Services.AddScoped<IAudioService, AudioService>();
         builder.Services.AddHttpContextAccessor();
-        builder.Services.AddScoped<IPayPalService, IPayPalService>();
+        builder.Services.AddScoped<IPayPalService, PayPalService>();
         builder.Services.AddHostedService<VerificarSuscripcionesService>();
         builder.Services.AddScoped<IPdfService, PdfService>();
 

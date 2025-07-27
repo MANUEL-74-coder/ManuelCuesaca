@@ -3,92 +3,128 @@
 @{
     ViewData["Title"] = Model.Titulo;
     var artista = ViewBag.Artista as Melody.Modelos.DTOs.ArtistaDto;
-    var canciones = artista?.Canciones ?? new List<Melody.Modelos.DTOs.CancionDto>(); // Asegurar valor por defecto
+    var misPlaylists = ViewBag.MisPlaylists as List<Melody.Modelos.DTOs.PlaylistDto> ?? new List<Melody.Modelos.DTOs.PlaylistDto>();
+    var currentUser = ViewBag.CurrentUser as Melody.Modelos.Auth.UserSessionInfo;
+}
+@if (TempData["Success"] != null)
+{
+    <div class="alert success-alert">
+        @TempData["Success"]
+    </div>
 }
 
-<div class="container-fluid">
-    <!-- Header principal de la canción -->
-    <div class="d-flex align-items-end gap-3 my-4">
-        <img src="@(string.IsNullOrEmpty(Model.PortadaUrl) ? "/images/default-song.png" : Model.PortadaUrl)"
-             alt="@Model.Titulo" width="200" height="200" class="rounded shadow">
-        <div>
-            <p>CANCIÓN</p>
-            <h1 class="display-4 fw-bold mb-2">@Model.Titulo</h1>
-            <div class="d-flex align-items-center gap-2 mb-3">
+@if (TempData["Error"] != null)
+{
+    <div class="alert error-alert">
+        @TempData["Error"]
+    </div>
+}
+
+
+<div class="cancion-details">
+    <div class="hero-section">
+        <div class="hero-image">
+            <img src="@Model.PortadaUrl" alt="@Model.Titulo">
+        </div>
+        <div class="hero-info">
+            <p class="content-type">CANCIÓN</p>
+            <h1 class="song-title">@Model.Titulo</h1>
+            <div class="song-meta">
                 <img src="@(string.IsNullOrEmpty(artista?.ImagenPerfil) ? "/images/default-artist.png" : artista.ImagenPerfil)"
-                     alt="@artista?.NombreArtista" width="24" height="24" class="rounded-circle">
-                <a href="/Artistas/Details/@Model.ArtistaId" class="text-decoration-none fw-bold">@Model.ArtistaNombre</a>
-                <span>•</span>
-                <span>@Model.AlbumNombre</span>
-                <span>@Model.FechaLanzamiento.Year</span>
-                <span>•</span>
-                <span>@(Model.Duracion?.ToString(@"m\:ss") ?? "0:00")</span>
+                     alt="@artista?.NombreArtista" class="artist-avatar">
+                <a href="/Artistas/Details/@Model.ArtistaId" class="artist-link">@Model.ArtistaNombre</a>
+                <span> • @Model.AlbumNombre • @Model.FechaLanzamiento.Year • @(Model.Duracion?.ToString(@"m\:ss") ?? "0:00")</span>
             </div>
         </div>
     </div>
 
-    <!-- Controles de reproducción -->
-    <div class="mb-4">
-        <button onclick="playAllSongs()" class="btn btn-success btn-lg rounded-pill px-4">
-            ▶️ Reproducir Todo
+    <div class="play-section">
+        <button onclick="playSong('@Model.ArchivoAudioUrl', '@Model.Titulo', '@Model.ArtistaNombre', '@Model.PortadaUrl', @Model.Id)"
+                class="play-button">
+            ▶️ Reproducir
         </button>
     </div>
 
-    <!-- Lista de canciones del artista -->
-    <div class="table-responsive">
-        <table class="table table-hover">
-            <thead class="table-light">
-                <tr>
-                    <th scope="col" class="text-center">#</th>
-                    <th scope="col">Portada</th>
-                    <th scope="col">Título</th>
-                    <th scope="col">Álbum</th>
-                    <th scope="col" class="text-center">Duración</th>
-                    <th scope="col" class="text-center">Acción</th>
-                </tr>
-            </thead>
-            <tbody>
-                @for (int i = 0; i < canciones.Count; i++)
-                {
-                    var cancion = canciones[i];
-                    <tr class="@(cancion.Id == Model.Id ? "table-info" : "")">
-                        <td class="text-center">@(i + 1)</td>
-                        <td>
-                            <img src="@(string.IsNullOrEmpty(cancion.PortadaUrl) ? "/images/default-song.png" : cancion.PortadaUrl)"
-                                 alt="@cancion.Titulo" width="40" height="40" class="rounded">
-                        </td>
-                        <td>
-                            <a href="@Url.Action("Details", "Canciones", new { id = cancion.Id })"
-                               class="text-decoration-none text-primary fw-bold">
-                                @cancion.Titulo
-                            </a><br>
-                            <span>@cancion.ArtistaNombre</span>
-                        </td>
-                        <td>@cancion.AlbumNombre</td>
-                        <td class="text-center">
-                            @(cancion.Duracion?.ToString(@"m\:ss") ?? "0:00")
-                        </td>
-                        <td class="text-center">
-                            <button onclick="playSong('@cancion.ArchivoAudioUrl', '@cancion.Titulo', '@cancion.ArtistaNombre', '@cancion.PortadaUrl', @cancion.Id)"
-                                    class="btn btn-success btn-sm">
-                                ▶️ Reproducir
-                            </button>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+    <div class="songs-list">
+        <div class="list-header">
+            <span class="col-num">#</span>
+            <span class="col-song">Canción</span>
+            <span class="col-album">Álbum</span>
+            <span class="col-genero">Género</span>
+            <span class="col-duration">Duración</span>
+            <span class="col-actions">Acciones</span>
+        </div>
+
+        @for (int i = 0; i < artista.Canciones.Count; i++)
+        {
+            var cancion = artista.Canciones[i];
+            <div class="song-item @(cancion.Id == Model.Id ? "current-song" : "")">
+                <span class="song-number">@(i + 1)</span>
+
+                <div class="song-info">
+                    <img src="@cancion.PortadaUrl" alt="@cancion.Titulo" class="song-image">
+                    <div class="song-text">
+                        <a href="@Url.Action("Details", "Canciones", new { id = cancion.Id })" class="song-link">@cancion.Titulo</a>
+                        <div class="artist-name">@cancion.ArtistaNombre</div>
+                    </div>
+                </div>
+
+                <span class="song-album">
+                    @if (cancion.AlbumId.HasValue)
+                    {
+                        <a href="@Url.Action("Details", "Albums", new { id = cancion.AlbumId })" class="album-link">@cancion.AlbumNombre</a>
+                    }
+                    else
+                    {
+                        @cancion.AlbumNombre
+                    }
+                </span>
+                <span class="song-genero">@cancion.GeneroNombre</span>
+                <span class="song-duration">@(cancion.Duracion?.ToString(@"m\:ss") ?? "0:00")</span>
+
+                <div class="song-actions">
+                    <button onclick="playSong('@cancion.ArchivoAudioUrl', '@cancion.Titulo', '@cancion.ArtistaNombre', '@cancion.PortadaUrl', @cancion.Id)"
+                            class="action-btn">
+                        ▶️
+                    </button>
+
+                    @if (currentUser != null && (currentUser.IsUserFree || currentUser.IsUserPremium))
+                    {
+                        <button type="button" onclick="toggleMeGusta(@cancion.Id, this)" class="action-btn"
+                                data-cancion-id="@cancion.Id" data-es-favorito="@cancion.EsFavorito.ToString().ToLower()">
+                            @(cancion.EsFavorito ? "♥" : "♡")
+                        </button>
+                    }
+
+                    @if (currentUser?.IsUserPremium == true && misPlaylists.Any())
+                    {
+                        <div class="dropdown">
+                            <button class="action-btn dropdown-toggle" data-bs-toggle="dropdown">➕</button>
+                            <ul class="dropdown-menu">
+                                @foreach (var playlist in misPlaylists)
+                                {
+                                    <li>
+                                        <form asp-action="AgregarAPlaylist" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="cancionId" value="@cancion.Id" />
+                                            <input type="hidden" name="playlistId" value="@playlist.Id" />
+                                            <button type="submit" class="dropdown-item">📋 @playlist.Nombre</button>
+                                        </form>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    }
+                    else if (currentUser?.IsUserFree == true)
+                    {
+                        <a href="/Suscripciones" class="action-btn">⭐</a>
+                    }
+                </div>
+            </div>
+        }
     </div>
 </div>
 
-<script>
-    function playSong(audioUrl, title, artist, coverUrl, id) {
-        // Lógica para reproducir la canción
-        console.log(`Reproduciendo: ${title} por ${artist}`);
-    }
-
-    function playAllSongs() {
-        // Lógica para reproducir todas las canciones
-        console.log("Reproduciendo todas las canciones");
-    }
-</script>
+@section Styles {
+    <link rel="stylesheet" href="~/css/canciones.css" asp-append-version="true" />
+}

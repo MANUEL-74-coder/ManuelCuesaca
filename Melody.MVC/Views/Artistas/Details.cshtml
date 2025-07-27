@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = Model.NombreArtista;
+    var currentUser = ViewBag.CurrentUser as Melody.Modelos.Auth.UserSessionInfo;
 }
 
 <div class="content-wrapper perfil-usuario">

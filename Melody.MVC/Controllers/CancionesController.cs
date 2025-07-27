@@ -6,6 +6,7 @@ using Melody.Modelos;
 using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Authorization;
+using System.Net;
 
 namespace Melody.MVC.Controllers
 {
@@ -35,90 +36,22 @@ namespace Melody.MVC.Controllers
                 return View(new List<CancionDto>());
             }
         }
-
-        [AllowAnonymous] // ← CAMBIO 1: Era [Authorize]
+        // GET: Detalles de canción
         public async Task<IActionResult> Details(int id)
         {
             try
             {
-                CancionDto cancion;
-                ArtistaDto artista;
+                // Configurar token automático
+                AuthConfig.Token = _authService.ObtenerToken();
 
-                if (_authService.IsAuthenticated()) // ← CAMBIO 2: Verificar autenticación
-                {
-                    // Si está logueado, usar método con token
-                    var token = _authService.ObtenerToken();
-                    cancion = await Crud<CancionDto>.GetByIdWithAuth<CancionDto>(id, token); // ← CAMBIO 3: Con token
-                    if (cancion == null)
-                    {
-                        return NotFound("Canción no encontrada");
-                    }
+                var cancion = Crud<CancionDto>.GetById(id);
+                if (cancion == null) return NotFound("Canción no encontrada");
 
-                    if (cancion.ArtistaId <= 0)
-                    {
-                        return NotFound("Artista no válido");
-                    }
+                var artista = Crud<ArtistaDto>.GetById(cancion.ArtistaId);
+                if (artista == null) return NotFound("Artista no encontrado");
 
-                    // Obtener artista CON autenticación 
-                    artista = await Crud<ArtistaDto>.GetByIdWithAuth<ArtistaDto>(cancion.ArtistaId, token); // ← CAMBIO 4: Con token
-
-                    // Cargar playlists del usuario si es premium
-                    if (User.IsInRole("userpremium"))
-                    {
-                        try
-                        {
-                            Crud<PlaylistDto>.Endpoint = "https://localhost:7108/api/Playlists";
-                            var playlists = await Crud<PlaylistDto>.GetListWithAuth("mis-playlists", token);
-                            ViewBag.MisPlaylists = playlists ?? new List<PlaylistDto>();
-                        }
-                        catch
-                        {
-                            ViewBag.MisPlaylists = new List<PlaylistDto>();
-                        }
-                    }
-                    else
-                    {
-                        ViewBag.MisPlaylists = new List<PlaylistDto>();
-                    }
-                }
-                else
-                {
-                    // Si no está logueado, usar método sin token
-                    cancion = Crud<CancionDto>.GetById(id);
-                    if (cancion == null)
-                    {
-                        return NotFound("Canción no encontrada");
-                    }
-
-                    if (cancion.ArtistaId <= 0)
-                    {
-                        return NotFound("Artista no válido");
-                    }
-
-                    // Obtener artista SIN autenticación
-                    artista = Crud<ArtistaDto>.GetById(cancion.ArtistaId);
-                    ViewBag.MisPlaylists = new List<PlaylistDto>();
-                }
-
-                if (artista == null)
-                {
-                    return NotFound("Artista no encontrado");
-                }
-
-                if (artista.Canciones != null && artista.Canciones.Any())
-                {
-                    var cancionActual = artista.Canciones.FirstOrDefault(c => c.Id == id);
-                    var otrasCanciones = artista.Canciones.Where(c => c.Id != id).ToList();
-
-                    var cancionesOrdenadas = new List<CancionDto>();
-                    if (cancionActual != null)
-                    {
-                        cancionesOrdenadas.Add(cancionActual);
-                    }
-                    cancionesOrdenadas.AddRange(otrasCanciones);
-
-                    artista.Canciones = cancionesOrdenadas;
-                }
+                OrdenarCancionesDelArtista(artista, id);
+                await CargarPlaylistsUsuario();
 
                 ViewBag.CurrentUser = _authService.GetCurrentUser();
                 ViewBag.Artista = artista;
@@ -132,7 +65,7 @@ namespace Melody.MVC.Controllers
             }
         }
 
-        // POST: Toggle Me Gusta - AJAX (Sin DTOs, sin redirección)
+        // POST: Toggle Me Gusta - AJAX 
         [HttpPost]
         [Authorize(Roles = "userfree,userpremium")]
         public async Task<IActionResult> ToggleMeGustaAjax(int cancionId)
@@ -140,21 +73,12 @@ namespace Melody.MVC.Controllers
             try
             {
                 var token = _authService.ObtenerToken();
-
-                // Configurar endpoint específico para MeGusta
-                Crud<MeGusta>.Endpoint = "https://localhost:7108/api/MeGusta"; // Cambia por tu URL
-
-                // Llamar al endpoint toggle con el ID de la canción
                 var resultado = await Crud<MeGusta>.PostWithAuth($"toggle/{cancionId}", null, token);
-
-                if (resultado != null)
+                return Json(new
                 {
-                    return Json(new { success = true, message = "Favorito actualizado" });
-                }
-                else
-                {
-                    return Json(new { success = false, message = "Error al actualizar favorito" });
-                }
+                    success = resultado != null,
+                    message = resultado != null ? "Favorito actualizado" : "Error al actualizar favorito"
+                });
             }
             catch (Exception ex)
             {
@@ -162,7 +86,7 @@ namespace Melody.MVC.Controllers
             }
         }
 
-        // POST: Agregar canción a playlist - SIN DTOs
+        // POST: Agregar canción a playlist 
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "userpremium")]
@@ -171,21 +95,11 @@ namespace Melody.MVC.Controllers
             try
             {
                 var token = _authService.ObtenerToken();
-
-                // Configurar endpoint específico para PlaylistsCanciones
-                Crud<PlaylistCancion>.Endpoint = "https://localhost:7108/api/PlaylistsCanciones"; // Cambia por tu URL
-
-                // Llamar al endpoint con query parameters
                 var resultado = await Crud<PlaylistCancion>.PostWithAuth($"?playlistId={playlistId}&cancionId={cancionId}", null, token);
 
-                if (resultado != null)
-                {
-                    TempData["Success"] = "Canción agregada a la playlist exitosamente";
-                }
-                else
-                {
-                    TempData["Error"] = "Error al agregar la canción a la playlist";
-                }
+                TempData[resultado != null ? "Success" : "Error"] = resultado != null ?
+                    "Canción agregada a la playlist exitosamente" :
+                    "Error al agregar la canción a la playlist";
             }
             catch (Exception ex)
             {
@@ -195,35 +109,12 @@ namespace Melody.MVC.Controllers
             return RedirectToAction("Details", new { id = cancionId });
         }
 
-        // GET: Formulario para crear canción
+        // GET: Crear nueva canción
         [Authorize(Roles = "artista")]
         public async Task<IActionResult> Create()
         {
-            ViewBag.CurrentUser = _authService.GetCurrentUser();
-            ViewBag.Generos = GetGeneros();
-            ViewBag.Albums = await GetMisAlbums();
+            await CargarDatosFormulario();
             return View(new CancionCrearDto());
-        }
-
-        private List<SelectListItem> GetGeneros()
-        {
-            var generos = Crud<Genero>.GetAll();
-            return generos.Select(g => new SelectListItem
-            {
-                Value = g.Id.ToString(),
-                Text = g.Nombre
-            }).ToList();
-        }
-
-        private async Task<List<SelectListItem>> GetMisAlbums()
-        {
-            var token = _authService.ObtenerToken();
-            var albums = await Crud<Album>.GetListWithAuth("mis-albums", token);
-            return albums.Select(a => new SelectListItem
-            {
-                Value = a.Id.ToString(),
-                Text = a.Titulo
-            }).ToList();
         }
 
         [HttpPost]
@@ -231,63 +122,31 @@ namespace Melody.MVC.Controllers
         [Authorize(Roles = "artista")]
         public async Task<IActionResult> Create(CancionCrearDto model)
         {
+            if (!ModelState.IsValid)
+            {
+                await CargarDatosFormulario();
+                return View(model);
+            }
+
             try
             {
-                if (!ModelState.IsValid)
-                {
-                    ViewBag.Generos = GetGeneros();
-                    ViewBag.Albums = await GetMisAlbums();
-                    ViewBag.CurrentUser = _authService.GetCurrentUser();
-                    return View(model);
-                }
-
-                var token = _authService.ObtenerToken();
-                using var formData = new MultipartFormDataContent();
-
-                // Agregar campos de texto
-                formData.Add(new StringContent(model.Titulo ?? ""), "Titulo");
-                formData.Add(new StringContent(model.GeneroId.ToString()), "GeneroId");
-                formData.Add(new StringContent(model.FechaLanzamiento.ToString("yyyy-MM-dd")), "FechaLanzamiento");
-
-                if (model.AlbumId.HasValue)
-                {
-                    formData.Add(new StringContent(model.AlbumId.Value.ToString()), "AlbumId");
-                }
-
-                // Agregar archivo de audio
-                var audioContent = new StreamContent(model.ArchivoAudio.OpenReadStream());
-                audioContent.Headers.ContentType = new MediaTypeHeaderValue(model.ArchivoAudio.ContentType);
-                formData.Add(audioContent, "ArchivoAudio", model.ArchivoAudio.FileName);
-
-                // Agregar imagen si existe
-                if (model.ImagenPortada != null)
-                {
-                    var imagenContent = new StreamContent(model.ImagenPortada.OpenReadStream());
-                    imagenContent.Headers.ContentType = new MediaTypeHeaderValue(model.ImagenPortada.ContentType);
-                    formData.Add(imagenContent, "ImagenPortada", model.ImagenPortada.FileName);
-                }
-
-                var resultado = await Crud<CancionDto>.PostWithFormData(formData, token, "subir");
+                var formData = CrearFormDataCancion(model);
+                var resultado = await Crud<CancionDto>.PostWithFormData(formData, _authService.ObtenerToken(), "subir");
 
                 if (resultado)
                 {
                     TempData["Success"] = "Canción subida exitosamente";
                     return RedirectToAction(nameof(MisCanciones));
                 }
-                else
-                {
-                    TempData["Error"] = "Error al procesar la solicitud en el servidor";
-                }
+
+                TempData["Error"] = "Error al procesar la solicitud en el servidor";
             }
             catch (Exception ex)
             {
                 TempData["Error"] = $"Error inesperado: {ex.Message}";
             }
 
-            // En caso de error, recargar datos
-            ViewBag.Generos = GetGeneros();
-            ViewBag.Albums = await GetMisAlbums();
-            ViewBag.CurrentUser = _authService.GetCurrentUser();
+            await CargarDatosFormulario();
             return View(model);
         }
 
@@ -319,9 +178,9 @@ namespace Melody.MVC.Controllers
         {
             try
             {
-                var token = _authService.ObtenerToken();
+                //Configurar token automático
+                AuthConfig.Token = _authService.ObtenerToken();
                 var cancion = Crud<CancionDto>.GetById(id);
-
                 if (cancion == null)
                 {
                     TempData["Error"] = "Canción no encontrada";
@@ -331,7 +190,7 @@ namespace Melody.MVC.Controllers
                 ViewBag.CurrentUser = _authService.GetCurrentUser();
                 return View("Delete", cancion);
             }
-            catch (Exception ex)
+            catch
             {
                 TempData["Error"] = "Error al cargar la canción";
                 return RedirectToAction(nameof(MisCanciones));
@@ -348,15 +207,9 @@ namespace Melody.MVC.Controllers
             {
                 var token = _authService.ObtenerToken();
                 var resultado = await Crud<CancionDto>.DeleteWithAuth(id, token);
-
-                if (resultado)
-                {
-                    TempData["Success"] = "Canción eliminada exitosamente";
-                }
-                else
-                {
-                    TempData["Error"] = "No se pudo eliminar la canción";
-                }
+                TempData[resultado ? "Success" : "Error"] = resultado ?
+                                    "Canción eliminada exitosamente" :
+                                    "No se pudo eliminar la canción";
             }
             catch (Exception ex)
             {
@@ -372,10 +225,16 @@ namespace Melody.MVC.Controllers
         {
             try
             {
+                // Configurar token automático
+                AuthConfig.Token = _authService.ObtenerToken();
                 var cancion = Crud<CancionDto>.GetById(id);
-                ViewBag.Generos = GetGeneros();
-                ViewBag.Albums = await GetMisAlbums();
-                ViewBag.CurrentUser = _authService.GetCurrentUser();
+                if (cancion == null)
+                {
+                    TempData["Error"] = "Canción no encontrada";
+                    return RedirectToAction(nameof(MisCanciones));
+                }
+
+                await CargarDatosFormulario();
 
                 var model = new ActualizarCancionDto
                 {
@@ -384,6 +243,7 @@ namespace Melody.MVC.Controllers
                     AlbumId = cancion.AlbumId,
                     FechaLanzamiento = cancion.FechaLanzamiento
                 };
+
                 return View(model);
             }
             catch
@@ -401,59 +261,27 @@ namespace Melody.MVC.Controllers
         {
             if (!ModelState.IsValid)
             {
-                ViewBag.CurrentUser = _authService.GetCurrentUser();
-                ViewBag.Generos = GetGeneros();
-                ViewBag.Albums = await GetMisAlbums();
+                await CargarDatosFormulario();
                 return View(model);
             }
 
             try
             {
-                var token = _authService.ObtenerToken();
+                var formData = CrearFormDataActualizacion(model);
+                var resultado = await Crud<CancionDto>.UpdateWithAuth(id, formData, _authService.ObtenerToken());
 
-                using var formData = new MultipartFormDataContent();
+                TempData[resultado ? "Success" : "Error"] = resultado ?
+                    "Canción actualizada exitosamente" :
+                    "Error al actualizar la canción";
 
-                formData.Add(new StringContent(model.Titulo), "Titulo");
-                formData.Add(new StringContent(model.GeneroId.ToString()), "GeneroId");
-                formData.Add(new StringContent(model.FechaLanzamiento.ToString("yyyy-MM-dd")), "FechaLanzamiento");
-                if (model.AlbumId.HasValue)
-                    formData.Add(new StringContent(model.AlbumId.Value.ToString()), "AlbumId");
-
-                // Agregar archivos si existen
-                if (model.ArchivoAudio != null)
-                {
-                    var audioContent = new StreamContent(model.ArchivoAudio.OpenReadStream());
-                    audioContent.Headers.ContentType = new MediaTypeHeaderValue(model.ArchivoAudio.ContentType);
-                    formData.Add(audioContent, "ArchivoAudio", model.ArchivoAudio.FileName);
-                }
-
-                if (model.ImagenPortada != null)
-                {
-                    var imagenContent = new StreamContent(model.ImagenPortada.OpenReadStream());
-                    imagenContent.Headers.ContentType = new MediaTypeHeaderValue(model.ImagenPortada.ContentType);
-                    formData.Add(imagenContent, "ImagenPortada", model.ImagenPortada.FileName);
-                }
-
-                var resultado = await Crud<CancionDto>.UpdateWithAuth(id, formData, token);
-
-                if (resultado)
-                {
-                    TempData["Success"] = "Canción actualizada exitosamente";
-                    return RedirectToAction(nameof(MisCanciones));
-                }
-                else
-                {
-                    TempData["Error"] = "Error al actualizar la canción";
-                }
+                if (resultado) return RedirectToAction(nameof(MisCanciones));
             }
             catch
             {
-                ViewBag.Generos = GetGeneros();
-                ViewBag.Albums = await GetMisAlbums();
                 TempData["Error"] = "Error al actualizar la canción";
             }
 
-            ViewBag.CurrentUser = _authService.GetCurrentUser();
+            await CargarDatosFormulario();
             return View(model);
         }
 
@@ -512,6 +340,7 @@ namespace Melody.MVC.Controllers
 
             try
             {
+                AuthConfig.Token = null;
                 var canciones = await Crud<CancionDto>.GetWithQuery("buscar", q);
                 ViewBag.CurrentUser = _authService.GetCurrentUser();
                 ViewBag.TerminoBusqueda = q;
@@ -522,6 +351,121 @@ namespace Melody.MVC.Controllers
                 TempData["Error"] = "Error en la búsqueda";
                 return RedirectToAction(nameof(Index));
             }
+        }
+        private void OrdenarCancionesDelArtista(ArtistaDto artista, int cancionActualId)
+        {
+            if (artista.Canciones?.Any() == true)
+            {
+                var cancionActual = artista.Canciones.FirstOrDefault(c => c.Id == cancionActualId);
+                var otrasCanciones = artista.Canciones.Where(c => c.Id != cancionActualId).ToList();
+
+                var cancionesOrdenadas = new List<CancionDto>();
+                if (cancionActual != null) cancionesOrdenadas.Add(cancionActual);
+                cancionesOrdenadas.AddRange(otrasCanciones);
+
+                artista.Canciones = cancionesOrdenadas;
+            }
+        }
+        private async Task CargarPlaylistsUsuario()
+        {
+            if (User.IsInRole("userpremium"))
+            {
+                try
+                {
+                    var playlists = await Crud<PlaylistDto>.GetListWithAuth("mis-playlists", _authService.ObtenerToken());
+                    ViewBag.MisPlaylists = playlists ?? new List<PlaylistDto>();
+                }
+                catch
+                {
+                    ViewBag.MisPlaylists = new List<PlaylistDto>();
+                }
+            }
+            else
+            {
+                ViewBag.MisPlaylists = new List<PlaylistDto>();
+            }
+        }
+        private async Task CargarDatosFormulario()
+        {
+            ViewBag.CurrentUser = _authService.GetCurrentUser();
+            ViewBag.Generos = GetGeneros();
+            ViewBag.Albums = await GetMisAlbums();
+        }
+        private List<SelectListItem> GetGeneros()
+        {
+            var generos = Crud<Genero>.GetAll();
+            return generos.Select(g => new SelectListItem
+            {
+                Value = g.Id.ToString(),
+                Text = g.Nombre
+            }).ToList();
+        }
+
+        private async Task<List<SelectListItem>> GetMisAlbums()
+        {
+            var token = _authService.ObtenerToken();
+            var albums = await Crud<Album>.GetListWithAuth("mis-albums", token);
+            return albums.Select(a => new SelectListItem
+            {
+                Value = a.Id.ToString(),
+                Text = a.Titulo
+            }).ToList();
+        }
+
+        private MultipartFormDataContent CrearFormDataCancion(CancionCrearDto model)
+        {
+            var formData = new MultipartFormDataContent();
+
+            formData.Add(new StringContent(model.Titulo ?? ""), "Titulo");
+            formData.Add(new StringContent(model.GeneroId.ToString()), "GeneroId");
+            formData.Add(new StringContent(model.FechaLanzamiento.ToString("yyyy-MM-dd")), "FechaLanzamiento");
+
+            if (model.AlbumId.HasValue)
+                formData.Add(new StringContent(model.AlbumId.Value.ToString()), "AlbumId");
+
+            // Archivo de audio
+            var audioContent = new StreamContent(model.ArchivoAudio.OpenReadStream());
+            audioContent.Headers.ContentType = new MediaTypeHeaderValue(model.ArchivoAudio.ContentType);
+            formData.Add(audioContent, "ArchivoAudio", model.ArchivoAudio.FileName);
+
+            // Imagen opcional
+            if (model.ImagenPortada != null)
+            {
+                var imagenContent = new StreamContent(model.ImagenPortada.OpenReadStream());
+                imagenContent.Headers.ContentType = new MediaTypeHeaderValue(model.ImagenPortada.ContentType);
+                formData.Add(imagenContent, "ImagenPortada", model.ImagenPortada.FileName);
+            }
+
+            return formData;
+        }
+
+        private MultipartFormDataContent CrearFormDataActualizacion(ActualizarCancionDto model)
+        {
+            var formData = new MultipartFormDataContent();
+
+            formData.Add(new StringContent(model.Titulo), "Titulo");
+            formData.Add(new StringContent(model.GeneroId.ToString()), "GeneroId");
+            formData.Add(new StringContent(model.FechaLanzamiento.ToString("yyyy-MM-dd")), "FechaLanzamiento");
+
+            if (model.AlbumId.HasValue)
+                formData.Add(new StringContent(model.AlbumId.Value.ToString()), "AlbumId");
+
+            // Archivos opcionales
+            if (model.ArchivoAudio != null)
+            {
+                var audioContent = new StreamContent(model.ArchivoAudio.OpenReadStream());
+                audioContent.Headers.ContentType = new MediaTypeHeaderValue(model.ArchivoAudio.ContentType);
+                formData.Add(audioContent, "ArchivoAudio", model.ArchivoAudio.FileName);
+            }
+
+            if (model.ImagenPortada != null)
+            {
+                var imagenContent = new StreamContent(model.ImagenPortada.OpenReadStream());
+                imagenContent.Headers.ContentType = new MediaTypeHeaderValue(model.ImagenPortada.ContentType);
+                formData.Add(imagenContent, "ImagenPortada", model.ImagenPortada.FileName);
+            }
+
+            return formData;
         }
     }
 }
