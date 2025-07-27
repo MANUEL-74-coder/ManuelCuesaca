@@ -112,6 +112,8 @@ namespace Melody.API.Controllers
 
                 var canciones = await _context.Canciones
                     .Include(c => c.Artista)
+                    .Include(c => c.Album)
+                    .Include(c => c.Genero)
                     .Where(c => c.AlbumId == id)
                     .Select(c => new CancionDto
                     {
@@ -123,6 +125,8 @@ namespace Melody.API.Controllers
                         ArchivoAudioUrl = c.ArchivoAudio,
                         ArtistaId = c.ArtistaId,
                         ArtistaNombre = c.Artista!.NombreArtista,
+                        AlbumNombre = c.Album!.Titulo,
+                        GeneroNombre = c.Genero!.Nombre,
                         EsFavorito = usuarioId.HasValue &&
                                    _context.MeGustas.Any(mg => mg.UsuarioId == usuarioId.Value && mg.CancionId == c.Id)
                     })

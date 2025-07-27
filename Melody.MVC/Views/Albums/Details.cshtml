@@ -2,92 +2,146 @@
 @{
     ViewData["Title"] = Model.Titulo;
     var currentUser = ViewBag.CurrentUser as Melody.Modelos.Auth.UserSessionInfo;
+    var misPlaylists = ViewBag.MisPlaylists as List<Melody.Modelos.DTOs.PlaylistDto> ?? new List<Melody.Modelos.DTOs.PlaylistDto>();
     var artistaActualId = ViewBag.ArtistaActualId as int?;
     var esArtistaPropietario = currentUser?.IsArtista == true && artistaActualId == Model.ArtistaId;
+    var artista = ViewBag.Artista as Melody.Modelos.DTOs.ArtistaDto;
 }
 
-<div class="container-fluid">
-    <div class="d-flex align-items-end gap-3 my-4">
-        <img src="@(string.IsNullOrEmpty(Model.PortadaUrl) ? "/images/default-album.png" : Model.PortadaUrl)"
-             alt="@Model.Titulo" width="200" height="200" class="rounded shadow">
-        <div>
-            <p class="text-muted">ÁLBUM</p>
-            <h1 class="display-4 fw-bold mb-2">@Model.Titulo</h1>
-            <div class="d-flex align-items-center gap-2 mb-3">
-                <a href="/Artistas/Details/@Model.ArtistaId" class="text-decoration-none fw-bold">@Model.NombreArtista</a>
-                <span>•</span>
-                <span>@Model.FechaLanzamiento.Year</span>
-                <span>•</span>
-                <span>@Model.TotalCanciones cancion(es)</span>
+<div class="album-details">
+    <div class="hero-section">
+        <div class="hero-image">
+            <img src="@(string.IsNullOrEmpty(Model.PortadaUrl) ? "/images/default-album.png" : Model.PortadaUrl)" alt="@Model.Titulo">
+        </div>
+        <div class="hero-info">
+            <p class="content-type">ÁLBUM</p>
+            <h1 class="album-title">@Model.Titulo</h1>
+            <div class="album-meta">
+                <img src="@(string.IsNullOrEmpty(artista?.ImagenPerfil) ? "/images/default-artist.png" : artista.ImagenPerfil)"
+                     alt="@Model.NombreArtista" class="artist-avatar">
+                <a href="/Artistas/Details/@Model.ArtistaId" class="artist-link">@Model.NombreArtista</a>
+                <span> • @Model.FechaLanzamiento.Year • @Model.TotalCanciones canción(es)</span>
             </div>
         </div>
     </div>
+
     @if (Model.Canciones != null && Model.Canciones.Any())
     {
-        <div class="mb-4">
-            <button onclick="playAllSongs()" class="btn btn-success btn-lg rounded-pill px-4">
+        <div class="play-section">
+            <button onclick="playSong('@Model.Canciones.First().ArchivoAudioUrl', '@Model.Canciones.First().Titulo', '@Model.Canciones.First().ArtistaNombre', '@Model.Canciones.First().PortadaUrl', @Model.Canciones.First().Id)"
+                    class="play-button">
                 ▶️ Reproducir Álbum
             </button>
         </div>
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead class="table-light">
-                    <tr>
-                        <th scope="col" class="text-center">#</th>
-                        <th scope="col">Título</th>
-                        <th scope="col" class="text-center">Duración</th>
-                        @if (esArtistaPropietario)
-                        {
-                            <th scope="col" class="text-center">Gestión</th>
-                        }
-                        <th scope="col" class="text-center">Acción</th> <!-- Movido al final -->
-                    </tr>
-                </thead>
-                <tbody>
-                    @for (int i = 0; i < Model.Canciones.Count; i++)
+
+        <div class="songs-list">
+            <div class="list-header @(esArtistaPropietario ? "with-management" : "")">
+                <span class="col-num">#</span>
+                <span class="col-song">Título</span>
+                <span class="col-genero">Género</span>
+                <span class="col-duration">Duración</span>
+                @if (esArtistaPropietario)
+                {
+                    <span class="col-manage">Gestión</span>
+                }
+                <span class="col-actions">Acciones</span>
+            </div>
+
+            @for (int i = 0; i < Model.Canciones.Count; i++)
+            {
+                var cancion = Model.Canciones[i];
+                <div class="song-item @(esArtistaPropietario ? "with-management" : "")">
+                    <span class="song-number">@(i + 1)</span>
+
+                    <div class="song-info">
+                        <img src="@cancion.PortadaUrl" alt="@cancion.Titulo" class="song-image">
+                        <div class="song-text">
+                            <a href="@Url.Action("Details", "Canciones", new { id = cancion.Id })" class="song-link">@cancion.Titulo</a>
+                            <div class="artist-name">@cancion.ArtistaNombre</div>
+                        </div>
+                    </div>
+
+                    <span class="song-genero">@cancion.GeneroNombre</span>
+                    <span class="song-duration">@(cancion.Duracion?.ToString(@"m\:ss") ?? "0:00")</span>
+
+                    @if (esArtistaPropietario)
                     {
-                        var cancion = Model.Canciones[i];
-                        <tr>
-                            <td class="text-center">@(i + 1)</td>
-                            <td>
-                                <a href="@Url.Action("Details", "Canciones", new { id = cancion.Id })"
-                                   class="text-decoration-none text-primary fw-bold">
-                                    @cancion.Titulo
-                                </a>
-                            </td>
-                            <td class="text-center">
-                                @(cancion.Duracion?.ToString(@"m\:ss") ?? "0:00")
-                            </td>
-                            @if (esArtistaPropietario)
-                            {
-                                <td class="text-center">
-                                    <form method="post" action="@Url.Action("QuitarDeAlbum", "Canciones")" style="display:inline;">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="cancionId" value="@cancion.Id" />
-                                        <button type="submit" class="btn btn-outline-danger btn-sm"
-                                                onclick="return confirm('¿Quitar &quot;@cancion.Titulo&quot; de este álbum?')">
-                                            Quitar
-                                        </button>
-                                    </form>
-                                </td>
-                            }
-                            <td class="text-center">
-                                <!-- Movido al final -->
-                                <button onclick="playSong('@cancion.ArchivoAudioUrl', '@cancion.Titulo', '@cancion.ArtistaNombre', '@cancion.PortadaUrl', @cancion.Id)"
-                                        class="btn btn-success btn-sm">
-                                    ▶️ Reproducir
+                        <div class="song-manage">
+                            <form method="post" action="@Url.Action("QuitarDeAlbum", "Canciones")" class="remove-form">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="cancionId" value="@cancion.Id" />
+                                <button type="submit" class="remove-button" onclick="return confirm('¿Quitar &quot;@cancion.Titulo&quot; de este álbum?')">
+                                    Quitar
                                 </button>
-                            </td>
-                        </tr>
+                            </form>
+                        </div>
                     }
-                </tbody>
+
+                    <div class="song-actions">
+                        <button onclick="playSong('@cancion.ArchivoAudioUrl', '@cancion.Titulo', '@cancion.ArtistaNombre', '@cancion.PortadaUrl', @cancion.Id)"
+                                class="action-btn play-btn">
+                            ▶️
+                        </button>
+
+                        @if (currentUser != null && (currentUser.IsUserFree || currentUser.IsUserPremium))
+                        {
+                            <button type="button" onclick="toggleMeGusta(@cancion.Id, this)" class="action-btn"
+                                    data-cancion-id="@cancion.Id" data-es-favorito="@cancion.EsFavorito.ToString().ToLower()">
+                                @(cancion.EsFavorito ? "♥" : "♡")
+                            </button>
+                        }
+
+                        @if (currentUser?.IsUserPremium == true && misPlaylists.Any())
+                        {
+                            <div class="dropdown">
+                                <button class="action-btn dropdown-toggle" data-bs-toggle="dropdown">➕</button>
+                                <ul class="dropdown-menu">
+                                    @foreach (var playlist in misPlaylists)
+                                    {
+                                        <li>
+                                            <form asp-controller="Canciones" asp-action="AgregarAPlaylist" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="cancionId" value="@cancion.Id" />
+                                                <input type="hidden" name="playlistId" value="@playlist.Id" />
+                                                <button type="submit" class="dropdown-item">📋 @playlist.Nombre</button>
+                                            </form>
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                        }
+                        else if (currentUser?.IsUserFree == true)
+                        {
+                            <a href="/Suscripciones" class="action-btn premium-btn">⭐</a>
+                        }
+                    </div>
+                </div>
+            }
         </div>
     }
     else
     {
-        <div class="alert alert-info">
+        <div class="empty-state">
             <h4>Este álbum no tiene canciones</h4>
             <p>Aún no se han agregado canciones a este álbum.</p>
         </div>
     }
 </div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert success-alert">
+        @TempData["Success"]
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert error-alert">
+        @TempData["Error"]
+    </div>
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/album.css" asp-append-version="true" />
+}
