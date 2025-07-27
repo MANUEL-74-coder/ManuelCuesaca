@@ -1,52 +1,23 @@
-﻿@model IEnumerable<dynamic>
-
+﻿@model IEnumerable<Melody.Modelos.DTOs.CancionDto>
 @{
     ViewData["Title"] = "Canciones";
-    var isArtist = false;
-    if (ViewBag.CurrentUser != null)
-    {
-        var roles = ViewBag.CurrentUser.Roles as List<string>; // Intentar castear a List<string>
-        isArtist = roles != null && roles.Contains("artista");
-    }
 }
 
-<div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Canciones</h2>
-
-        @if (isArtist)
-        {
-            <div class="d-flex gap-2">
-                <a href="@Url.Action("Create")" class="btn btn-primary">Subir Canción</a>
-                <a href="@Url.Action("MisCanciones")" class="btn btn-primary">Mis Canciones</a>
-            </div>
-        }
-    </div>
+<div class="canciones-index">
+    <h2>Explora la Música</h2>
 
     @if (Model != null && Model.Any())
     {
-        <div class="row g-4">
+        <div class="canciones-grid">
             @foreach (var cancion in Model)
             {
-                <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
-                    <div class="card h-100">
-                        @if (!string.IsNullOrEmpty(cancion.PortadaUrl?.ToString()))
-                        {
-                            <img src="@cancion.PortadaUrl.ToString()" class="card-img-top" alt="@cancion.Titulo?.ToString()" style="height: 300px; object-fit: cover;">
-                        }
-                        else
-                        {
-                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 300px;">
-                                <span class="text-muted">Sin portada</span>
-                            </div>
-                        }
-
-                        <div class="card-body d-flex flex-column">
-                            <a href="@Url.Action("Details", new { id = cancion.Id?.ToString(), autoplay = true })">
-                                <h5 class="card-title text-dark">@cancion.Titulo?.ToString()</h5>
-                            </a>
-                            <p>@cancion.ArtistaNombre?.ToString()</p>
-                        </div>
+                <div class="cancion-card">
+                    <div class="card-image">
+                        <img src="@cancion.PortadaUrl" alt="@cancion.Titulo">
+                    </div>
+                    <div class="card-content">
+                        <a href="@Url.Action("Details", new { id = cancion.Id })" class="card-title">@cancion.Titulo</a>
+                        <p class="card-artist">@cancion.ArtistaNombre</p>
                     </div>
                 </div>
             }
@@ -54,9 +25,12 @@
     }
     else
     {
-        <div class="alert alert-info">
+        <div class="empty-state">
             <h4>No hay canciones disponibles</h4>
-            <p>Aún no se han subido canciones a la plataforma.</p>
+            <p>Vuelve más tarde para descubrir nueva música</p>
         </div>
     }
 </div>
+@section Styles {
+    <link rel="stylesheet" href="~/css/canciones.css" asp-append-version="true" />
+}

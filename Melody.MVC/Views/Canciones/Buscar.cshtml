@@ -1,45 +1,28 @@
 ﻿@model IEnumerable<Melody.Modelos.DTOs.CancionDto>
-
 @{
     ViewData["Title"] = "Buscar Canciones";
-    var terminoBusqueda = ViewBag.TerminoBusqueda as string ?? string.Empty; // Asegurar valor por defecto
 }
-
-<div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2>Resultados de Búsqueda</h2>
-            @if (!string.IsNullOrEmpty(terminoBusqueda))
-            {
-                <p>Mostrando resultados para: "<strong>@terminoBusqueda</strong>"</p>
-            }
-        </div>
+<div class="canciones-index">
+    <div class="search-header">
+        <h2>Resultados de Búsqueda</h2>
+        @if (!string.IsNullOrEmpty(ViewBag.TerminoBusqueda))
+        {
+            <p class="search-term">Para: "<strong>@ViewBag.TerminoBusqueda</strong>"</p>
+        }
     </div>
 
     @if (Model != null && Model.Any())
     {
-        <div class="row g-4">
+        <div class="canciones-grid">
             @foreach (var cancion in Model)
             {
-                <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
-                    <div class="card h-100">
-                        @if (!string.IsNullOrEmpty(cancion.PortadaUrl))
-                        {
-                            <img src="@cancion.PortadaUrl" class="card-img-top" alt="@cancion.Titulo" style="height: 300px; object-fit: cover;">
-                        }
-                        else
-                        {
-                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 300px;">
-                                <span class="text-muted">Sin portada</span>
-                            </div>
-                        }
-
-                        <div class="card-body d-flex flex-column">
-                            <a href="@Url.Action("Details", new { id = cancion.Id })" class="text-decoration-none">
-                                <h5 class="card-title text-dark">@cancion.Titulo</h5>
-                            </a>
-                            <p>@cancion.ArtistaNombre</p>
-                        </div>
+                <div class="cancion-card">
+                    <div class="card-image">
+                        <img src="@cancion.PortadaUrl" alt="@cancion.Titulo">
+                    </div>
+                    <div class="card-content">
+                        <a href="@Url.Action("Details", new { id = cancion.Id })" class="card-title">@cancion.Titulo</a>
+                        <p class="card-artist">@cancion.ArtistaNombre</p>
                     </div>
                 </div>
             }
@@ -47,13 +30,21 @@
     }
     else
     {
-        <div class="alert alert-info">
-            <h4>No se encontraron canciones</h4>
-            @if (!string.IsNullOrEmpty(terminoBusqueda))
+        <div class="empty-state">
+            <h4>Sin resultados</h4>
+            @if (!string.IsNullOrEmpty(ViewBag.TerminoBusqueda))
             {
-                <p>No hay canciones que coincidan con tu búsqueda "<strong>@terminoBusqueda</strong>".</p>
+                <p>No hay canciones para "@ViewBag.TerminoBusqueda"</p>
             }
-            <a href="@Url.Action("Index")" class="btn btn-primary">Ver todas las canciones</a>
+            else
+            {
+                <p>Intenta con otros términos de búsqueda</p>
+            }
+            <a href="@Url.Action("Index")" class="back-link">Ver todas las canciones</a>
         </div>
     }
 </div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/canciones.css" asp-append-version="true" />
+}

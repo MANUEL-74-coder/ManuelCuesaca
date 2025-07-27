@@ -92,25 +92,30 @@ namespace Melody.MVC.Services
                 };
             }
         }
+
         public UserSessionInfo? GetCurrentUser()
         {
-            var token = _httpContextAccessor.HttpContext?.Session.GetString("AuthToken");
+            var token = ObtenerToken();
             if (string.IsNullOrEmpty(token))
+                return null;
+
+            var tokenInfo = ExtraerInfoToken(token);
+            if (tokenInfo == null)
                 return null;
 
             return new UserSessionInfo
             {
-                UserId = _httpContextAccessor.HttpContext?.Session.GetString("UserId") ?? "",
-                UserName = _httpContextAccessor.HttpContext?.Session.GetString("UserName") ?? "",
-                Email = _httpContextAccessor.HttpContext?.Session.GetString("UserEmail") ?? "",
-                Roles = _httpContextAccessor.HttpContext?.Session.GetString("UserRoles")?.Split(',').ToList() ?? new List<string>(),
+                UserId = tokenInfo.UserId ?? "",
+                UserName = tokenInfo.UserName ?? "",
+                Email = tokenInfo.Email ?? "",
+                Roles = tokenInfo.Roles,
                 Token = token
             };
         }
 
         public bool IsAuthenticated()
         {
-            var token = _httpContextAccessor.HttpContext?.Session.GetString("AuthToken");
+            var token = ObtenerToken();
             if (string.IsNullOrEmpty(token))
                 return false;
 
@@ -130,9 +135,42 @@ namespace Melody.MVC.Services
         {
             _httpContextAccessor.HttpContext?.Session.Clear();
         }
+
         public string? ObtenerToken()
         {
-            return _httpContextAccessor.HttpContext?.Session.GetString("AuthToken");
+            // Primero intentar obtener desde Session
+            var token = _httpContextAccessor.HttpContext?.Session.GetString("AuthToken");
+
+            // Si no hay en Session, intentar desde Claims (cookie)
+            if (string.IsNullOrEmpty(token))
+            {
+                var user = _httpContextAccessor.HttpContext?.User;
+                if (user?.Identity?.IsAuthenticated == true)
+                {
+                    token = user.FindFirst("AuthToken")?.Value;
+
+                    // Si encontramos el token en la cookie, restaurar la session
+                    if (!string.IsNullOrEmpty(token))
+                    {
+                        RestaurarSessionDesdeToken(token);
+                    }
+                }
+            }
+
+            return token;
+        }
+
+        private void RestaurarSessionDesdeToken(string token)
+        {
+            var tokenInfo = ExtraerInfoToken(token);
+            if (tokenInfo != null && _httpContextAccessor.HttpContext != null)
+            {
+                _httpContextAccessor.HttpContext.Session.SetString("AuthToken", token);
+                _httpContextAccessor.HttpContext.Session.SetString("UserName", tokenInfo.UserName ?? "");
+                _httpContextAccessor.HttpContext.Session.SetString("UserEmail", tokenInfo.Email ?? "");
+                _httpContextAccessor.HttpContext.Session.SetString("UserRoles", string.Join(",", tokenInfo.Roles));
+                _httpContextAccessor.HttpContext.Session.SetString("UserId", tokenInfo.UserId ?? "");
+            }
         }
 
         public TokenInfo? ExtraerInfoToken(string token)

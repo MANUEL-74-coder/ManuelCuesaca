@@ -1,134 +1,95 @@
 ﻿@model List<Melody.Modelos.DTOs.CancionDto>
 @using Melody.Modelos
-
 @{
     ViewData["Title"] = "Mis Canciones";
-    var successMessage = TempData["Success"] as string; // Capturar Success como variable estática
-    var errorMessage = TempData["Error"] as string; // Capturar Error como variable estática
 }
 
-<div class="container">
-    <div class="row">
-        <div class="col-12">
-            <!-- Header -->
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h2>Mis Canciones</h2>
-                </div>
-                <div>
-                    <a href="@Url.Action("Create")" class="btn btn-primary">Subir Nueva Canción</a>
-                </div>
-            </div>
-
-            <!-- Messages -->
-            @if (TempData["Success"] != null)
-            {
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    @TempData["Success"]
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            }
-            @if (TempData["Error"] != null)
-            {
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    @TempData["Error"]
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            }
-
-            @if (Model != null && Model.Any())
-            {
-                <!-- Lista de canciones -->
-                <div class="canciones-list">
-                    @foreach (var cancion in Model)
-                    {
-                        <div class="d-flex align-items-center py-3 border-bottom">
-                            <!-- Portada de la canción -->
-                            <div class="me-3">
-                                @if (!string.IsNullOrEmpty((string)cancion.PortadaUrl))
-                                {
-                                    <img src="@cancion.PortadaUrl"
-                                         alt="@cancion.Titulo"
-                                         class="rounded"
-                                         style="width: 68px; height: 68px; object-fit: cover;">
-                                }
-                                else
-                                {
-                                    <div class="rounded bg-secondary d-flex align-items-center justify-content-center"
-                                         style="width: 68px; height: 68px;">
-                                        <i class="fas fa-music text-white"></i>
-                                    </div>
-                                }
-                            </div>
-
-                            <!-- Información de la canción -->
-                            <div class="flex-grow-1">
-                                <div class="d-flex align-items-center mb-1">
-                                    <a href="@Url.Action("Details", new { id = cancion.Id })" class="text-decoration-none">
-                                        <h5 class="mb-0 me-2 text-dark">@cancion.Titulo</h5>
-                                    </a>
-                                </div>
-
-                                <p class="text-muted mb-1">
-                                    <strong>Género:</strong> @cancion.GeneroNombre
-                                    @if (!string.IsNullOrEmpty((string)cancion.AlbumNombre) && cancion.AlbumNombre != "Sin Álbum")
-                                    {
-                                        <span> • <strong>Álbum:</strong> @cancion.AlbumNombre</span>
-                                    }
-                                    else
-                                    {
-                                        <span> • <span class="text-warning">Sin álbum</span></span>
-                                    }
-                                </p>
-
-                                <!-- Formulario para agregar a álbum (solo si no tiene álbum) -->
-                                @if (string.IsNullOrEmpty((string)cancion.AlbumNombre) || cancion.AlbumNombre == "Sin Álbum")
-                                {
-                                    <form method="post" action="@Url.Action("AgregarAAlbum")" class="mt-1">
-                                        <input type="hidden" name="cancionId" value="@cancion.Id" />
-                                        <div class="input-group input-group-sm" style="max-width: 300px;">
-                                            <select name="albumId" class="form-select" required>
-                                                <option value="">Seleccionar álbum...</option>
-                                                @foreach (var album in ViewBag.MisAlbums as List<Album>)
-                                                {
-                                                    <option value="@album.Id">@album.Titulo</option>
-                                                }
-                                            </select>
-                                            <button type="submit" class="btn btn-info">+ Agregar</button>
-                                        </div>
-                                    </form>
-                                }
-                            </div>
-
-                            <!-- Acciones -->
-                            <div class="ms-3">
-                                <div class="d-flex gap-2">
-                                    <a href="@Url.Action("Edit", new { id = cancion.Id })"
-                                       class="btn btn-warning btn-sm">
-                                        Editar
-                                    </a>
-                                    <a href="@Url.Action("ConfirmarDelete", new { id = cancion.Id })"
-                                       class="btn btn-danger btn-sm">
-                                        Eliminar
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    }
-                </div>
-            }
-            else
-            {
-                <div class="text-center py-5">
-                    <h4 class="text-muted">No tienes canciones subidas</h4>
-                    <p class="text-muted">Aún no has subido ninguna canción. ¡Comparte tu música con el mundo!</p>
-                    <a href="@Url.Action("Create")" class="btn btn-primary">Subir mi primera canción</a>
-                </div>
-            }
-
-            <div class="mt-4">
-                <a href="@Url.Action("Index")" class="btn btn-secondary">Ver todas las canciones</a>
-            </div>
-        </div>
+<div class="mis-canciones">
+    <div class="page-header">
+        <h2>Mis Canciones</h2>
+        <a href="@Url.Action("Create")" class="primary-button">Subir Nueva Canción</a>
     </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert success-alert">
+            @TempData["Success"]
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert error-alert">
+            @TempData["Error"]
+        </div>
+    }
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="canciones-list">
+            @foreach (var cancion in Model)
+            {
+                <div class="cancion-item">
+                    <div class="cancion-image">
+                        @if (!string.IsNullOrEmpty((string)cancion.PortadaUrl))
+                        {
+                            <img src="@cancion.PortadaUrl" alt="@cancion.Titulo">
+                        }
+                        else
+                        {
+                            <div class="no-image">🎵</div>
+                        }
+                    </div>
+
+                    <div class="cancion-info">
+                        <a href="@Url.Action("Details", new { id = cancion.Id })" class="cancion-title">@cancion.Titulo</a>
+                        <p class="cancion-details">
+                            <strong>Género:</strong> @cancion.GeneroNombre
+                            @if (!string.IsNullOrEmpty((string)cancion.AlbumNombre) && cancion.AlbumNombre != "Sin Álbum")
+                            {
+                                <span> • <strong>Álbum:</strong> @cancion.AlbumNombre</span>
+                            }
+                            else
+                            {
+                                <span> • Sin álbum</span>
+                            }
+                        </p>
+
+                        @if (string.IsNullOrEmpty((string)cancion.AlbumNombre) || cancion.AlbumNombre == "Sin Álbum")
+                        {
+                            <form method="post" action="@Url.Action("AgregarAAlbum")" class="album-form">
+                                <input type="hidden" name="cancionId" value="@cancion.Id" />
+                                <div class="form-group">
+                                    <select name="albumId" class="form-select" required>
+                                        <option value="">Seleccionar álbum...</option>
+                                        @foreach (var album in ViewBag.MisAlbums as List<Album>)
+                                        {
+                                            <option value="@album.Id">@album.Titulo</option>
+                                        }
+                                    </select>
+                                    <button type="submit" class="add-button">+ Agregar</button>
+                                </div>
+                            </form>
+                        }
+                    </div>
+
+                    <div class="cancion-actions">
+                        <a href="@Url.Action("Edit", new { id = cancion.Id })" class="edit-button">Editar</a>
+                        <a href="@Url.Action("ConfirmarDelete", new { id = cancion.Id })" class="delete-button">Eliminar</a>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <h4>No tienes canciones subidas</h4>
+            <p>¡Comparte tu música con el mundo!</p>
+            <a href="@Url.Action("Create")" class="primary-button">Subir mi primera canción</a>
+        </div>
+    }
 </div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/canciones.css" asp-append-version="true" />
+}

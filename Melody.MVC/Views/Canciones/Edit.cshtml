@@ -1,5 +1,4 @@
 ﻿@model Melody.Modelos.DTOs.ActualizarCancionDto
-
 @{
     ViewData["Title"] = "Editar Canción";
 }
@@ -9,14 +8,12 @@
         <div class="col-md-8">
             <div class="card">
                 <div class="card-header">
-                    <h4>Editar Canción</h4>
+                    <h4>🎵 Editar Canción</h4>
                 </div>
                 <div class="card-body">
                     @if (TempData["Error"] != null)
                     {
-                        <div class="alert alert-danger">
-                            @TempData["Error"]
-                        </div>
+                        <div class="alert alert-danger">@TempData["Error"]</div>
                     }
 
                     <form asp-action="Edit" method="post" enctype="multipart/form-data">
@@ -24,25 +21,25 @@
 
                         <div class="mb-3">
                             <label asp-for="Titulo" class="form-label">Título de la Canción *</label>
-                            <input asp-for="Titulo" class="form-control" placeholder="Ingresa el título de tu canción" />
+                            <input asp-for="Titulo" class="form-control" placeholder="Ingresa el título de tu canción">
                             <span asp-validation-for="Titulo" class="text-danger"></span>
                         </div>
 
                         <div class="mb-3">
                             <label asp-for="ArchivoAudio" class="form-label">Nuevo Archivo de Audio</label>
-                            <input asp-for="ArchivoAudio" type="file" class="form-control" accept=".mp3,.wav,.flac" />
+                            <input asp-for="ArchivoAudio" type="file" class="form-control" accept=".mp3,.wav,.flac">
                             <span asp-validation-for="ArchivoAudio" class="text-danger"></span>
                         </div>
 
                         <div class="mb-3">
                             <label asp-for="ImagenPortada" class="form-label">Nueva Imagen de Portada</label>
-                            <input asp-for="ImagenPortada" type="file" class="form-control" accept="image/*" />
+                            <input asp-for="ImagenPortada" type="file" class="form-control" accept="image/*">
                             <span asp-validation-for="ImagenPortada" class="text-danger"></span>
                         </div>
 
                         <div class="mb-3">
                             <label asp-for="GeneroId" class="form-label">Género</label>
-                            <select asp-for="GeneroId" class="form-select" asp-items="@(new SelectList(ViewBag.Generos, "Value", "Text"))">
+                            <select asp-for="GeneroId" class="form-select" asp-items="ViewBag.Generos">
                                 <option value="">Selecciona un género</option>
                             </select>
                             <span asp-validation-for="GeneroId" class="text-danger"></span>
@@ -50,7 +47,7 @@
 
                         <div class="mb-3">
                             <label asp-for="AlbumId" class="form-label">Álbum (Opcional)</label>
-                            <select asp-for="AlbumId" class="form-select" asp-items="@(new SelectList(ViewBag.Albums, "Value", "Text"))">
+                            <select asp-for="AlbumId" class="form-select" asp-items="ViewBag.Albums">
                                 <option value="">Sin álbum</option>
                             </select>
                             <span asp-validation-for="AlbumId" class="text-danger"></span>

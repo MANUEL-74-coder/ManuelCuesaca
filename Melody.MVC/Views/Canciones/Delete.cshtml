@@ -1,15 +1,13 @@
 ﻿@model Melody.Modelos.DTOs.CancionDto
-
 @{
     ViewData["Title"] = "Eliminar Canción";
 }
-
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <div class="card">
+            <div class="card shadow-sm">
                 <div class="card-header bg-danger text-white">
-                    <h4 class="mb-0">Confirmar Eliminación</h4>
+                    <h4 class="mb-0">🗑️ Confirmar Eliminación</h4>
                 </div>
                 <div class="card-body">
                     <div class="alert alert-warning">
@@ -18,42 +16,38 @@
 
                     <div class="row">
                         <div class="col-md-4">
-                            @if (!string.IsNullOrEmpty(Model.PortadaUrl)) // Asumiendo que PortadaUrl es string
-                            {
-                                <img src="@Model.PortadaUrl" alt="Portada de @Model.Titulo" class="img-fluid rounded">
-                            }
-                            else
-                            {
-                                <div class="bg-light p-5 text-center rounded">
-                                    <span class="text-muted">Sin portada</span>
-                                </div>
-                            }
+                            <img src="@Model.PortadaUrl" alt="Portada de @Model.Titulo" class="img-fluid rounded">
                         </div>
                         <div class="col-md-8">
                             <h5 class="card-title">@Model.Titulo</h5>
                             <p class="card-text">
                                 <strong>Artista:</strong> @Model.ArtistaNombre<br>
-                                @if (!string.IsNullOrEmpty(Model.GeneroNombre)) // Asumiendo que GeneroNombre es string
+                                @if (!string.IsNullOrEmpty(Model.GeneroNombre))
                                 {
                                     <strong>Género:</strong> @Model.GeneroNombre
+
                                     <br>
                                 }
-                                @if (!string.IsNullOrEmpty(Model.AlbumNombre) && Model.AlbumNombre != "Sin Álbum") // Asumiendo que AlbumNombre es string
+                                @if (!string.IsNullOrEmpty(Model.AlbumNombre))
                                 {
                                     <strong>Álbum:</strong> @Model.AlbumNombre
+
                                     <br>
                                 }
                             </p>
                         </div>
                     </div>
                 </div>
-
                 <div class="card-footer">
                     <div class="d-flex justify-content-between">
-                        <a href="@Url.Action("MisCanciones")" class="btn btn-light">Cancelar</a>
+                        <a href="@Url.Action("MisCanciones")" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Cancelar
+                        </a>
                         <form asp-action="Delete" asp-route-id="@Model.Id" method="post" style="display: inline;">
                             @Html.AntiForgeryToken()
-                            <button type="submit" class="btn btn-primary">Eliminar Canción</button>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash me-1"></i>Eliminar Canción
+                            </button>
                         </form>
                     </div>
                 </div>
