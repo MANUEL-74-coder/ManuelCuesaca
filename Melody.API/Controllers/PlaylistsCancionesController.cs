@@ -30,6 +30,7 @@ namespace Melody.API.Controllers
 
         // POST: api/PlaylistsCanciones?playlistId=1&cancionId=5
         [HttpPost]
+        [Authorize(Roles = "userpremium")]
         public async Task<ActionResult<PlaylistCancion>> AgregarCancionAPlaylist([FromQuery] int playlistId, [FromQuery] int cancionId)
         {
             try
@@ -93,6 +94,7 @@ namespace Melody.API.Controllers
         }
         // DELETE: api/PlaylistsCanciones/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = "userpremium,userfree")]
         public async Task<IActionResult> EliminarCancionDePlaylist(int id)
         {
             try
@@ -138,6 +140,7 @@ namespace Melody.API.Controllers
 
         // GET: api/PlaylistsCanciones/verificar?playlistId=1&cancionId=5
         [HttpGet("verificar")]
+        [Authorize(Roles = "userpremium,userfree")]
         public async Task<ActionResult> VerificarCancionEnPlaylist([FromQuery] int playlistId, [FromQuery] int cancionId)
         {
             try

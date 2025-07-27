@@ -101,16 +101,16 @@ namespace Melody.API.Controllers
                 }
 
                 // Verificar permisos
+                var usuarioActual = await _usuarioService.ObtenerUsuarioActualAsync();
                 if (!playlist.EsPublica)
                 {
-                    var usuarioActual = await _usuarioService.ObtenerUsuarioActualAsync();
+
                     if (playlist.UsuarioId != usuarioActual.Id)
                     {
                         return StatusCode(StatusCodes.Status403Forbidden, "No tienes permisos para ver esta playlist");
                     }
                 }
-
-                // Obtener canciones de la playlist CON ID de relación
+                // Obtener canciones de la playlist CON favoritos
                 var canciones = await _context.PlaylistsCanciones
                     .Include(pc => pc.Cancion)
                     .ThenInclude(c => c.Artista)
@@ -121,7 +121,7 @@ namespace Melody.API.Controllers
                     .Where(pc => pc.PlaylistId == id)
                     .Select(pc => new CancionPlaylistDto
                     {
-                        PlaylistCancionId = pc.Id, // ¡IMPORTANTE! ID de la relación
+                        PlaylistCancionId = pc.Id,
                         CancionId = pc.Cancion!.Id,
                         CancionTitulo = pc.Cancion.Titulo,
                         ArchivoAudioUrl = pc.Cancion.ArchivoAudio,
@@ -130,8 +130,13 @@ namespace Melody.API.Controllers
                         ArtistaId = pc.Cancion.ArtistaId,
                         ArtistaNombre = pc.Cancion.Artista!.NombreArtista,
                         AlbumNombre = pc.Cancion.Album != null ? pc.Cancion.Album.Titulo : "Sin Álbum",
+                        AlbumId = pc.Cancion.Album != null ? pc.Cancion.Album.Id : (int?)null,
                         GeneroNombre = pc.Cancion.Genero!.Nombre,
-                        FechaAgregada = DateTime.Now // Puedes agregar este campo a tu modelo si lo necesitas
+                        FechaAgregada = DateTime.Now,
+
+
+                        EsFavorito = _context.MeGustas
+                            .Any(cf => cf.CancionId == pc.Cancion.Id && cf.UsuarioId == usuarioActual.Id)
                     })
                     .ToListAsync();
 
@@ -162,7 +167,7 @@ namespace Melody.API.Controllers
 
         // GET: api/Playlists/mis-playlists - Obtener mis playlists
         [HttpGet("mis-playlists")]
-        [Authorize(Roles = "userpremium")]
+        [Authorize(Roles = "userpremium,userfree")]
         public async Task<ActionResult<IEnumerable<PlaylistDto>>> ObtenerMisPlaylists()
         {
             try
@@ -201,7 +206,7 @@ namespace Melody.API.Controllers
         // PUT: api/Playlists/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        [Authorize(Roles = "userpremium")]
+        [Authorize(Roles = "userpremium,userfree")]
         public async Task<IActionResult> ActualizarPlaylist(int id, [FromForm] ActualizarPlaylistDto dto)
         {
             try
@@ -329,7 +334,7 @@ namespace Melody.API.Controllers
 
         // DELETE: api/Playlists/5
         [HttpDelete("{id}")]
-        [Authorize(Roles = "userpremium")]
+        [Authorize(Roles = "userpremium,userfree")]
         public async Task<IActionResult> EliminarPlaylist(int id)
         {
             try

@@ -8,7 +8,7 @@ namespace Melody.Modelos.DTOs
 {
     public class CancionPlaylistDto
     {
-        public int PlaylistCancionId { get; set; } 
+        public int PlaylistCancionId { get; set; }
         public int CancionId { get; set; }
         public string CancionTitulo { get; set; } = string.Empty;
         public string ArchivoAudioUrl { get; set; } = string.Empty;
@@ -20,7 +20,7 @@ namespace Melody.Modelos.DTOs
         public string ArtistaNombre { get; set; } = string.Empty;
 
         // Información adicional
-        public int? AlbumId { get; set; } 
+        public int? AlbumId { get; set; }
         public string? AlbumNombre { get; set; }
         public string GeneroNombre { get; set; } = string.Empty;
         public DateTime FechaAgregada { get; set; }
