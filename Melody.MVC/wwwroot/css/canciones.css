@@ -1,0 +1,420 @@
+﻿/* HEADERS */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.search-header h2 {
+    margin: 0 0 10px 0;
+}
+
+.search-term {
+    color: #666;
+    margin: 0;
+}
+
+/* BOTONES */
+.primary-button {
+    background: #000;
+    color: white;
+    padding: 10px 15px;
+    text-decoration: none;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+}
+
+.secondary-button {
+    background: #f8f9fa;
+    color: #333;
+    padding: 10px 15px;
+    text-decoration: none;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+}
+
+.edit-button {
+    background: #ffc107;
+    color: #000;
+    padding: 8px 15px;
+    text-decoration: none;
+    border-radius: 3px;
+    font-size: 14px;
+}
+
+.delete-button {
+    background: #dc3545;
+    color: white;
+    padding: 8px 15px;
+    text-decoration: none;
+    border-radius: 3px;
+    font-size: 14px;
+}
+
+.add-button {
+    background: #17a2b8;
+    color: white;
+    border: none;
+    padding: 5px 15px;
+    border-radius: 3px;
+    font-size: 14px;
+}
+
+.play-button {
+    background: #1db954;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 50px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+/* GRID DE CANCIONES */
+.canciones-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 20px 0;
+}
+
+.cancion-card {
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.card-image {
+    aspect-ratio: 1;
+    overflow: hidden;
+}
+
+    .card-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+.card-content {
+    padding: 15px;
+}
+
+.card-title {
+    font-weight: 600;
+    text-decoration: none;
+    display: block;
+    margin-bottom: 5px;
+    color: #000;
+}
+
+.card-artist {
+    margin: 0;
+    font-size: 14px;
+    color: #666;
+}
+
+/* HERO SECTION */
+.hero-section {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 30px;
+    align-items: flex-end;
+}
+
+.hero-image img {
+    width: 200px;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.content-type {
+    margin: 0 0 10px 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: #666;
+}
+
+.song-title {
+    margin: 0 0 15px 0;
+    font-size: 32px;
+    font-weight: bold;
+}
+
+.song-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #666;
+}
+
+.artist-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.artist-link {
+    font-weight: 600;
+    text-decoration: none;
+    color: #000;
+}
+
+.play-section {
+    margin-bottom: 30px;
+}
+
+/* LISTA TABLA (DETAILS) */
+.songs-list {
+    border-top: 1px solid #eee;
+}
+
+.list-header {
+    display: grid;
+    grid-template-columns: 50px 450px 180px 120px 100px 150px;
+    gap: 20px;
+    padding: 15px 20px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #666;
+    border-bottom: 1px solid #eee;
+}
+
+.song-item {
+    display: grid;
+    grid-template-columns: 50px 450px 180px 120px 100px 150px;
+    gap: 20px;
+    padding: 15px 20px;
+    border-bottom: 1px solid #f8f9fa;
+    align-items: center;
+}
+
+.current-song {
+    background: #f8f9fa;
+}
+
+.song-number {
+    text-align: center;
+    color: #666;
+}
+
+.song-info {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.song-image {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 3px;
+}
+
+.song-link {
+    font-weight: 600;
+    text-decoration: none;
+    color: #000;
+    display: block;
+}
+.album-link {
+    text-decoration: none;
+    color: #666;
+    font-size: 14px;
+}
+
+
+.artist-name {
+    font-size: 14px;
+    color: #666;
+}
+
+.song-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    padding: 5px;
+    cursor: pointer;
+    border-radius: 3px;
+    text-decoration: none;
+    color: #666;
+}
+
+/* LISTA HORIZONTAL (MIS CANCIONES) */
+.canciones-list {
+    border-top: 1px solid #eee;
+}
+
+.cancion-item {
+    display: flex;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 1px solid #eee;
+    gap: 15px;
+}
+
+.cancion-image {
+    flex-shrink: 0;
+}
+
+    .cancion-image img {
+        width: 68px;
+        height: 68px;
+        object-fit: cover;
+        border-radius: 5px;
+    }
+
+.no-image {
+    width: 68px;
+    height: 68px;
+    background: #f8f9fa;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: #6c757d;
+}
+
+.cancion-info {
+    flex-grow: 1;
+}
+
+.cancion-title {
+    font-weight: 600;
+    text-decoration: none;
+    color: #000;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.cancion-details {
+    margin: 5px 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.album-form {
+    margin-top: 10px;
+}
+
+.form-group {
+    display: flex;
+    gap: 10px;
+    max-width: 300px;
+}
+
+.form-select {
+    flex: 1;
+    padding: 5px 10px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-size: 14px;
+}
+
+.cancion-actions {
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+/* ESTADOS */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.page-footer {
+    margin-top: 30px;
+}
+
+.back-link {
+    color: #007bff;
+    text-decoration: none;
+}
+
+/* ALERTAS */
+.alert {
+    padding: 15px;
+    margin: 20px 0;
+    border-radius: 5px;
+}
+
+.success-alert {
+    background: #d4edda;
+    color: #155724;
+}
+
+.error-alert {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* RESPONSIVE */
+@media (max-width: 1024px) {
+    .canciones-grid {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 15px;
+    }
+}
+
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .hero-section {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 20px;
+    }
+
+    .hero-image img {
+        width: 150px;
+        height: 150px;
+    }
+
+    .song-title {
+        font-size: 24px;
+    }
+
+    .song-meta {
+        justify-content: center;
+    }
+
+    .play-section {
+        text-align: center;
+    }
+
+    .list-header, .song-item {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .cancion-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+    }
+
+    .cancion-actions {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 600px) {
+    .canciones-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 10px;
+    }
+}

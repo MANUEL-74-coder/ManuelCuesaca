@@ -75,49 +75,6 @@ namespace Melody.API.Controllers
             }
         }
 
-        // GET: api/Seguimientos/5
-        [HttpGet("artista/{artistaId}/seguidores")]
-        public async Task<ActionResult<Seguimiento>> ObtenerSeguidoresArtista(int artistaId)
-        {
-            try
-            {
-                var artista = await _context.Artistas
-                    .FirstOrDefaultAsync(a => a.Id == artistaId);
-                if (artista == null)
-                {
-                    return NotFound("Artista no encontrado.");
-                }
-                var seguidores = await _context.Seguimientos
-                    .Where(s => s.ArtistaId == artistaId)
-                    .Include(s => s.Usuario)
-                    .Select(s => new
-                    {
-                        s.Id,
-                        s.FechaSeguimiento,
-                        Usuario = new
-                        {
-                            s.Usuario!.Id,
-                            s.Usuario.Nombre,
-                            s.Usuario.Apellido,
-                            s.Usuario.FotoPerfil,
-                            FechaRegistro = s.Usuario.FechaRegistro
-                        }
-                    })
-                    .OrderByDescending(s => s.FechaSeguimiento)
-                    .ToListAsync();
-                return Ok(new
-                {
-                    ArtistaNombre = artista.NombreArtista,
-                    TotalSeguirdores = seguidores.Count,
-                    Seguidores = seguidores
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, $"Error al obtener seguidores del artista: {ex.Message}");
-            }
-        }
-
         // POST: api/Seguimientos/toogle - Toggle seguir/dejar de seguir artista
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost("toggle")]

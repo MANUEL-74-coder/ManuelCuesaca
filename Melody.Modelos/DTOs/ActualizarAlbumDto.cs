@@ -11,6 +11,8 @@ namespace Melody.Modelos.DTOs
     public class ActualizarAlbumDto
     {
         public string? Titulo { get; set; }
+
+        [Required(ErrorMessage = "El género es requerido")]
         public int GeneroId { get; set; }
         public IFormFile? Portada { get; set; }
     }

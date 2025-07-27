@@ -62,7 +62,8 @@ namespace Melody.MVC.Controllers
                             {
                                 new Claim(ClaimTypes.NameIdentifier, tokenInfo.UserId ?? ""),
                                 new Claim(ClaimTypes.Name, tokenInfo.UserName ?? ""),
-                                new Claim(ClaimTypes.Email, tokenInfo.Email ?? "")
+                                new Claim(ClaimTypes.Email, tokenInfo.Email ?? ""),
+                                new Claim("AuthToken", resultado.Token) // ← Guardamos el token en la cookie también
                             };
 
                             // Agregar roles como claims
@@ -74,7 +75,7 @@ namespace Melody.MVC.Controllers
                             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
                             var authProperties = new AuthenticationProperties
                             {
-                                IsPersistent = false, // No recordar en navegador
+                                IsPersistent = true, // ← CAMBIO PRINCIPAL: true para cookie persistente
                                 ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(60) // Mismo tiempo que session
                             };
 
