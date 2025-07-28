@@ -3,91 +3,93 @@
     ViewData["Title"] = "Detalles del Pago";
 }
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="fas fa-file-invoice"></i> @ViewData["Title"]</h2>
-        <a asp-action="MisPagos" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left"></i> Volver al Historial
-        </a>
-    </div>
-
-    @if (TempData["Error"] != null)
-    {
-        <div class="alert alert-danger">@TempData["Error"]</div>
-    }
-
+<div class="container">
     <div class="row">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5><i class="fas fa-receipt"></i> Información del Pago</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row mb-3">
-                        <div class="col-sm-3"><strong>ID de Pago:</strong></div>
-                        <div class="col-sm-9">#@Model.Id</div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-sm-3"><strong>Fecha:</strong></div>
-                        <div class="col-sm-9">@Model.FechaPago.ToString("dddd, dd MMMM yyyy HH:mm")</div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-sm-3"><strong>Monto:</strong></div>
-                        <div class="col-sm-9 text-success fw-bold">$@Model.Monto.ToString("F2") USD</div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-sm-3"><strong>Método de Pago:</strong></div>
-                        <div class="col-sm-9">
-                            <i class="fab fa-paypal text-primary"></i> @Model.MetodoPago
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-sm-3"><strong>Estado:</strong></div>
-                        <div class="col-sm-9">
-                            <span class="badge bg-success">Completado</span>
-                        </div>
-                    </div>
-                </div>
+        <div class="col-md-8 mx-auto">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>@ViewData["Title"]</h2>
+                <a href="@Url.Action("MisPagos")" class="btn btn-secondary">
+                    ← Volver al Historial
+                </a>
             </div>
-        </div>
 
-        <div class="col-md-4">
-            @if (Model.Suscripcion?.Plan != null)
+            @if (TempData["Error"] != null)
             {
-                <div class="card">
-                    <div class="card-header bg-info text-white">
-                        <h6><i class="fas fa-star"></i> Plan Adquirido</h6>
-                    </div>
-                    <div class="card-body">
-                        <h5>@Model.Suscripcion.Plan.Nombre</h5>
-                        <p class="text-muted">@Model.Suscripcion.Plan.Descripcion</p>
-                        <ul class="list-unstyled small">
-                            <li><i class="fas fa-users text-success"></i> @Model.Suscripcion.Plan.NumeroUsuarios usuarios</li>
-                            <li><i class="fas fa-calendar text-success"></i> @Model.Suscripcion.Plan.DuracionDias días</li>
-                        </ul>
-                        <hr>
-                        <div class="row text-center">
-                            <div class="col-6">
-                                <small class="text-muted">Inicio</small><br>
-                                <strong>@Model.Suscripcion.FechaInicio.ToString("dd/MM/yyyy")</strong>
-                            </div>
-                            <div class="col-6">
-                                <small class="text-muted">Fin</small><br>
-                                <strong>@Model.Suscripcion.FechaFin.ToString("dd/MM/yyyy")</strong>
-                            </div>
-                        </div>
-                    </div>
+                <div class="alert alert-danger">
+                    @TempData["Error"]
                 </div>
             }
 
-            <div class="card mt-3">
-                <div class="card-body text-center">
-                    <h6>Acciones</h6>
-                    <a asp-action="DescargarPDF" asp-route-pagoId="@Model.Id" class="btn btn-primary btn-sm d-grid mb-2">
-                        <i class="fas fa-download"></i> Descargar Comprobante PDF
-                    </a>
-                    <a asp-controller="Suscripciones" asp-action="MisSuscripciones" class="btn btn-outline-secondary btn-sm d-grid">
-                        <i class="fas fa-cog"></i> Gestionar Suscripción
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Información del Pago #@Model.Id</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Detalles del Pago</h6>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Fecha:</strong></td>
+                                    <td>@Model.FechaPago.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Monto:</strong></td>
+                                    <td><span class="h5 text-success">$@Model.Monto.ToString("F2")</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Método:</strong></td>
+                                    <td><span class="badge bg-info">@Model.MetodoPago</span></td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        @if (Model.Suscripcion != null)
+                        {
+                            <div class="col-md-6">
+                                <h6>Información de la Suscripción</h6>
+                                <table class="table table-borderless">
+                                    @if (Model.Suscripcion.Plan != null)
+                                    {
+                                        <tr>
+                                            <td><strong>Plan:</strong></td>
+                                            <td>@Model.Suscripcion.Plan.Nombre</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Descripción:</strong></td>
+                                            <td>@Model.Suscripcion.Plan.Descripcion</td>
+                                        </tr>
+                                    }
+                                    <tr>
+                                        <td><strong>Inicio:</strong></td>
+                                        <td>@Model.Suscripcion.FechaInicio.ToString("dd/MM/yyyy")</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Vencimiento:</strong></td>
+                                        <td>@Model.Suscripcion.FechaFin.ToString("dd/MM/yyyy")</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Estado:</strong></td>
+                                        <td>
+                                            @if (Model.Suscripcion.EsActiva)
+                                            {
+                                                <span class="badge bg-success">Activa</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">Inactiva</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        }
+                    </div>
+                </div>
+                <div class="card-footer text-center">
+                    <a href="@Url.Action("DescargarPDF", new { pagoId = Model.Id })"
+                       class="btn btn-success">
+                        📄 Descargar Comprobante PDF
                     </a>
                 </div>
             </div>

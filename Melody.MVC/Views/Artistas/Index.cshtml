@@ -1,43 +1,36 @@
 ﻿@model IEnumerable<Melody.Modelos.Artista>
-
 @{
     ViewData["Title"] = "Artistas";
 }
-
-<div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<div class="artistas-index">
+    <div class="page-header">
         <h2>Artistas</h2>
-
-        <!-- Formulario de búsqueda -->
-        <form method="get" asp-action="Buscar" class="d-flex">
-            <input type="text" name="q" class="form-control me-2" placeholder="Buscar artistas..." value="@ViewBag.TerminoBusqueda">
+        <form method="get" asp-action="Buscar" class="search-form">
+            <input type="text" name="q" class="search-input" placeholder="Buscar artistas..." value="@ViewBag.TerminoBusqueda">
         </form>
     </div>
 
     @if (Model.Any())
     {
-        <div class="row g-4">
+        <div class="artistas-grid">
             @foreach (var artista in Model)
             {
-                <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
-                    <div class="card h-100">
+                <div class="artista-card">
+                    <div class="card-image-circle">
                         @if (!string.IsNullOrEmpty(artista.ImagenPerfil))
                         {
-                            <img src="@artista.ImagenPerfil" class="card-img-top" alt="@artista.NombreArtista" style="height: 300px; object-fit: cover;">
+                            <img src="@artista.ImagenPerfil" alt="@artista.NombreArtista">
                         }
                         else
                         {
-                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 300px;">
-                                <span class="text-muted">Sin imagen</span>
+                            <div class="no-image-circle">
+                                <span>Sin imagen</span>
                             </div>
                         }
-
-                        <div class="card-body d-flex flex-column">
-                            <a href="@Url.Action("Details", new { id = artista.Id })" class="text-decoration-none">
-                                <h5 class="card-title text-dark">@artista.NombreArtista</h5>
-                            </a>
-                            <p class="text-white mb-2">Artista</p>
-                        </div>
+                    </div>
+                    <div class="card-content">
+                        <a href="@Url.Action("Details", new { id = artista.Id })" class="card-title">@artista.NombreArtista</a>
+                        <p class="card-type">Artista</p>
                     </div>
                 </div>
             }
@@ -45,9 +38,13 @@
     }
     else
     {
-        <div class="alert alert-info">
+        <div class="empty-state">
             <h4>No hay artistas disponibles</h4>
             <p>Actualmente no hay artistas registrados en la plataforma.</p>
         </div>
     }
 </div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/artistas.css" asp-append-version="true" />
+}

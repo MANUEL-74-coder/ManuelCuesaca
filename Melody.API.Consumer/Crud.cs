@@ -316,6 +316,20 @@ namespace Melody.API.Consumer
             }
             throw new HttpRequestException($"Error: {response.StatusCode}");
         }
+        public static async Task<List<T>> GetWithQueryAuth(string campo, string queryValue, string token)
+        {
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            var response = await client.GetAsync($"{Endpoint}/{campo}?q={queryValue}");
+            if (response.IsSuccessStatusCode)
+            {
+                var json = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<List<T>>(json) ?? new List<T>();
+            }
+            throw new HttpRequestException($"Error: {response.StatusCode}");
+        }
         public static async Task<T> PostWithAuth(string action, object data, string token)
         {
             using var client = new HttpClient();

@@ -19,11 +19,14 @@ internal class Program
         Crud<Plan>.Endpoint = "https://localhost:7115/api/Planes";
         Crud<Pago>.Endpoint = "https://localhost:7115/api/Pagos";
         Crud<Suscripcion>.Endpoint = "https://localhost:7115/api/Suscripciones";
+        Crud<EstadisticasSuscripcionesDto>.Endpoint = "https://localhost:7115/api/Suscripciones";
+        Crud<SuscripcionAdminDto>.Endpoint = "https://localhost:7115/api/Suscripciones";
         Crud<PlaylistCancion>.Endpoint = "https://localhost:7115/api/PlaylistsCanciones";
         Crud<Seguimiento>.Endpoint = "https://localhost:7115/api/Seguimientos";
         Crud<Artista>.Endpoint = "https://localhost:7115/api/Artistas";
         Crud<ArtistaDto>.Endpoint = "https://localhost:7115/api/Artistas";
         Crud<MiPerfilDto>.Endpoint = "https://localhost:7115/api/Usuarios";
+        Crud<UsuarioAdminDto>.Endpoint = "https://localhost:7115/api/Usuarios";
         Crud<Usuario>.Endpoint = "https://localhost:7115/api/Usuarios";
         Crud<MeGustaDto>.Endpoint = "https://localhost:7115/api/MeGusta";
         Crud<MeGusta>.Endpoint = "https://localhost:7115/api/MeGusta";

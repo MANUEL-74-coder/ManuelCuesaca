@@ -1,18 +1,15 @@
 ﻿@model Melody.Modelos.DTOs.LoginDto
-
 @{
     ViewData["Title"] = "Iniciar Sesión - Melody Stream";
     Layout = null;
-    var hasErrors = ViewData.ModelState.ErrorCount > 0; // Evaluar ErrorCount como variable estática
-    var successMessage = TempData["SuccessMessage"] as string; // Capturar SuccessMessage como variable estática
 }
-
 <html>
+
 <head>
     <meta charset="utf-8" />
     <title>Registro</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/Auth.css" />
+	<link rel="stylesheet" href="~/css/Auth.css" />
 </head>
 
 <body>
@@ -26,11 +23,20 @@
                     </div>
                     <div class="card-body p-4">
 
-                        <!-- Mensaje de éxito (cuando viene del registro) -->
-                        @if (!string.IsNullOrEmpty(successMessage))
+                        <!-- Mensaje de éxito de PAGO -->
+                        @if (TempData["Success"] != null)
                         {
                             <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                <i class="fas fa-check-circle"></i> @successMessage
+                                <i class="fas fa-check-circle"></i> @TempData["Success"]
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        }
+
+                        <!-- Mensaje de éxito (cuando viene del registro) -->
+                        @if (TempData["SuccessMessage"] != null)
+                        {
+                            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
                                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                             </div>
                         }
@@ -39,7 +45,7 @@
                             @Html.AntiForgeryToken()
 
                             <!-- Mensajes de error generales -->
-                            <div asp-validation-summary="All" class="alert alert-danger" role="alert" style="display: @(hasErrors ? "block" : "none")"></div>
+                            <div asp-validation-summary="All" class="alert alert-danger" role="alert" style="display: @(ViewData.ModelState.ErrorCount > 0 ? "block" : "none")"></div>
 
                             <div class="mb-3">
                                 <label asp-for="Email" class="form-label">Correo Electrónico</label>
@@ -55,6 +61,7 @@
                                 <button type="submit" class="btn btn-primary btn-lg">Iniciar Sesión</button>
                             </div>
                         </form>
+
 
                         <div class="text-center">
                             <p class="mb-2">

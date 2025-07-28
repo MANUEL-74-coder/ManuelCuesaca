@@ -1,98 +1,148 @@
 ﻿@model Melody.Modelos.Suscripcion
 @{
-    ViewData["Title"] = "Pago Confirmado";
-    var pagoId = ViewBag.PagoId as int? ?? 0;
+    ViewData["Title"] = "¡Pago Exitoso!";
+    var pagoId = ViewBag.PagoId as int?;
     var hasError = ViewBag.Error as bool? ?? false;
 }
 
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            @if (hasError)
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            @if (!hasError && Model != null)
             {
-                <div class="card border-warning">
-                    <div class="card-header bg-warning text-dark text-center">
-                        <h3><i class="fas fa-exclamation-triangle"></i> Pago Procesado</h3>
+                <div class="text-center mb-5">
+                    <div class="mb-4">
+                        <span style="font-size: 4rem; color: #28a745;">✅</span>
                     </div>
-                    <div class="card-body text-center">
-                        <div class="alert alert-warning">
-                            <h4>Pago realizado con éxito</h4>
-                            <p>Tu suscripción está siendo procesada.</p>
-                        </div>
-                        <a asp-controller="Home" asp-action="Index" class="btn btn-primary">
-                            <i class="fas fa-home"></i> Ir al Dashboard
-                        </a>
-                    </div>
+                    <h1 class="text-success">¡Pago Exitoso!</h1>
+                    <p class="lead">¡Bienvenido a Melody Premium!</p>
                 </div>
-            }
-            else if (Model != null)
-            {
-                <div class="card border-success">
-                    <div class="card-header bg-success text-white text-center">
-                        <h3><i class="fas fa-check-circle"></i> ¡Pago Exitoso!</h3>
+
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">Tu Nueva Suscripción</h5>
                     </div>
                     <div class="card-body">
-                        <div class="alert alert-success text-center">
-                            <h4>¡Bienvenido a Melody Premium!</h4>
-                            <p>Tu suscripción está activa y lista para usar.</p>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Detalles de la Suscripción</h6>
+                                <table class="table table-borderless">
+                                    @if (Model.Plan != null)
+                                    {
+                                        <tr>
+                                            <td><strong>Plan:</strong></td>
+                                            <td>@Model.Plan.Nombre</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Precio:</strong></td>
+                                            <td><strong>$@Model.Plan.Precio.ToString("F2")</strong></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Descripción:</strong></td>
+                                            <td>@Model.Plan.Descripcion</td>
+                                        </tr>
+                                    }
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Período de Vigencia</h6>
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <td><strong>Inicio:</strong></td>
+                                        <td>@Model.FechaInicio.ToString("dd/MM/yyyy")</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Vencimiento:</strong></td>
+                                        <td>@Model.FechaFin.ToString("dd/MM/yyyy")</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Duración:</strong></td>
+                                        <td>@((Model.FechaFin - Model.FechaInicio).Days) días</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Estado:</strong></td>
+                                        <td>
+                                            <span class="badge bg-success">✅ Activa</span>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
                         </div>
+                    </div>
+                </div>
 
-                        @if (Model.Plan != null)
-                        {
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <strong>Plan:</strong> @Model.Plan.Nombre
-                                </div>
-                                <div class="col-md-6">
-                                    <strong>Precio:</strong> $@Model.Plan.Precio
+                <div class="text-center mt-4">
+                    <h5>¿Qué puedes hacer ahora?</h5>
+                    <div class="row mt-3">
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h6>🎵 Escuchar Música</h6>
+                                    <p>Acceso ilimitado a todo el catálogo</p>
+                                    <a href="@Url.Action("Index", "Home")" class="btn btn-primary btn-sm">
+                                        Explorar Música
+                                    </a>
                                 </div>
                             </div>
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <strong>Fecha inicio:</strong> @Model.FechaInicio.ToString("dd/MM/yyyy")
-                                </div>
-                                <div class="col-md-6">
-                                    <strong>Válido hasta:</strong> @Model.FechaFin.ToString("dd/MM/yyyy")
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h6>📋 Crear Playlists</h6>
+                                    <p>Organiza tu música favorita</p>
+                                    <a href="@Url.Action("MisPlaylists", "Playlists")" class="btn btn-primary btn-sm">
+                                        Mis Playlists
+                                    </a>
                                 </div>
                             </div>
-                        }
-
-                        <div class="text-center mt-4">
-                            <a asp-controller="Home" asp-action="Index" class="btn btn-primary me-2">
-                                <i class="fas fa-home"></i> Ir al Dashboard
-                            </a>
-                            <a asp-controller="Suscripciones" asp-action="MisSuscripciones" class="btn btn-outline-secondary me-2">
-                                <i class="fas fa-list"></i> Mi Suscripción
-                            </a>
-                            @if (pagoId > 0)
-                            {
-                                <a asp-action="DescargarPDF" asp-route-pagoId="@pagoId" class="btn btn-outline-primary">
-                                    <i class="fas fa-download"></i> Descargar Comprobante
-                                </a>
-                            }
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h6>📄 Ver Comprobante</h6>
+                                    <p>Descarga tu comprobante de pago</p>
+                                    @if (pagoId.HasValue && pagoId.Value > 0)
+                                    {
+                                        <a href="@Url.Action("DescargarPDF", new { pagoId = pagoId.Value })" class="btn btn-success btn-sm">
+                                            Descargar PDF
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <a href="@Url.Action("MisPagos")" class="btn btn-secondary btn-sm">
+                                            Ver Historial
+                                        </a>
+                                    }
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             }
             else
             {
-                <div class="card border-success">
-                    <div class="card-header bg-success text-white text-center">
-                        <h3><i class="fas fa-check-circle"></i> ¡Pago Exitoso!</h3>
+                <div class="text-center">
+                    <div class="mb-4">
+                        <span style="font-size: 4rem; color: #dc3545;">❌</span>
                     </div>
-                    <div class="card-body text-center">
-                        <div class="alert alert-success">
-                            <h4>¡Bienvenido a Melody Premium!</h4>
-                            <p>Tu suscripción está activa y lista para usar.</p>
-                        </div>
-                        <div class="text-center mt-4">
-                            <a asp-controller="Home" asp-action="Index" class="btn btn-primary me-2">
-                                <i class="fas fa-home"></i> Ir al Dashboard
-                            </a>
-                            <a asp-controller="Planes" asp-action="Index" class="btn btn-outline-secondary">
-                                <i class="fas fa-list"></i> Ver Planes
-                            </a>
-                        </div>
+                    <h2 class="text-danger">Error al cargar información</h2>
+                    <p>No se pudo cargar la información de tu suscripción.</p>
+
+                    @if (pagoId.HasValue && pagoId.Value > 0)
+                    {
+                        <p>Tu pago se procesó correctamente. Puedes descargar tu comprobante:</p>
+                        <a href="@Url.Action("DescargarPDF", new { pagoId = pagoId.Value })" class="btn btn-success">
+                            📄 Descargar Comprobante
+                        </a>
+                    }
+
+                    <div class="mt-3">
+                        <a href="@Url.Action("MisPagos")" class="btn btn-primary">
+                            Ver Mi Historial de Pagos
+                        </a>
+                        <a href="@Url.Action("Index", "Home")" class="btn btn-secondary">
+                            Ir al Inicio
+                        </a>
                     </div>
                 </div>
             }

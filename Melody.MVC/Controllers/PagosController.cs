@@ -5,6 +5,8 @@ using Melody.Modelos.DTOs;
 using Melody.API.Consumer;
 using Microsoft.AspNetCore.Authorization;
 using Melody.Modelos.DTO;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace Melody.MVC.Controllers
 {
@@ -13,9 +15,29 @@ namespace Melody.MVC.Controllers
     {
         private readonly AuthService _authService;
 
+        // Constantes para claves de sesión
+        private const string PAYPAL_ORDER_ID_KEY = "PayPalOrderId";
+        private const string PLAN_ID_KEY = "PlanId";
+
         public PagosController(AuthService authService)
         {
             _authService = authService;
+        }
+
+        // Método helper para limpiar sesión
+        private void LimpiarSesion()
+        {
+            HttpContext.Session.Remove(PAYPAL_ORDER_ID_KEY);
+            HttpContext.Session.Remove(PLAN_ID_KEY);
+        }
+
+        // Método helper para obtener datos de sesión
+        private (string orderId, int planId, bool isValid) ObtenerDatosSesion()
+        {
+            var orderId = HttpContext.Session.GetString(PAYPAL_ORDER_ID_KEY);
+            var planId = HttpContext.Session.GetInt32(PLAN_ID_KEY) ?? 0;
+
+            return (orderId ?? string.Empty, planId, !string.IsNullOrEmpty(orderId) && planId > 0);
         }
 
         // POST: Pagos/CrearOrden
@@ -32,8 +54,8 @@ namespace Melody.MVC.Controllers
                 if (response != null && !string.IsNullOrEmpty(response.ApprovalUrl))
                 {
                     // Guardar información en sesión
-                    HttpContext.Session.SetString("PayPalOrderId", response.OrderId);
-                    HttpContext.Session.SetInt32("PlanId", planId);
+                    HttpContext.Session.SetString(PAYPAL_ORDER_ID_KEY, response.OrderId);
+                    HttpContext.Session.SetInt32(PLAN_ID_KEY, planId);
 
                     return Redirect(response.ApprovalUrl);
                 }
@@ -56,10 +78,8 @@ namespace Melody.MVC.Controllers
                 var authToken = _authService.ObtenerToken();
 
                 // Recuperar información de la sesión
-                var orderId = HttpContext.Session.GetString("PayPalOrderId");
-                var planId = HttpContext.Session.GetInt32("PlanId") ?? 0;
-
-                if (string.IsNullOrEmpty(orderId) || planId == 0)
+                var (orderId, planId, isValid) = ObtenerDatosSesion();
+                if (!isValid)
                 {
                     TempData["Error"] = "Error: Información de pago inválida - Sesión perdida";
                     return RedirectToAction("Index", "Planes");
@@ -68,6 +88,7 @@ namespace Melody.MVC.Controllers
                 if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(PayerID))
                 {
                     TempData["Error"] = "Error: Información de PayPal inválida";
+                    LimpiarSesion();
                     return RedirectToAction("Index", "Planes");
                 }
 
@@ -77,33 +98,34 @@ namespace Melody.MVC.Controllers
 
                 if (captureResponse != null)
                 {
-                    // Limpiar sesión después del éxito
-                    HttpContext.Session.Remove("PayPalOrderId");
-                    HttpContext.Session.Remove("PlanId");
+                    LimpiarSesion();
 
-                    TempData["Success"] = "¡Pago procesado exitosamente! Bienvenido a Melody Premium";
-                    return RedirectToAction("Confirmacion", new { pagoId = captureResponse.PagoId });
+                    // FORZAR LOGOUT para renovar completamente la autenticación
+                    await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+                    // Limpiar Session
+                    _authService.Logout();
+
+                    TempData["Success"] = "¡Pago procesado exitosamente! Por favor inicia sesión nuevamente para acceder a todas las funciones Premium";
+                    return RedirectToAction("Login", "Auth");
                 }
 
                 TempData["Error"] = "Error al procesar el pago en la API";
+                LimpiarSesion();
                 return RedirectToAction("Index", "Planes");
             }
             catch (Exception ex)
             {
-                // Limpiar sesión en caso de error
-                HttpContext.Session.Remove("PayPalOrderId");
-                HttpContext.Session.Remove("PlanId");
-
+                LimpiarSesion();
                 TempData["Error"] = $"Error al procesar el pago: {ex.Message}";
                 return RedirectToAction("Index", "Planes");
             }
         }
-
         // GET: Pagos/PaymentCancel - CALLBACK DE CANCELACIÓN
         public ActionResult PaymentCancel()
         {
-            HttpContext.Session.Remove("PayPalOrderId");
-            HttpContext.Session.Remove("PlanId");
+            // Limpiar sesión cuando usuario cancela
+            LimpiarSesion();
 
             TempData["Warning"] = "Pago cancelado por el usuario";
             return RedirectToAction("Index", "Planes");
@@ -146,14 +168,6 @@ namespace Melody.MVC.Controllers
             }
         }
 
-        // GET: Pagos/Index
-        public async Task<ActionResult> Index()
-        {
-            var token = _authService.ObtenerToken();
-            var data = await Crud<Pago>.GetAllWithAuth<Pago>(token);
-            return View(data);
-        }
-
         // GET: Pagos/Details
         public async Task<ActionResult> Details(int pagoId)
         {
@@ -184,20 +198,22 @@ namespace Melody.MVC.Controllers
             try
             {
                 var token = _authService.ObtenerToken();
+
                 using var client = new HttpClient();
                 client.DefaultRequestHeaders.Authorization =
                     new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
-                var response = await client.GetAsync($"https://localhost:7108/api/Pagos/{pagoId}/pdf");
+                // Usar el endpoint configurado en Program.cs
+                var response = await client.GetAsync($"{Crud<Pago>.Endpoint}/{pagoId}/pdf");
 
-                if (response.IsSuccessStatusCode)
+                if (!response.IsSuccessStatusCode)
                 {
-                    var pdfBytes = await response.Content.ReadAsByteArrayAsync();
-                    return File(pdfBytes, "application/pdf", $"comprobante-{pagoId}.pdf");
+                    TempData["Error"] = "Error al descargar comprobante";
+                    return RedirectToAction("MisPagos");
                 }
 
-                TempData["Error"] = "Error al descargar comprobante";
-                return RedirectToAction("MisPagos");
+                var pdfBytes = await response.Content.ReadAsByteArrayAsync();
+                return File(pdfBytes, "application/pdf", $"comprobante-{pagoId}.pdf");
             }
             catch (Exception ex)
             {

@@ -1,0 +1,263 @@
+﻿/* ELEMENTOS COMUNES */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.search-form {
+    display: flex;
+    gap: 10px;
+}
+
+.search-input {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    width: 300px;
+}
+
+.btn-artista-especial {
+    background: #1db954;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 25px;
+    font-size: 16px;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+/* HERO SECTION (DETAILS) */
+.perfil-header {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 30px;
+    align-items: flex-end;
+}
+
+.foto-perfil img {
+    width: 200px;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.foto-placeholder {
+    width: 200px;
+    height: 200px;
+    background: #f8f9fa;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 60px;
+    color: #6c757d;
+}
+
+/* ESTADÍSTICAS */
+.enlaces-rapidos {
+    display: flex;
+    gap: 20px;
+}
+
+.enlace-rapido {
+    text-align: center;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #000;
+}
+
+/* LISTA DE CANCIONES (DETAILS) */
+.songs-list {
+    border-top: 1px solid #eee;
+}
+
+.list-header, .song-item {
+    display: grid;
+    grid-template-columns: 50px 1fr 150px 120px 100px 180px;
+    gap: 15px;
+    padding: 10px 15px;
+    align-items: center;
+}
+
+.list-header {
+    font-size: 12px;
+    color: #666;
+    border-bottom: 1px solid #eee;
+}
+
+.song-item {
+    border-bottom: 1px solid #f8f9fa;
+}
+
+.song-number {
+    text-align: center;
+    color: #666;
+}
+
+.song-info {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.song-image {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 3px;
+}
+
+.song-link, .album-link {
+    text-decoration: none;
+    color: #000;
+}
+
+.artist-name {
+    color: #666;
+    font-size: 14px;
+}
+
+.song-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    padding: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+/* GRID DE ARTISTAS (INDEX) */
+.artistas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 20px 0;
+}
+
+.artista-card {
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    text-align: center;
+    padding: 20px;
+}
+
+.card-image-circle img {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.no-image-circle {
+    width: 120px;
+    height: 120px;
+    background: #f8f9fa;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6c757d;
+    margin: 0 auto;
+}
+
+.card-content {
+    margin-top: 15px;
+}
+
+.card-title {
+    font-weight: 600;
+    text-decoration: none;
+    color: #000;
+    font-size: 16px;
+}
+
+.card-type {
+    color: #666;
+    font-size: 14px;
+    margin: 5px 0 0 0;
+}
+
+/* ELEMENTOS COMUNES */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.mensaje-especial {
+    text-align: center;
+    padding: 40px 20px;
+    color: #666;
+}
+
+.seccion-perfil {
+    margin-bottom: 30px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 1024px) {
+    .perfil-header {
+        flex-direction: column;
+        gap: 20px;
+        text-align: center;
+        align-items: center;
+    }
+
+    .foto-perfil img, .foto-placeholder {
+        width: 150px;
+        height: 150px;
+    }
+
+    .enlaces-rapidos {
+        justify-content: center;
+    }
+
+    /* LISTA DE CANCIONES EN MOBILE */
+    .list-header, .song-item {
+        grid-template-columns: 1fr auto;
+    }
+
+    .song-item {
+        padding: 15px;
+        background: #fff;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    /* OCULTAR ELEMENTOS EN MOBILE */
+    .list-header .col-album,
+    .list-header .col-genero,
+    .list-header .col-duration,
+    .list-header .col-num,
+    .song-number,
+    .song-album,
+    .song-genero,
+    .song-duration {
+        display: none;
+    }
+
+    .search-input {
+        width: 100%;
+    }
+
+    .artistas-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 10px;
+    }
+
+    .card-image-circle img, .no-image-circle {
+        width: 80px;
+        height: 80px;
+    }
+}

@@ -90,11 +90,10 @@ namespace Melody.API.Controllers
                         GeneroId = c.GeneroId,
                         GeneroNombre = c.Genero!.Nombre,
                         AlbumId = c.AlbumId,
-                        AlbumNombre = c.Album != null ? c.Album.Titulo : null,
+                        AlbumNombre = c.Album != null ? c.Album.Titulo : "Sin álbum",
                         ArtistaId = c.ArtistaId,
                         ArtistaNombre = artista.NombreArtista,
                         ArchivoAudioUrl = c.ArchivoAudio ?? string.Empty,
-                        // ¡AGREGAR ESTO! - EsFavorito
                         EsFavorito = usuarioId.HasValue &&
                                    _context.MeGustas.Any(mg => mg.UsuarioId == usuarioId.Value && mg.CancionId == c.Id)
                     })
@@ -102,7 +101,6 @@ namespace Melody.API.Controllers
                     .Take(10)
                     .ToListAsync();
 
-                // Y los álbums por separado (para el conteo)
                 var totalAlbums = await _context.Albums
                     .CountAsync(a => a.ArtistaId == id);
 

@@ -29,7 +29,7 @@
                     <li><a asp-controller="Canciones" asp-action="Index">🔍 Explorar</a></li>
                     <li><a asp-controller="Artistas" asp-action="Index">👨‍🎤 Artistas</a></li>
                     <li><a asp-controller="Albums" asp-action="Index">💿 Álbumes</a></li>
-                    <li><a asp-controller="Playlists" asp-action="Index">📋 Playlists</a></li>
+                    <li><a asp-controller="Playlists" asp-action="Index">🎵 Playlists</a></li>
                 </ul>
 
                 <!-- Admin -->
@@ -37,10 +37,13 @@
                 {
                     <div class="nav-divider">Administración</div>
                     <ul class="nav-section">
-                        <li><a asp-controller="Usuarios" asp-action="Index">👥 Usuarios</a></li>
+                        <li><a asp-controller="Admin" asp-action="Usuarios">👥 Usuarios</a></li>
                         <li><a asp-controller="Planes" asp-action="Index">💎 Planes</a></li>
-                        <li><a asp-controller="Suscripciones" asp-action="Estadisticas">📊 Estadísticas</a></li>
-                        <li><a asp-controller="Seguimientos" asp-action="MisSeguimientos">📈 Reportes</a></li>
+						<li><a asp-controller="Admin" asp-action="Canciones">🎶 Canciones</a></li>
+						<li><a asp-controller="Generos" asp-action="Index">💿 Géneros</a></li>
+                        <li><a asp-controller="Admin" asp-action="Suscripciones">📋 Suscripciones</a></li>
+                        <li><a asp-controller="Admin" asp-action="Estadisticas">📊 Estadísticas</a></li>
+                        <li><a asp-controller="Admin" asp-action="Pagos">💳 Pagos</a></li>
                     </ul>
                 }
 
@@ -65,12 +68,16 @@
                         <li><a asp-controller="Seguimientos" asp-action="MisSeguimientos">⭐ Seguidos</a></li>
                         <li><a asp-controller="MeGusta" asp-action="Index"> ❤️ Favoritos</a></li>
                         <li><a asp-controller="Pagos" asp-action="MisPagos">💳 Mis Pagos</a></li>
-                        <li><a asp-controller="Suscripciones" asp-action="MiSuscripcion">💎 Suscripción</a></li>
+                        <li><a asp-controller="Suscripciones" asp-action="MiHistorial">📜 Mi Historial</a></li>
                         <li><a asp-controller="Playlists" asp-action="MisPlaylists">📋 Mis Playlists</a></li>
 
                         @if (User.IsInRole("userfree"))
                         {
                             <li><a asp-controller="Planes" asp-action="Index">⬆️ Premium</a></li>
+                        }
+                        else
+                        {
+                            <li><a asp-controller="Suscripciones" asp-action="MiSuscripcion">💎 Suscripción</a></li>
                         }
                     </ul>
                 }

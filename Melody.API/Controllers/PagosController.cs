@@ -40,7 +40,10 @@ namespace Melody.API.Controllers
             {
                 var pagos = await _context.Pagos
                     .Include(p => p.Suscripcion)
+                        .ThenInclude(s => s.Usuario)
+                    .Include(p => p.Suscripcion.Plan)
                     .OrderByDescending(p => p.FechaPago)
+                    .Take(25) // Limitar a 25 registros
                     .ToListAsync();
 
                 return Ok(pagos);
@@ -49,6 +52,40 @@ namespace Melody.API.Controllers
             {
                 _logger.LogError(ex, "Error al obtener pagos");
                 return StatusCode(500, "Error al obtener los pagos");
+            }
+        }
+
+        // GET: api/Pagos/buscar?q=texto
+        [HttpGet("buscar")]
+        [Authorize(Roles = "admin")]
+        public async Task<ActionResult<IEnumerable<Pago>>> BuscarPagos([FromQuery] string q)
+        {
+            if (string.IsNullOrWhiteSpace(q))
+            {
+                return BadRequest("El parámetro de búsqueda no puede estar vacío.");
+            }
+
+            try
+            {
+                var pagos = await _context.Pagos
+                    .Include(p => p.Suscripcion)
+                        .ThenInclude(s => s.Usuario)
+                    .Include(p => p.Suscripcion.Plan)
+                    .Where(p => p.Suscripcion.Usuario.Email.Contains(q) ||
+                               p.Suscripcion.Usuario.Nombre.Contains(q) ||
+                               p.Suscripcion.Usuario.Apellido.Contains(q) ||
+                               p.MetodoPago.Contains(q) ||
+                               p.Suscripcion.Plan.Nombre.Contains(q))
+                    .OrderByDescending(p => p.FechaPago)
+                    .Take(50)
+                    .ToListAsync();
+
+                return Ok(pagos);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al buscar pagos");
+                return StatusCode(500, "Error al buscar pagos");
             }
         }
 
@@ -86,14 +123,16 @@ namespace Melody.API.Controllers
                 return StatusCode(500, "Error al obtener el pago");
             }
         }
-        // CAMBIAR SOLO el método CrearOrdenPayPal en tu API Controller
-
+        // POST: api/Pagos/crear-orden - Crear orden PayPal
         [HttpPost("crear-orden")]
         [Authorize(Roles = "userfree,userpremium")]
         public async Task<ActionResult> CrearOrdenPayPal([FromBody] CrearOrdenRequest request)
         {
             try
             {
+                if (request == null || request.PlanId <= 0)
+                    return BadRequest("Datos de solicitud inválidos");
+
                 var usuario = await _usuarioService.ObtenerUsuarioActualAsync();
 
                 // Verificar que el plan existe
@@ -246,19 +285,6 @@ namespace Melody.API.Controllers
                     .Include(p => p.Suscripcion)
                         .ThenInclude(s => s.Plan)
                     .Where(p => p.Suscripcion.UsuarioId == usuario.Id)
-                    .Select(p => new
-                    {
-                        p.Id,
-                        p.Monto,
-                        p.FechaPago,
-                        p.MetodoPago,
-                        Plan = new
-                        {
-                            p.Suscripcion.Plan.Id,
-                            p.Suscripcion.Plan.Nombre,
-                            p.Suscripcion.Plan.Precio
-                        }
-                    })
                     .OrderByDescending(p => p.FechaPago)
                     .ToListAsync();
 
@@ -269,8 +295,9 @@ namespace Melody.API.Controllers
                 _logger.LogError(ex, "Error al obtener pagos del usuario");
                 return StatusCode(500, "Error al obtener los pagos");
             }
+        }
 
-        }// GET: api/Pagos/{id}/pdf - Descargar comprobante PDF
+        // GET: api/Pagos/{id}/pdf - Descargar comprobante PDF
         [HttpGet("{id}/pdf")]
         [Authorize]
         public async Task<IActionResult> DescargarComprobantePdf(int id)
