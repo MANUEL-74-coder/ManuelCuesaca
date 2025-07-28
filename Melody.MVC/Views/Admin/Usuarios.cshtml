@@ -1,0 +1,224 @@
+﻿@model IEnumerable<Melody.Modelos.DTOs.UsuarioAdminDto>
+@{
+    ViewData["Title"] = "Administrar Usuarios";
+    var usuarios = Model.ToList();
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>@ViewData["Title"]</h2>
+            </div>
+
+            <!-- Estadísticas arriba -->
+            <div class="row mb-4">
+                <div class="col-md-2-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Usuarios</h5>
+                            <h3 class="text-primary">@usuarios.Count()</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">Usuarios Premium</h5>
+                            <h3 class="text-success">@usuarios.Count(u => u.Roles.Contains("userpremium"))</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">Usuarios Free</h5>
+                            <h3 class="text-info">@usuarios.Count(u => u.Roles.Contains("userfree"))</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">Artistas</h5>
+                            <h3 class="text-purple">@usuarios.Count(u => u.Roles.Contains("artista"))</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">Admins</h5>
+                            <h3 class="text-warning">@usuarios.Count(u => u.Roles.Contains("admin"))</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Buscador simple con detección de roles -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="get" action="@Url.Action("BuscarUsuarios")">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <input type="text"
+                                       name="q"
+                                       class="form-control"
+                                       placeholder="Buscar por nombre, apellido, email o rol (admin, premium, free, artista)..."
+                                       value="@ViewBag.TerminoBusqueda">
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-primary">🔍 Buscar</button>
+                                @if (!string.IsNullOrWhiteSpace(ViewBag.TerminoBusqueda?.ToString()))
+                                {
+                                    <a href="@Url.Action("Usuarios")" class="btn btn-secondary">Limpiar</a>
+                                }
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Ayuda de búsqueda -->
+                    <div class="mt-2">
+                        <small class="text-muted">
+                            <i class="fas fa-lightbulb me-1"></i>
+                            <strong>Tip:</strong> Escribe "admin", "premium", "free" o "artista" para filtrar por rol
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success">
+                    @TempData["Success"]
+                </div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger">
+                    @TempData["Error"]
+                </div>
+            }
+
+            @if (usuarios.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Usuario</th>
+                                <th>Email</th>
+                                <th>Registro</th>
+                                <th>Rol</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var usuario in usuarios)
+                            {
+                                <tr>
+                                    <td><strong>#@usuario.Id</strong></td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            @if (!string.IsNullOrEmpty(usuario.FotoPerfil))
+                                            {
+                                                <img src="@usuario.FotoPerfil"
+                                                     alt="Foto"
+                                                     class="rounded-circle me-2"
+                                                     style="width: 32px; height: 32px; object-fit: cover;">
+                                            }
+                                            else
+                                            {
+                                                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-2"
+                                                     style="width: 32px; height: 32px; color: white; font-size: 14px;">
+                                                    @usuario.Nombre.Substring(0, 1).ToUpper()
+                                                </div>
+                                            }
+                                            <div>
+                                                <strong>@usuario.Nombre @usuario.Apellido</strong>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            @usuario.Email
+                                            @if (usuario.EmailConfirmed)
+                                            {
+                                                <span class="badge bg-success ms-1">✓</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-warning ms-1">!</span>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @DateTime.Parse(usuario.FechaRegistro.ToString()).ToString("dd/MM/yyyy")
+                                    </td>
+                                    <td>
+                                        @foreach (string rol in usuario.Roles)
+                                        {
+                                            @if (rol == "admin")
+                                            {
+                                                <span class="badge bg-danger">👑 Admin</span>
+                                            }
+                                            else if (rol == "userpremium")
+                                            {
+                                                <span class="badge bg-success">⭐ Premium</span>
+                                            }
+                                            else if (rol == "userfree")
+                                            {
+                                                <span class="badge bg-secondary">🆓 Free</span>
+                                            }
+                                            else if (rol == "artista")
+                                            {
+                                                <span class="badge bg-purple">🎵 Artista</span>
+                                            }
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (usuario.EmailConfirmed)
+                                        {
+                                            <span class="badge bg-success">✅ Activo</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning">⚠️ Pendiente</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="@Url.Action("DetalleUsuario", new { id = usuario.Id })"
+                                               class="btn btn-outline-primary btn-sm">
+                                                👁️ Ver
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    @if (!string.IsNullOrWhiteSpace(ViewBag.TerminoBusqueda as string))
+                    {
+                        <h4>No se encontraron usuarios</h4>
+                        <p class="text-muted">No hay resultados para: "@ViewBag.TerminoBusqueda"</p>
+                        <a href="@Url.Action("Usuarios")" class="btn btn-primary">Ver todos</a>
+                    }
+                    else
+                    {
+                        <h4>No hay usuarios registrados</h4>
+                        <p class="text-muted">Los usuarios aparecerán aquí cuando se registren.</p>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>

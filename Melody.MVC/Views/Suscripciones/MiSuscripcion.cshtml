@@ -1,78 +1,287 @@
-﻿@{
+﻿@model Melody.Modelos.DTOs.MiSuscripcionResponseDto
+@{
     ViewData["Title"] = "Mi Suscripción";
 }
 
-<div class="container mt-4">
-    <h2>Mi Suscripción Premium</h2>
-
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert alert-success">@TempData["Success"]</div>
-    }
-    @if (TempData["Error"] != null)
-    {
-        <div class="alert alert-danger">@TempData["Error"]</div>
-    }
-
-    @if (Model?.tienesSuscripcion == true)
-    {
-        <div class="card">
-            <div class="card-header">
-                <h4>Plan: @Model.suscripcion.Plan.Nombre</h4>
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>@ViewData["Title"]</h2>
+                <div>
+                    <a href="@Url.Action("MiHistorial")" class="btn btn-outline-secondary">
+                        <i class="fas fa-history"></i> Ver Historial
+                    </a>
+                </div>
             </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <p><strong>Fecha de Inicio:</strong> @DateTime.Parse(Model.suscripcion.FechaInicio.ToString()).ToString("dd/MM/yyyy")</p>
-                        <p><strong>Fecha de Fin:</strong> @DateTime.Parse(Model.suscripcion.FechaFin.ToString()).ToString("dd/MM/yyyy")</p>
-                        <p><strong>Días Restantes:</strong> @Model.suscripcion.DiasRestantes días</p>
-                    </div>
-                    <div class="col-md-6">
-                        @if (Model.esPropietario == true)
-                        {
-                            <p><strong>Total de Usuarios:</strong> @Model.suscripcion.TotalUsuarios / @Model.suscripcion.Plan.NumeroUsuarios</p>
-                            <p><strong>Espacios Disponibles:</strong> @Model.suscripcion.EspaciosDisponibles</p>
 
-                            <div class="mt-3">
-                                <a href="@Url.Action("MiembrosFamiliares", new { id = Model.suscripcion.Id })"
-                                   class="btn btn-primary">Gestionar Miembros Familiares</a>
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show">
+                    @TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show">
+                    @TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @if (Model.TienesSuscripcion)
+            {
+                <!-- Estadísticas principales -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card text-center bg-primary text-white">
+                            <div class="card-body">
+                                <h5 class="card-title">Plan Activo</h5>
+                                <h4>@Model.Suscripcion.PlanNombre</h4>
                             </div>
-                        }
-                        else
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center bg-success text-white">
+                            <div class="card-body">
+                                <h5 class="card-title">Días Restantes</h5>
+                                <h4>@Model.Suscripcion.DiasRestantes</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center bg-info text-white">
+                            <div class="card-body">
+                                <h5 class="card-title">Usuarios Activos</h5>
+                                <h4>@(Model.Suscripcion.TotalUsuarios ?? 1)</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center bg-warning text-dark">
+                            <div class="card-body">
+                                <h5 class="card-title">Espacios Libres</h5>
+                                <h4>@(Model.Suscripcion.EspaciosDisponibles ?? 0)</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información de la suscripción -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-crown text-warning"></i>
+                            Detalles de tu Suscripción
+                            @if (Model.EsPropietario)
+                            {
+                                <span class="badge bg-primary ms-2">Propietario</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary ms-2">Usuario Adicional</span>
+                            }
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Plan:</strong> @Model.Suscripcion.PlanNombre</p>
+                                <p><strong>Precio:</strong> $@Model.Suscripcion.PlanPrecio.ToString("F2")</p>
+                                <p><strong>Máximo usuarios:</strong> @Model.Suscripcion.PlanNumeroUsuarios</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Fecha inicio:</strong> @Model.Suscripcion.FechaInicio.ToString("dd/MM/yyyy")</p>
+                                <p><strong>Fecha fin:</strong> @Model.Suscripcion.FechaFin.ToString("dd/MM/yyyy")</p>
+                                <p>
+                                    <strong>Estado:</strong>
+                                    @if (Model.Suscripcion.EsActiva)
+                                    {
+                                        <span class="badge bg-success">Activa</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Inactiva</span>
+                                    }
+                                </p>
+                            </div>
+                        </div>
+
+                        @* INFORMACIÓN DEL PROPIETARIO PARA MIEMBROS *@
+                        @if (!Model.EsPropietario && !string.IsNullOrEmpty(Model.Suscripcion.PropietarioNombre))
                         {
-                            <div class="alert alert-info">
-                                <p><strong>Eres miembro familiar</strong></p>
-                                <p>Esta suscripción es administrada por el propietario principal.</p>
+                            <hr>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-user-crown fa-lg text-warning me-3"></i>
+                                        <div>
+                                            <p class="mb-1"><strong>Agregado por:</strong></p>
+                                            <h6 class="text-primary mb-0">@Model.Suscripcion.PropietarioNombre</h6>
+                                            <small class="text-muted">@Model.Suscripcion.PropietarioEmail</small>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         }
                     </div>
                 </div>
 
-                @if (Model.esPropietario == true)
+                @if (Model.EsPropietario)
                 {
-                    <hr />
-                    <div class="text-center">
-                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#cancelarModal">
-                            Cancelar Suscripción
-                        </button>
+                    <!-- Gestión de usuarios (solo para propietarios) -->
+                    <div class="card mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-users text-info"></i>
+                                Gestión de Usuarios
+                            </h5>
+                            @if (Model.Suscripcion.PlanNumeroUsuarios > 1)
+                            {
+                                <a href="@Url.Action("Miembros", new { id = Model.Suscripcion.Id })" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-cog"></i> Gestionar Usuarios
+                                </a>
+                            }
+                        </div>
+                        <div class="card-body">
+                            @if (Model.Suscripcion.PlanNumeroUsuarios > 1)
+                            {
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="text-center">
+                                            <h6>Usuarios Utilizados</h6>
+                                            <div class="progress mb-2">
+                                                @{
+                                                    var porcentaje = Model.Suscripcion.TotalUsuarios.HasValue && Model.Suscripcion.PlanNumeroUsuarios > 0
+                                                    ? (Model.Suscripcion.TotalUsuarios.Value * 100) / Model.Suscripcion.PlanNumeroUsuarios
+                                                    : 0;
+                                                }
+                                                <div class="progress-bar bg-info" style="width: @porcentaje%"></div>
+                                            </div>
+                                            <small>@(Model.Suscripcion.TotalUsuarios ?? 0) de @Model.Suscripcion.PlanNumeroUsuarios</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="text-center">
+                                            <h6>Usuarios Adicionales</h6>
+                                            <h4 class="text-info">@(Model.Suscripcion.MiembrosActivos ?? 0)</h4>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="text-center">
+                                            <h6>Espacios Disponibles</h6>
+                                            <h4 class="text-success">@(Model.Suscripcion.EspaciosDisponibles ?? 0)</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-center text-muted">
+                                    <i class="fas fa-user fa-2x mb-2"></i>
+                                    <p>Tu plan actual es individual y no permite usuarios adicionales.</p>
+                                    <small>Actualiza a un plan multiusuario para invitar a otros usuarios.</small>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Acciones de gestión -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-cogs"></i>
+                                Acciones de Suscripción
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    @if (Model.Suscripcion.PlanNumeroUsuarios > 1 && (Model.Suscripcion.EspaciosDisponibles ?? 0) > 0)
+                                    {
+                                        <a href="@Url.Action("Miembros", new { id = Model.Suscripcion.Id })" class="btn btn-success me-2">
+                                            <i class="fas fa-user-plus"></i> Agregar Usuarios
+                                        </a>
+                                    }
+                                    <a href="@Url.Action("MiHistorial")" class="btn btn-info">
+                                        <i class="fas fa-history"></i> Ver Historial
+                                    </a>
+                                </div>
+                                <div class="col-md-6 text-end">
+                                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#cancelarModal">
+                                        <i class="fas fa-times-circle"></i> Cancelar Suscripción
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 }
-            </div>
+                else
+                {
+                    <!-- Vista para usuarios adicionales (no propietarios) -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-info-circle text-info"></i>
+                                Información de Acceso
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle"></i>
+                                <strong>¡Tienes acceso premium!</strong>
+                                Disfruta de todas las funcionalidades sin costo adicional.
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(Model.Suscripcion.PropietarioNombre))
+                            {
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="fas fa-crown fa-2x text-warning me-3"></i>
+                                    <div>
+                                        <h6 class="mb-1">Suscripción administrada por:</h6>
+                                        <h5 class="text-primary mb-0">@Model.Suscripcion.PropietarioNombre</h5>
+                                        <small class="text-muted">@Model.Suscripcion.PropietarioEmail</small>
+                                    </div>
+                                </div>
+                            }
+
+                            <p class="text-muted mb-0">
+                                Para gestionar usuarios o configuraciones de la suscripción, contacta al propietario.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h5>Acciones Disponibles</h5>
+                            <a href="@Url.Action("MiHistorial")" class="btn btn-primary">
+                                <i class="fas fa-history"></i> Ver Mi Historial
+                            </a>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <!-- Sin suscripción -->
+                <div class="text-center py-5">
+                    <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                    <h4>No tienes una suscripción activa</h4>
+                    <p class="text-muted">Suscríbete a uno de nuestros planes para acceder a todas las funcionalidades premium.</p>
+                    <a href="@Url.Action("Index", "Planes")" class="btn btn-primary btn-lg">
+                        <i class="fas fa-star"></i> Ver Planes Disponibles
+                    </a>
+                </div>
+            }
         </div>
-    }
-    else
-    {
-        <div class="alert alert-warning">
-            <h4>No tienes una suscripción activa</h4>
-            <p>@Model?.mensaje</p>
-            <a href="@Url.Action("Index", "Planes")" class="btn btn-primary">Ver Planes Disponibles</a>
-        </div>
-    }
+    </div>
 </div>
 
-@if (Model?.esPropietario == true)
+@if (Model.TienesSuscripcion && Model.EsPropietario)
 {
-    <!-- Modal Cancelar -->
+    <!-- Modal de confirmación para cancelar -->
     <div class="modal fade" id="cancelarModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -81,15 +290,24 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>¡Atención!</strong> Esta acción no se puede deshacer.
+                    </div>
                     <p>¿Estás seguro de que deseas cancelar tu suscripción?</p>
-                    <p class="text-warning"><strong>Advertencia:</strong> Esto también cancelará el acceso premium de todos los miembros familiares.</p>
+                    <ul class="text-muted small">
+                        <li>Perderás acceso a las funciones premium inmediatamente</li>
+                        <li>Todos los usuarios adicionales también perderán el acceso</li>
+                    </ul>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, mantener</button>
-                    <form method="post" action="@Url.Action("CancelarSuscripcion")" style="display:inline;">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <form method="post" action="@Url.Action("Cancelar")" style="display: inline;">
                         @Html.AntiForgeryToken()
-                        <input type="hidden" name="id" value="@Model.suscripcion.Id" />
-                        <button type="submit" class="btn btn-danger">Sí, cancelar</button>
+                        <input type="hidden" name="suscripcionId" value="@Model.Suscripcion.Id" />
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-times-circle"></i> Confirmar Cancelación
+                        </button>
                     </form>
                 </div>
             </div>

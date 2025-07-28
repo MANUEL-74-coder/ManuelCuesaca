@@ -19,5 +19,7 @@ namespace Melody.Modelos.DTOs
         public int? MiembrosActivos { get; set; }
         public int? TotalUsuarios { get; set; }
         public int? EspaciosDisponibles { get; set; }
+        public string? PropietarioNombre { get; set; }
+        public string? PropietarioEmail { get; set; }
     }
 }

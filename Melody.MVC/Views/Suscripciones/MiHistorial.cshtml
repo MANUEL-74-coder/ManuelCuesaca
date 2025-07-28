@@ -1,0 +1,134 @@
+﻿@model IEnumerable<Melody.Modelos.Suscripcion>
+@{
+    ViewData["Title"] = "Mi Historial de Suscripciones";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <h2>@ViewData["Title"]</h2>
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success">
+                    @TempData["Success"]
+                </div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger">
+                    @TempData["Error"]
+                </div>
+            }
+
+            @if (Model.Any())
+            {
+                <!-- Resumen al comienzo -->
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title">Total Suscripciones</h5>
+                                <h3 class="text-primary">@Model.Count()</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title">Total Invertido</h5>
+                                <h3 class="text-success">$@Model.Where(s => s.Pagos != null).SelectMany(s => s.Pagos).Sum(p => p.Monto).ToString("F2")</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title">Suscripciones Activas</h5>
+                                <h3 class="text-info">@Model.Count(s => s.EsActiva)</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabla de historial -->
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Plan</th>
+                                <th>Inicio</th>
+                                <th>Fin</th>
+                                <th>Duración</th>
+                                <th>Estado</th>
+                                <th>Total Pagado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var suscripcion in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        @if (suscripcion.Plan != null)
+                                        {
+                                            <span class="badge bg-primary">@suscripcion.Plan.Nombre</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>@suscripcion.FechaInicio.ToString("dd/MM/yyyy")</td>
+                                    <td>@suscripcion.FechaFin.ToString("dd/MM/yyyy")</td>
+                                    <td>
+                                        @{
+                                            var duracion = (suscripcion.FechaFin - suscripcion.FechaInicio).Days;
+                                        }
+                                        @duracion días
+                                    </td>
+                                    <td>
+                                        @if (suscripcion.EsActiva)
+                                        {
+                                            <span class="badge bg-success">Activa</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Finalizada</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (suscripcion.Pagos != null && suscripcion.Pagos.Any())
+                                        {
+                                            <strong class="text-success">$@suscripcion.Pagos.Sum(p => p.Monto).ToString("F2")</strong>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">$0.00</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <h4>No tienes historial de suscripciones</h4>
+                    <p class="text-muted">Cuando tengas suscripciones aparecerán aquí.</p>
+                    <a href="@Url.Action("Index", "Planes")" class="btn btn-primary">
+                        Ver Planes Disponibles
+                    </a>
+                </div>
+            }
+
+            <div class="mt-4">
+                <a href="@Url.Action("MiSuscripcion")" class="btn btn-secondary">
+                    ← Volver a Mi Suscripción
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

@@ -21,8 +21,8 @@ namespace Melody.MVC.Controllers
         [HttpGet]
         public IActionResult Login()
         {
-            // Si ya está logueado, redirigmos a home
-            if (_authService.IsAuthenticated())
+            // Si ya está logueado Y NO hay mensaje de pago, redirigir a home
+            if (_authService.IsAuthenticated() && TempData["Success"] == null)
             {
                 TempData["InfoMessage"] = "Ya tienes una sesión activa.";
                 return RedirectToAction("Index", "Home");

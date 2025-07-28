@@ -1,0 +1,261 @@
+﻿@model IEnumerable<Melody.Modelos.DTOs.CancionDto>
+@{
+    ViewData["Title"] = "Administrar Canciones";
+    var canciones = Model.ToList();
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>@ViewData["Title"]</h2>
+                <div>
+                    <span class="badge bg-primary fs-6">@ViewBag.TotalCanciones canciones</span>
+                </div>
+            </div>
+
+            <!-- Estadísticas arriba -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card text-center bg-primary text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Canciones</h5>
+                            <h3>@canciones.Count()</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center bg-success text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">Artistas Únicos</h5>
+                            <h3>@canciones.Where(c => !string.IsNullOrEmpty(c.ArtistaNombre)).Select(c => c.ArtistaNombre).Distinct().Count()</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center bg-info text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">Géneros Únicos</h5>
+                            <h3>@canciones.Where(c => !string.IsNullOrEmpty(c.GeneroNombre)).Select(c => c.GeneroNombre).Distinct().Count()</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Buscador simple siguiendo tu patrón -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="get" action="@Url.Action("BuscarCanciones")">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <input type="text"
+                                       name="q"
+                                       class="form-control"
+                                       placeholder="Buscar por título o artista..."
+                                       value="@ViewBag.TerminoBusqueda">
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-primary">🔍 Buscar</button>
+                                @if (!string.IsNullOrWhiteSpace(ViewBag.TerminoBusqueda?.ToString()))
+                                {
+                                    <a href="@Url.Action("Canciones")" class="btn btn-secondary">Limpiar</a>
+                                }
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show">
+                    @TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show">
+                    @TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @if (canciones.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Canción</th>
+                                <th>Artista</th>
+                                <th>Género</th>
+                                <th>Álbum</th>
+                                <th>Fecha</th>
+                                <th>Duración</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var cancion in canciones)
+                            {
+                                <tr>
+                                    <td><strong>#@cancion.Id</strong></td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            @if (!string.IsNullOrEmpty(cancion.PortadaUrl))
+                                            {
+                                                <img src="@cancion.PortadaUrl"
+                                                     alt="Portada"
+                                                     class="rounded me-2"
+                                                     style="width: 40px; height: 40px; object-fit: cover;"
+                                                     onerror="this.src='https://via.placeholder.com/40x40?text=♪'">
+                                            }
+                                            else
+                                            {
+                                                <div class="rounded bg-secondary d-flex align-items-center justify-content-center me-2"
+                                                     style="width: 40px; height: 40px; color: white;">
+                                                    ♪
+                                                </div>
+                                            }
+                                            <div>
+                                                <strong>@(cancion.Titulo ?? "Sin título")</strong>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                            <span class="badge bg-primary">@cancion.ArtistaNombre</span>
+                                    </td>
+                                    <td>
+                                            <a href="@Url.Action("Details", "Generos", new { id = cancion.GeneroId })" class="badge bg-secondary" >@cancion.GeneroNombre</a>
+                       
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(cancion.AlbumNombre) && cancion.AlbumNombre != "Sin Álbum")
+                                        {
+                                            <span class="badge bg-info">@cancion.AlbumNombre</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Sin álbum</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        
+                                            @cancion.FechaLanzamiento.ToString("dd/MM/yyyy")
+                                        
+                                    </td>
+                                    <td>
+                                        @if (cancion.Duracion.HasValue)
+                                        {
+                                            @cancion.Duracion.Value.ToString(@"mm\:ss")
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button type="button"
+                                                    class="btn btn-danger"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#eliminarModal"
+                                                    data-cancion-id="@cancion.Id"
+                                                    data-cancion-titulo="@(cancion.Titulo ?? "Sin título")"
+                                                    data-cancion-artista="@(cancion.ArtistaNombre ?? "Sin artista")">
+                                                <i class="fas fa-trash"></i> Eliminar
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    @if (!string.IsNullOrWhiteSpace(ViewBag.TerminoBusqueda?.ToString()))
+                    {
+                        <h4>No se encontraron canciones</h4>
+                        <p class="text-muted">No hay resultados para: "@ViewBag.TerminoBusqueda"</p>
+                        <a href="@Url.Action("Canciones")" class="btn btn-primary">Ver todas</a>
+                    }
+                    else
+                    {
+                        <h4>No hay canciones registradas</h4>
+                        <p class="text-muted">Las canciones aparecerán aquí cuando los artistas las suban.</p>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmación para eliminar -->
+<div class="modal fade" id="eliminarModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>¡Atención!</strong> Esta acción no se puede deshacer.
+                </div>
+                <p>¿Estás seguro de que deseas eliminar la canción <strong id="cancionTitulo"></strong>?</p>
+                <p class="text-muted">
+                    <strong>Artista:</strong> <span id="cancionArtista"></span>
+                </p>
+                <ul class="text-muted small">
+                    <li>Se eliminará permanentemente de la plataforma</li>
+                    <li>Se removerá de todas las playlists</li>
+                    <li>Los archivos de audio y portada se eliminarán</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form method="post" action="@Url.Action("EliminarCancion")" style="display: inline;" id="formEliminar">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="cancionId" id="cancionIdEliminar" />
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Confirmar Eliminación
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Script para manejar el modal de eliminar
+        document.addEventListener('DOMContentLoaded', function() {
+            const eliminarModal = document.getElementById('eliminarModal');
+
+            if (eliminarModal) {
+                eliminarModal.addEventListener('show.bs.modal', function(event) {
+                    const button = event.relatedTarget;
+                    const cancionId = button.getAttribute('data-cancion-id');
+                    const cancionTitulo = button.getAttribute('data-cancion-titulo');
+                    const cancionArtista = button.getAttribute('data-cancion-artista');
+
+                    // Actualizar contenido del modal
+                    const tituloElement = document.getElementById('cancionTitulo');
+                    const artistaElement = document.getElementById('cancionArtista');
+                    const idInput = document.getElementById('cancionIdEliminar');
+
+                    if (tituloElement) tituloElement.textContent = cancionTitulo;
+                    if (artistaElement) artistaElement.textContent = cancionArtista;
+                    if (idInput) idInput.value = cancionId;
+                });
+            }
+        });
+    </script>
+}

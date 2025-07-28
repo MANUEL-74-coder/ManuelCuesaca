@@ -31,6 +31,7 @@ namespace Melody.API.Controllers
         }
 
         // GET: api/Canciones - Lista pública básica
+        // Reemplaza tu método ObtenerCanciones() existente en el API
         [HttpGet]
         [AllowAnonymous]
         public async Task<ActionResult> ObtenerCanciones()
@@ -39,14 +40,22 @@ namespace Melody.API.Controllers
             {
                 var canciones = await _context.Canciones
                     .Include(c => c.Artista)
+                    .Include(c => c.Genero)
+                    .Include(c => c.Album)
                     .Select(c => new CancionDto
                     {
                         Id = c.Id,
                         Titulo = c.Titulo,
+                        FechaLanzamiento = c.FechaLanzamiento,
                         ArchivoAudioUrl = c.ArchivoAudio,
                         PortadaUrl = c.PortadaUrl,
+                        Duracion = c.Duracion,
                         ArtistaNombre = c.Artista!.NombreArtista,
                         ArtistaId = c.ArtistaId,
+                        GeneroId = c.GeneroId,
+                        GeneroNombre = c.Genero!.Nombre,
+                        AlbumId = c.AlbumId,
+                        AlbumNombre = c.Album != null ? c.Album.Titulo : "Sin Álbum",
                         EsFavorito = false
                     })
                     .OrderByDescending(c => c.Id)

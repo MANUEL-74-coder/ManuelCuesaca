@@ -1,0 +1,161 @@
+﻿@model IEnumerable<Melody.Modelos.DTOs.SuscripcionAdminDto>
+@{
+    ViewData["Title"] = "Suscripciones Activas";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>@ViewData["Title"]</h2>
+                <div>
+                    <a href="@Url.Action("Estadisticas")" class="btn btn-info">
+                        📊 Ver Estadísticas
+                    </a>
+                </div>
+            </div>
+
+            <!-- Estadísticas arriba -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">Suscripciones Activas</h5>
+                            <h3 class="text-success">@Model.Count()</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">Usuarios Premium</h5>
+                            <h3 class="text-primary">@Model.Count()</h3>
+                            <small class="text-muted">Solo activas</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Buscador simple -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="get" action="@Url.Action("BuscarSuscripciones")">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <input type="text"
+                                       name="q"
+                                       class="form-control"
+                                       placeholder="Buscar por email, nombre o plan..."
+                                       value="@ViewBag.TerminoBusqueda">
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-primary">🔍 Buscar</button>
+                                @if (!string.IsNullOrWhiteSpace(ViewBag.TerminoBusqueda as string))
+                                {
+                                    <a href="@Url.Action("Suscripciones")" class="btn btn-secondary">Limpiar</a>
+                                }
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success">
+                    @TempData["Success"]
+                </div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger">
+                    @TempData["Error"]
+                </div>
+            }
+
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Usuario</th>
+                                <th>Plan</th>
+                                <th>Inicio</th>
+                                <th>Fin</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var suscripcion in Model)
+                            {
+                                <tr class="@(suscripcion.EsActiva ? "table-light" : "")">
+                                    <td><strong>#@suscripcion.Id</strong></td>
+                                    <td>
+                                        <div>
+                                            <strong>@suscripcion.UsuarioNombre</strong>
+                                            <br>
+                                            <small class="text-muted">@suscripcion.UsuarioEmail</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary">@suscripcion.PlanNombre</span>
+                                    </td>
+                                    <td>@suscripcion.FechaInicio.ToString("dd/MM/yyyy")</td>
+                                    <td>@suscripcion.FechaFin.ToString("dd/MM/yyyy")</td>
+                                    <td>
+                                        @if (suscripcion.EsActiva)
+                                        {
+                                            <span class="badge bg-success">✅ Activa</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">❌ Finalizada</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (suscripcion.EsActiva)
+                                        {
+                                            <form method="post" action="@Url.Action("CancelarSuscripcion")" style="display:inline;">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="suscripcionId" value="@suscripcion.Id" />
+                                                <button type="submit"
+                                                        class="btn btn-sm btn-danger"
+                                                        onclick="return confirm('¿Estás seguro de cancelar esta suscripción?')">
+                                                    ❌ Cancelar
+                                                </button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    @if (!string.IsNullOrWhiteSpace(ViewBag.TerminoBusqueda as string))
+                    {
+                        <h4>No se encontraron suscripciones</h4>
+                        <p class="text-muted">No hay resultados para: "@ViewBag.TerminoBusqueda"</p>
+                        <a href="@Url.Action("Suscripciones")" class="btn btn-primary">Ver todas</a>
+                    }
+                    else
+                    {
+                        <h4>No hay suscripciones activas</h4>
+                        <p class="text-muted">Las suscripciones activas aparecerán aquí.</p>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>

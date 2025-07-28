@@ -1,224 +1,112 @@
-﻿@model IEnumerable<Melody.Modelos.Plan>
+﻿@model List<Melody.Modelos.Plan>
 @{
-    ViewData["Title"] = "Planes de Suscripción";
+    ViewData["Title"] = "Planes Premium";
 }
-@if (TempData["Debug"] != null)
+
+
+@if (TempData["Success"] != null)
 {
-    <div class="alert alert-warning">
-        <strong>DEBUG:</strong> @TempData["Debug"]
-    </div>
+    <div class="alert success-alert">@TempData["Success"]</div>
 }
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="fas fa-star"></i> Planes de Suscripción</h1>
-        @if (User.IsInRole("admin"))
-        {
-            <a asp-action="Create" class="btn btn-success">
-                <i class="fas fa-plus"></i> Crear Nuevo Plan
-            </a>
-        }
-    </div>
 
-    @if (TempData["Error"] != null)
-    {
-        <div class="alert alert-danger">@TempData["Error"]</div>
-    }
+@if (TempData["Error"] != null)
+{
+    <div class="alert error-alert">@TempData["Error"]</div>
+}
 
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert alert-success">@TempData["Success"]</div>
-    }
-
+<div class="planes-index">
     @if (User.IsInRole("admin"))
     {
-        <!-- Vista de administrador - Tabla -->
-        <div class="card">
-            <div class="card-header">
-                <h5><i class="fas fa-cog"></i> Administración de Planes</h5>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>@Html.DisplayNameFor(model => model.Id)</th>
-                                <th>@Html.DisplayNameFor(model => model.Nombre)</th>
-                                <th>@Html.DisplayNameFor(model => model.Descripcion)</th>
-                                <th>@Html.DisplayNameFor(model => model.Precio)</th>
-                                <th>@Html.DisplayNameFor(model => model.DuracionDias)</th>
-                                <th>@Html.DisplayNameFor(model => model.NumeroUsuarios)</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var item in Model)
-                            {
-                                <tr>
-                                    <td>@Html.DisplayFor(modelItem => item.Id)</td>
-                                    <td>@Html.DisplayFor(modelItem => item.Nombre)</td>
-                                    <td>@Html.DisplayFor(modelItem => item.Descripcion)</td>
-                                    <td class="text-success fw-bold">$@Html.DisplayFor(modelItem => item.Precio)</td>
-                                    <td>@Html.DisplayFor(modelItem => item.DuracionDias) días</td>
-                                    <td>@Html.DisplayFor(modelItem => item.NumeroUsuarios) usuarios</td>
-                                    <td>
-                                        @Html.ActionLink("Editar", "Edit", new { id = item.Id }, new { @class = "btn btn-outline-primary btn-sm" }) |
-                                        @Html.ActionLink("Detalles", "Details", new { id = item.Id }, new { @class = "btn btn-outline-info btn-sm" }) |
-                                        @Html.ActionLink("Eliminar", "Delete", new { id = item.Id }, new { @class = "btn btn-outline-danger btn-sm" })
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+        <div class="admin-panel">
+            <h3>Panel de Administración</h3>
+            <div class="admin-stats">
+                <div class="stat-card">
+                    <span class="stat-number">@Model.Count</span>
+                    <span class="stat-label">Planes Activos</span>
+                </div>
+                <div class="stat-actions">
+                    <a href="@Url.Action("Create")" class="admin-btn">+ Crear Plan</a>
+                    <a href="@Url.Action("Estadisticas", "Admin")" class="admin-btn secondary">📊 Estadísticas</a>
                 </div>
             </div>
         </div>
-
-        <hr class="my-5">
-        <h3><i class="fas fa-eye"></i> Vista de Usuario</h3>
     }
 
-    <!-- Vista de usuario - Cards atractivas -->
-    <div class="row">
-        @foreach (var plan in Model)
-        {
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="card h-100 shadow-sm @(plan.Nombre.ToLower().Contains("premium") ? "border-warning" : "")">
-                    @if (plan.Nombre.ToLower().Contains("premium"))
+    <div class="hero-section">
+        <div class="hero-content">
+            <h1 class="hero-title">Elige tu Plan Premium</h1>
+            <p class="hero-subtitle">Desbloquea todas las funciones de Melody</p>
+        </div>
+    </div>
+
+    @if (Model.Any())
+    {
+        <div class="planes-grid">
+            @foreach (var plan in Model)
+            {
+                <div class="plan-card @(plan.Nombre.ToLower().Contains("premium") ? "plan-popular" : "")">
+                    @if (plan.Nombre.ToString().ToLower().Contains("premium"))
                     {
-                        <div class="card-header bg-warning text-dark text-center">
-                            <i class="fas fa-crown"></i> <strong>MÁS POPULAR</strong>
-                        </div>
+                        <div class="plan-badge">Más Popular</div>
                     }
 
-                    <div class="card-header text-center @(plan.Nombre.ToLower().Contains("premium") ? "bg-gradient" : "")">
-                        <h4 class="card-title">@plan.Nombre</h4>
-                        <h2 class="text-primary mb-0">
-                            $@plan.Precio
-                            <small class="text-muted fs-6">USD</small>
-                        </h2>
-                        <small class="text-muted">por @plan.DuracionDias días</small>
+                    <div class="plan-header">
+                        <h3 class="plan-name">@plan.Nombre</h3>
+                        <div class="plan-price">
+                            <span class="price">$@plan.Precio</span>
+                            <span class="period">@plan.DuracionDias días</span>
+                        </div>
                     </div>
 
-                    <div class="card-body d-flex flex-column">
-                        <p class="text-muted">@plan.Descripcion</p>
+                    <div class="plan-features">
+                        <p class="plan-description">@plan.Descripcion</p>
+                    </div>
 
-                        <ul class="list-unstyled mb-4">
-                            <li class="mb-2">
-                                <i class="fas fa-users text-success"></i>
-                                Hasta <strong>@plan.NumeroUsuarios usuarios</strong>
-                            </li>
-                            <li class="mb-2">
-                                <i class="fas fa-music text-success"></i>
-                                Biblioteca completa de música
-                            </li>
-                            <li class="mb-2">
-                                <i class="fas fa-download text-success"></i>
-                                Descargas ilimitadas
-                            </li>
-                            <li class="mb-2">
-                                <i class="fas fa-list-ul text-success"></i>
-                                Gestión de playlists
-                            </li>
-                            <li class="mb-2">
-                                <i class="fas fa-headphones text-success"></i>
-                                Calidad de audio premium
-                            </li>
-                            <li class="mb-2">
-                                <i class="fas fa-support text-success"></i>
-                                Soporte técnico prioritario
-                            </li>
-                        </ul>
-
-                        <div class="mt-auto">
-                            @if (User.Identity.IsAuthenticated)
+                    <div class="plan-actions">
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            @if (User.IsInRole("userpremium"))
                             {
-                                <form asp-controller="Pagos" asp-action="CrearOrden" method="post" class="d-grid">
+                                <div class="premium-status">
+                                    <span class="status-text">✅ Ya tienes acceso Premium</span>
+                                </div>
+                            }
+                            else if (User.IsInRole("userfree"))
+                            {
+                                <form asp-controller="Pagos" asp-action="CrearOrden" method="post">
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" name="planId" value="@plan.Id" />
-                                    <button type="submit" class="btn @(plan.Nombre.ToLower().Contains("premium") ? "btn-warning" : "btn-primary") btn-lg">
-                                        <i class="fas fa-credit-card"></i>
-                                        Suscribirse Ahora
-                                    </button>
+                                    <button type="submit" class="subscribe-btn">Suscribirse</button>
                                 </form>
                             }
-                            else
-                            {
-                                <a asp-controller="Auth" asp-action="Login" class="btn btn-outline-primary btn-lg d-grid">
-                                    <i class="fas fa-sign-in-alt"></i>
-                                    Iniciar Sesión para Suscribirse
-                                </a>
-                            }
-                        </div>
-                    </div>
+                            @* Admin y artista no ven nada en esta sección *@
+                        }
+                        else
+                        {
+                            <a href="@Url.Action("Login", "Auth")" class="subscribe-btn">Iniciar Sesión</a>
+                        }
 
-                    @if (plan.Nombre.ToLower().Contains("premium"))
-                    {
-                        <div class="card-footer bg-warning text-dark text-center">
-                            <small><i class="fas fa-fire"></i> <strong>¡Oferta especial!</strong></small>
-                        </div>
-                    }
-                </div>
-            </div>
-        }
-    </div>
-
-    @if (User.Identity.IsAuthenticated)
-    {
-        <div class="row mt-4">
-            <div class="col-12 text-center">
-                <div class="card bg-light">
-                    <div class="card-body">
-                        <h5><i class="fas fa-info-circle"></i> ¿Ya tienes una suscripción?</h5>
-                        <div class="btn-group" role="group">
-                            <a asp-controller="Suscripciones" asp-action="MisSuscripciones" class="btn btn-outline-primary">
-                                <i class="fas fa-list"></i> Ver Mis Suscripciones
-                            </a>
-                            <a asp-controller="Pagos" asp-action="MisPagos" class="btn btn-outline-secondary">
-                                <i class="fas fa-receipt"></i> Historial de Pagos
-                            </a>
-                        </div>
+                        @if (User.IsInRole("admin"))
+                        {
+                            <div class="admin-actions">
+                                <a href="@Url.Action("Edit", new { id = plan.Id })" class="admin-link">Editar</a>
+                                <a href="@Url.Action("Delete", new { id = plan.Id })" class="admin-link">Eliminar</a>
+                            </div>
+                        }
                     </div>
                 </div>
-            </div>
+            }
         </div>
     }
-
-    <!-- Información adicional -->
-    <div class="row mt-5">
-        <div class="col-12">
-            <div class="card border-0 bg-primary text-white">
-                <div class="card-body text-center">
-                    <h4><i class="fas fa-shield-alt"></i> Garantía de Satisfacción</h4>
-                    <p class="mb-0">
-                        Todas nuestras suscripciones incluyen garantía de satisfacción.
-                        Cancela en cualquier momento sin compromisos adicionales.
-                    </p>
-                </div>
-            </div>
+    else
+    {
+        <div class="empty-state">
+            <h3>No hay planes disponibles</h3>
+            <p>Los planes premium estarán disponibles pronto</p>
         </div>
-    </div>
+    }
 </div>
 
-<style>
-    .bg-gradient {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-    }
-
-    .card:hover {
-        transform: translateY(-5px);
-        transition: transform 0.3s ease;
-    }
-
-    .btn-warning {
-        background: linear-gradient(45deg, #ffc107, #ff8c00);
-        border: none;
-        color: white;
-        font-weight: bold;
-    }
-
-        .btn-warning:hover {
-            background: linear-gradient(45deg, #ff8c00, #ffc107);
-            color: white;
-        }
-</style>
+@section Styles {
+    <link rel="stylesheet" href="~/css/planes.css" asp-append-version="true" />
+}

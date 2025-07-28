@@ -32,6 +32,81 @@ namespace Melody.API.Controllers
             _logger = logger;
         }
 
+        [HttpGet]
+        [Authorize(Roles = "admin")]
+        public async Task<ActionResult> GetSuscripciones()
+        {
+            try
+            {
+                var suscripciones = await _context.Suscripciones
+                    .Include(s => s.Usuario)
+                    .Include(s => s.Plan)
+                    .Where(s => s.EsActiva) // Solo activas
+                    .OrderByDescending(s => s.FechaInicio)
+                    .Take(30)
+                    .Select(s => new SuscripcionAdminDto
+                    {
+                        Id = s.Id,
+                        FechaInicio = s.FechaInicio,
+                        FechaFin = s.FechaFin,
+                        EsActiva = s.EsActiva,
+                        UsuarioEmail = s.Usuario.Email,
+                        UsuarioNombre = $"{s.Usuario.Nombre} {s.Usuario.Apellido}",
+                        PlanNombre = s.Plan.Nombre
+                    })
+                    .ToListAsync();
+
+                return Ok(suscripciones);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener suscripciones");
+                return StatusCode(500, "Error interno");
+            }
+        }
+
+        // GET: api/Suscripciones/buscar?q=texto
+        [HttpGet("buscar")]
+        [Authorize(Roles = "admin")]
+        public async Task<ActionResult> BuscarSuscripciones([FromQuery] string q)
+        {
+            if (string.IsNullOrWhiteSpace(q))
+            {
+                return BadRequest("El parámetro de búsqueda no puede estar vacío.");
+            }
+
+            try
+            {
+                var suscripciones = await _context.Suscripciones
+                    .Include(s => s.Usuario)
+                    .Include(s => s.Plan)
+                    .Where(s => s.EsActiva &&
+                           (s.Usuario.Email.Contains(q) ||
+                            s.Usuario.Nombre.Contains(q) ||
+                            s.Usuario.Apellido.Contains(q) ||
+                            s.Plan.Nombre.Contains(q)))
+                    .OrderByDescending(s => s.FechaInicio)
+                    .Take(30)
+                    .Select(s => new SuscripcionAdminDto
+                    {
+                        Id = s.Id,
+                        FechaInicio = s.FechaInicio,
+                        FechaFin = s.FechaFin,
+                        EsActiva = s.EsActiva,
+                        UsuarioEmail = s.Usuario.Email,
+                        UsuarioNombre = $"{s.Usuario.Nombre} {s.Usuario.Apellido}",
+                        PlanNombre = s.Plan.Nombre
+                    })
+                    .ToListAsync();
+
+                return Ok(suscripciones);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al buscar suscripciones");
+                return StatusCode(500, "Error interno");
+            }
+        }
         // GET: api/Suscripciones/mi-suscripcion - Obtener mi suscripción activa
         [HttpGet("mi-suscripcion")]
         [Authorize]
@@ -45,6 +120,7 @@ namespace Melody.API.Controllers
                 var suscripcionPropietario = await _context.Suscripciones
                     .Include(s => s.Plan)
                     .Include(s => s.Pagos)
+                    .Include(s => s.Usuario)
                     .Include(s => s.Miembros.Where(m => m.EsActivo))
                         .ThenInclude(m => m.Usuario)
                     .Where(s => s.UsuarioId == usuario.Id && s.EsActiva)
@@ -84,7 +160,9 @@ namespace Melody.API.Controllers
                         DiasRestantes = Math.Max(0, (suscripcionActiva.FechaFin - DateTime.Now).Days),
                         MiembrosActivos = esPropietario ? miembrosCount : null,
                         TotalUsuarios = esPropietario ? miembrosCount + 1 : null,
-                        EspaciosDisponibles = esPropietario ? suscripcionActiva.Plan.NumeroUsuarios - (miembrosCount + 1) : null
+                        EspaciosDisponibles = esPropietario ? suscripcionActiva.Plan.NumeroUsuarios - (miembrosCount + 1) : null,
+                        PropietarioNombre = !esPropietario ? $"{suscripcionActiva.Usuario.Nombre} {suscripcionActiva.Usuario.Apellido}" : null,
+                        PropietarioEmail = !esPropietario ? suscripcionActiva.Usuario.Email : null
                     }
                 };
                 return Ok(response);
@@ -96,7 +174,90 @@ namespace Melody.API.Controllers
             }
         }
 
-        // POST: api/Suscripciones/{id}/agregar-miembro
+        // GET: api/Suscripciones/mi-historial - Versión Simple
+        [HttpGet("mi-historial")]
+        [Authorize]
+        public async Task<ActionResult> ObtenerMiHistorial()
+        {
+            try
+            {
+                var usuario = await _usuarioService.ObtenerUsuarioActualAsync();
+
+                var historial = await _context.Suscripciones
+                    .Include(s => s.Plan)
+                    .Include(s => s.Pagos)
+                    .Where(s => s.UsuarioId == usuario.Id)
+                    .OrderByDescending(s => s.FechaInicio)
+                    .Select(s => new
+                    {
+                        s.Id,
+                        s.FechaInicio,
+                        s.FechaFin,
+                        s.EsActiva,
+                        Plan = s.Plan,
+                        Pagos = s.Pagos
+                    })
+                    .ToListAsync();
+
+                return Ok(historial);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener historial");
+                return StatusCode(500, "Error interno");
+            }
+        }
+
+        // GET: api/Suscripciones/estadisticas
+        [HttpGet("estadisticas")]
+        [Authorize(Roles = "admin")]
+        public async Task<ActionResult> ObtenerEstadisticas()
+        {
+            try
+            {
+                var stats = new
+                {
+                    // Suscripciones
+                    TotalActivas = await _context.Suscripciones.CountAsync(s => s.EsActiva),
+                    TotalHistoricas = await _context.Suscripciones.CountAsync(),
+
+                    // Usuarios
+                    UsuariosPremium = await _context.Suscripciones
+                        .Where(s => s.EsActiva)
+                        .Select(s => s.UsuarioId)
+                        .Distinct()
+                        .CountAsync(),
+
+                    // CAMBIAR: MiembrosFamiliares → UsuariosAdicionales
+                    UsuariosAdicionales = await _context.SuscripcionMiembros.CountAsync(m => m.EsActivo),
+
+                    // Ingresos
+                    IngresosTotales = await _context.Pagos.SumAsync(p => p.Monto),
+                    IngresosEsteMes = await _context.Pagos
+                        .Where(p => p.FechaPago.Month == DateTime.Now.Month && p.FechaPago.Year == DateTime.Now.Year)
+                        .SumAsync(p => p.Monto),
+
+                    // Planes más populares
+                    PlanesMasUsados = await _context.Suscripciones
+                        .Include(s => s.Plan)
+                        .Where(s => s.EsActiva)
+                        .GroupBy(s => s.Plan.Nombre)
+                        .Select(g => new { Plan = g.Key, Cantidad = g.Count() })
+                        .OrderByDescending(x => x.Cantidad)
+                        .ToListAsync()
+                };
+
+                return Ok(stats);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener estadísticas");
+                return StatusCode(500, "Error interno");
+            }
+        }
+
+
+        // POST: api/Suscripciones/{id}/agregar-miembro - CON VALIDACIÓN DE ROLES
         [HttpPost("{id}/agregar-miembro")]
         [Authorize(Roles = "userpremium")]
         public async Task<ActionResult> AgregarMiembroFamiliar(int id, [FromBody] AgregarMiembroRequest request)
@@ -122,10 +283,19 @@ namespace Melody.API.Controllers
 
                 var usuarioAAgregar = await _userManager.FindByEmailAsync(request.Email);
                 if (usuarioAAgregar == null)
-                    return NotFound("Usuario no encontrado");
+                    return NotFound("Usuario no encontrado con ese email");
 
                 if (usuarioAAgregar.Id == usuario.Id)
                     return BadRequest("No puedes agregarte a ti mismo");
+
+
+                var rolesUsuario = await _userManager.GetRolesAsync(usuarioAAgregar);
+                var rolesRestringidos = new[] { "admin", "userpremium", "artista" };
+
+                if (rolesUsuario.Any(r => rolesRestringidos.Contains(r.ToLower())))
+                {
+                    return BadRequest("No se puede agregar usuarios con roles de admin, premium o artista");
+                }
 
                 // Verificar que no tenga suscripción activa
                 var tieneSubActiva = await _context.Suscripciones
@@ -135,6 +305,12 @@ namespace Melody.API.Controllers
 
                 if (tieneSubActiva || esMiembroActivo)
                     return BadRequest("El usuario ya tiene acceso premium activo");
+
+                // Verificar que solo sea userfree
+                if (!rolesUsuario.Contains("userfree"))
+                {
+                    return BadRequest("Solo se pueden agregar usuarios con plan gratuito");
+                }
 
                 // Crear miembro
                 var nuevoMiembro = new SuscripcionMiembro
@@ -151,19 +327,15 @@ namespace Melody.API.Controllers
                 await _context.SaveChangesAsync();
 
                 // Cambiar rol a premium
-                var roles = await _userManager.GetRolesAsync(usuarioAAgregar);
-                if (roles.Contains("userfree"))
-                {
-                    await _userManager.RemoveFromRoleAsync(usuarioAAgregar, "userfree");
-                    await _userManager.AddToRoleAsync(usuarioAAgregar, "userpremium");
-                }
+                await _userManager.RemoveFromRoleAsync(usuarioAAgregar, "userfree");
+                await _userManager.AddToRoleAsync(usuarioAAgregar, "userpremium");
 
-                return Ok("Miembro agregado exitosamente");
+                return Ok(new { mensaje = "Miembro agregado exitosamente", usuario = new { usuarioAAgregar.Email, usuarioAAgregar.Nombre } });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al agregar miembro");
-                return StatusCode(500, "Error interno");
+                return StatusCode(500, "Error interno del servidor");
             }
         }
 

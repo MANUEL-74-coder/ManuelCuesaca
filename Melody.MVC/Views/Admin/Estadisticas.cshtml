@@ -1,0 +1,182 @@
+﻿@model Melody.Modelos.DTOs.EstadisticasSuscripcionesDto
+@{
+    ViewData["Title"] = "Estadísticas de Suscripciones";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>@ViewData["Title"]</h2>
+                <a href="@Url.Action("Suscripciones")" class="btn btn-secondary">
+                    ← Ver Todas las Suscripciones
+                </a>
+            </div>
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success">
+                    @TempData["Success"]
+                </div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger">
+                    @TempData["Error"]
+                </div>
+            }
+
+            @if (Model != null)
+            {
+                <!-- Métricas principales -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card text-center bg-primary text-white">
+                            <div class="card-body">
+                                <h5 class="card-title">Suscripciones Activas</h5>
+                                <h2>@Model.TotalActivas</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center bg-info text-white">
+                            <div class="card-body">
+                                <h5 class="card-title">Total Históricas</h5>
+                                <h2>@Model.TotalHistoricas</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center bg-success text-white">
+                            <div class="card-body">
+                                <h5 class="card-title">Usuarios Premium</h5>
+                                <h2>@Model.UsuariosPremium</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center bg-warning text-white">
+                            <div class="card-body">
+                                <h5 class="card-title">Usuarios Adicionales</h5>
+                                <h2>@Model.UsuariosAdicionales</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ingresos -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">💰 Ingresos Totales</h5>
+                            </div>
+                            <div class="card-body text-center">
+                                <h1 class="text-success">$@Model.IngresosTotales.ToString("F2")</h1>
+                                <p class="text-muted">Desde el inicio de la plataforma</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">📈 Ingresos Este Mes</h5>
+                            </div>
+                            <div class="card-body text-center">
+                                <h1 class="text-primary">$@Model.IngresosEsteMes.ToString("F2")</h1>
+                                <p class="text-muted">@DateTime.Now.ToString("MMMM yyyy")</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Planes más populares -->
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">🏆 Planes Más Populares</h5>
+                            </div>
+                            <div class="card-body">
+                                @if (Model.PlanesMasUsados != null && Model.PlanesMasUsados.Any())
+                                {
+                                    <div class="table-responsive">
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Posición</th>
+                                                    <th>Plan</th>
+                                                    <th>Suscripciones Activas</th>
+                                                    <th>Porcentaje</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @for (int i = 0; i < Model.PlanesMasUsados.Count; i++)
+                                                {
+                                                    var plan = Model.PlanesMasUsados[i];
+                                                    var porcentaje = Model.TotalActivas > 0 ? (plan.Cantidad * 100.0 / Model.TotalActivas) : 0;
+
+                                                    <tr>
+                                                        <td>
+                                                            @if (i == 0)
+                                                            {
+                                                                <span class="badge bg-warning">🥇 #@(i + 1)</span>
+                                                            }
+                                                            else if (i == 1)
+                                                            {
+                                                                <span class="badge bg-secondary">🥈 #@(i + 1)</span>
+                                                            }
+                                                            else if (i == 2)
+                                                            {
+                                                                <span class="badge bg-danger">🥉 #@(i + 1)</span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="badge bg-light text-dark">#@(i + 1)</span>
+                                                            }
+                                                        </td>
+                                                        <td><strong>@plan.Plan</strong></td>
+                                                        <td>
+                                                            <span class="badge bg-primary">@plan.Cantidad suscripciones</span>
+                                                        </td>
+                                                        <td>
+                                                            <div class="progress" style="height: 20px;">
+                                                                <div class="progress-bar" role="progressbar"
+                                                                     style="width: @porcentaje.ToString("F0")%"
+                                                                     aria-valuenow="@porcentaje.ToString("F0")"
+                                                                     aria-valuemin="0" aria-valuemax="100">
+                                                                    @porcentaje.ToString("F1")%
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="text-center py-4">
+                                        <p class="text-muted">No hay datos de planes disponibles</p>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <h4>Error al cargar estadísticas</h4>
+                    <p class="text-muted">No se pudieron obtener los datos estadísticos.</p>
+                    <a href="@Url.Action("Estadisticas")" class="btn btn-primary">
+                        🔄 Reintentar
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
