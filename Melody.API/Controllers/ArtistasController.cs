@@ -37,7 +37,7 @@ namespace Melody.API.Controllers
         {
             try
             {
-                var artistas = await _context.Artistas.ToListAsync();
+                var artistas = await _context.Artistas.Take(20).ToListAsync();
                 return Ok(artistas);
             }
             catch (Exception ex)
@@ -47,9 +47,9 @@ namespace Melody.API.Controllers
             }
         }
 
-        // GET: api/Artistas/5 - Obtener artista específico (público)
+        // GET: api/Artistas/{id} - Obtener perfil de artista por ID
         [HttpGet("{id}")]
-        [AllowAnonymous]
+        [Authorize]
         public async Task<ActionResult<ArtistaDto>> ObtenerArtista(int id)
         {
             try
@@ -76,7 +76,7 @@ namespace Melody.API.Controllers
                         .AnyAsync(s => s.UsuarioId == usuarioActual.Id && s.ArtistaId == id);
                 }
 
-                // Luego obtenemos las canciones por separado CON EsFavorito
+                // Luego obtenemos las canciones por separado 
                 var canciones = await _context.Canciones
                     .Include(c => c.Genero)
                     .Where(c => c.ArtistaId == id)
@@ -121,7 +121,6 @@ namespace Melody.API.Controllers
                     EstaSiguiendo = estaSiguiendo,
                     EsMiPerfil = esMiPerfil
                 };
-
                 return Ok(artistaDto);
             }
             catch (Exception ex)

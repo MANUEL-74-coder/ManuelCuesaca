@@ -141,6 +141,14 @@
                                 @(cancion.EsFavorito ? "♥" : "♡")
                             </button>
                         }
+                        @if (currentUser?.IsUserPremium == true)
+                        {
+                            <a href="@Url.Action("Descargar", "Canciones", new { id = cancion.CancionId})"
+                               class="action-btn"
+                               title="Descargar canción">
+                                ⬇️
+                            </a>
+                        }
 
                         <!-- Agregar a playlist -->
                         @if (currentUser?.IsUserPremium == true && misPlaylists.Any())

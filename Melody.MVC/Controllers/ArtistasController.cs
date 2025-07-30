@@ -36,46 +36,37 @@ namespace Melody.MVC.Controllers
                 return View(new List<Artista>());
             }
         }
-        // GET: Perfil público de artista
-        [AllowAnonymous]
+        // GET: Detalles de un artista específico
+        [Authorize]
         public async Task<IActionResult> Details(int id)
         {
             try
             {
-                ArtistaDto artista;
-                if (_authService.IsAuthenticated())
-                {
-                    // Si está logueado, usar método con token
-                    var token = _authService.ObtenerToken();
-                    artista = await Crud<ArtistaDto>.GetByIdWithAuth<ArtistaDto>(id, token);
+                var token = _authService.ObtenerToken();
 
-                    // AGREGAR ESTO: Obtener playlists si es usuario premium
-                    var currentUser = _authService.GetCurrentUser();
-                    if (currentUser?.IsUserPremium == true)
+                var artista = await Crud<ArtistaDto>.GetByIdWithAuth<ArtistaDto>(id, token);
+                if (artista == null) return NotFound();
+
+                // Obtener playlists si es usuario premium
+                var currentUser = _authService.GetCurrentUser();
+                if (currentUser?.IsUserPremium == true)
+                {
+                    try
                     {
-                        try
-                        {
-                            var playlists = await Crud<PlaylistDto>.GetListWithAuth("mis-playlists", token);
-                            ViewBag.MisPlaylists = playlists ?? new List<PlaylistDto>();
-                        }
-                        catch
-                        {
-                            ViewBag.MisPlaylists = new List<PlaylistDto>();
-                        }
+                        var playlists = await Crud<PlaylistDto>.GetListWithAuth("mis-playlists", token);
+                        ViewBag.MisPlaylists = playlists ?? new List<PlaylistDto>();
                     }
-                    else
+                    catch
                     {
                         ViewBag.MisPlaylists = new List<PlaylistDto>();
                     }
                 }
                 else
                 {
-                    // Si no está logueado, usar método sin token
-                    artista = Crud<ArtistaDto>.GetById(id);
                     ViewBag.MisPlaylists = new List<PlaylistDto>();
                 }
 
-                ViewBag.CurrentUser = _authService.GetCurrentUser();
+                ViewBag.CurrentUser = currentUser;
                 return View(artista);
             }
             catch
@@ -110,7 +101,7 @@ namespace Melody.MVC.Controllers
             try
             {
                 var token = _authService.ObtenerToken();
-                var perfil = await Crud<ArtistaDto>.GetWithAuth("mi-perfil", token);
+                var perfil = await Crud<ArtistaDto>.GetWithAuth("mi-perfil",token);
                 ViewBag.CurrentUser = _authService.GetCurrentUser();
                 return View(perfil);
             }
@@ -175,7 +166,7 @@ namespace Melody.MVC.Controllers
                 }
 
                 var resultado = await Crud<Artista>.UpdateWithFormData("mi-perfil", formData, token);
-
+              
 
                 if (resultado)
                 {

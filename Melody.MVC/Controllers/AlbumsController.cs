@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Melody.MVC.Controllers
 {
-    [Authorize]
+    [Authorize] 
     public class AlbumsController : Controller
     {
         private readonly AuthService _authService;
@@ -39,59 +39,48 @@ namespace Melody.MVC.Controllers
         // GET: Detalles de álbum 
         public async Task<IActionResult> Details(int id)
         {
+
             try
             {
-                AlbumDto album;
+                var token = _authService.ObtenerToken();
+                var album = await Crud<AlbumDto>.GetByIdWithAuth<AlbumDto>(id, token);
+                if (album == null) return NotFound();
 
-                if (_authService.IsAuthenticated())
+                ViewBag.Artista = await Crud<ArtistaDto>.GetByIdWithAuth<ArtistaDto>(album.ArtistaId, token);
+
+                var currentUser = _authService.GetCurrentUser();
+                if (currentUser?.IsArtista == true)
                 {
-                    // Si está logueado, usar método con token
-                    var token = _authService.ObtenerToken();
-                    album = await Crud<AlbumDto>.GetByIdWithAuth<AlbumDto>(id, token);
-
-                    ViewBag.Artista = await Crud<ArtistaDto>.GetByIdWithAuth<ArtistaDto>(album.ArtistaId, token);
-
-                    var currentUser = _authService.GetCurrentUser();
-                    if (currentUser?.IsArtista == true)
+                    try
                     {
-                        try
-                        {
-                            var artista = await Crud<ArtistaDto>.GetWithAuth("mi-perfil", token);
-                            ViewBag.ArtistaActualId = artista?.Id;
-                        }
-                        catch
-                        {
-                            ViewBag.ArtistaActualId = null;
-                        }
+                        var artista = await Crud<ArtistaDto>.GetWithAuth("mi-perfil", token);
+                        ViewBag.ArtistaActualId = artista?.Id;
                     }
-
-                    // Cargar playlists del usuario si es premium
-                    if (currentUser?.IsUserPremium == true)
+                    catch
                     {
-                        try
-                        {
-                            var playlists = await Crud<PlaylistDto>.GetListWithAuth("mis-playlists", token);
-                            ViewBag.MisPlaylists = playlists ?? new List<PlaylistDto>();
-                        }
-                        catch
-                        {
-                            ViewBag.MisPlaylists = new List<PlaylistDto>();
-                        }
+                        ViewBag.ArtistaActualId = null;
                     }
-                    else
+                }
+
+                // Cargar playlists del usuario si es premium
+                if (currentUser?.IsUserPremium == true)
+                {
+                    try
+                    {
+                        var playlists = await Crud<PlaylistDto>.GetListWithAuth("mis-playlists", token);
+                        ViewBag.MisPlaylists = playlists ?? new List<PlaylistDto>();
+                    }
+                    catch
                     {
                         ViewBag.MisPlaylists = new List<PlaylistDto>();
                     }
                 }
                 else
                 {
-                    // Si no está logueado, usar método sin token
-                    album = Crud<AlbumDto>.GetById(id);
-                    ViewBag.ArtistaActualId = null;
                     ViewBag.MisPlaylists = new List<PlaylistDto>();
                 }
 
-                ViewBag.CurrentUser = _authService.GetCurrentUser();
+                ViewBag.CurrentUser = currentUser;
                 return View(album);
             }
             catch
@@ -148,7 +137,7 @@ namespace Melody.MVC.Controllers
                     formData.Add(imagenContent, "Portada", model.Portada.FileName);
                 }
 
-                var resultado = await Crud<AlbumDto>.PostWithFormData(formData, token, "subir-album");
+                var resultado = await Crud<AlbumDto>.PostWithFormData(formData, token,"subir-album");
                 if (resultado)
                 {
                     TempData["Success"] = "Álbum creado exitosamente";
@@ -185,7 +174,7 @@ namespace Melody.MVC.Controllers
             try
             {
                 var token = _authService.ObtenerToken();
-                var albums = await Crud<Album>.GetListWithAuth("mis-albums", token);
+                var albums = await Crud<Album>.GetListWithAuth("mis-albums",token);
                 var cancionesSinAlbum = await GetCancionesSinAlbum();
 
                 ViewBag.CurrentUser = _authService.GetCurrentUser();
@@ -195,7 +184,7 @@ namespace Melody.MVC.Controllers
                 return View(albums ?? new List<Album>());
             }
             catch
-            {
+            {   
                 TempData["Error"] = "Error al cargar sus álbumes";
                 return View(new List<Album>());
             }
@@ -229,20 +218,25 @@ namespace Melody.MVC.Controllers
 
         // GET: Formulario para editar álbum
         [Authorize(Roles = "artista")]
-        public IActionResult Edit(int id)
+        public async Task<IActionResult> Edit(int id)
         {
             try
             {
-                var album = Crud<AlbumDto>.GetById(id);
+                var token = _authService.ObtenerToken();
+                var album = await Crud<AlbumDto>.GetByIdWithAuth<AlbumDto>(id, token);
+                if (album == null)
+                {
+                    TempData["Error"] = "Álbum no encontrado";
+                    return RedirectToAction(nameof(MisAlbums));
+                }
+
                 ViewBag.CurrentUser = _authService.GetCurrentUser();
                 ViewBag.Generos = GetGeneros();
-
                 var model = new ActualizarAlbumDto
                 {
                     Titulo = album.Titulo,
                     GeneroId = album.GeneroId
                 };
-
                 return View(model);
             }
             catch
@@ -311,14 +305,12 @@ namespace Melody.MVC.Controllers
             try
             {
                 var token = _authService.ObtenerToken();
-                var album = Crud<AlbumDto>.GetById(id);
-
+                var album = await Crud<AlbumDto>.GetByIdWithAuth<AlbumDto>(id, token);
                 if (album == null)
                 {
                     TempData["Error"] = "Álbum no encontrado";
                     return RedirectToAction(nameof(MisAlbums));
                 }
-
                 ViewBag.CurrentUser = _authService.GetCurrentUser();
                 return View("Delete", album);
             }
@@ -328,6 +320,7 @@ namespace Melody.MVC.Controllers
                 return RedirectToAction(nameof(MisAlbums));
             }
         }
+
 
         // POST: Eliminar álbum
         [HttpPost]

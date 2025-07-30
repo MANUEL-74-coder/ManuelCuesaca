@@ -2,68 +2,72 @@
 @{
     ViewData["Title"] = "Subir Canción";
 }
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h4>🎤 Subir Nueva Canción</h4>
+
+<div class="cancion-container">
+    <div class="page-header">
+        <h1>🎤 Subir Nueva Canción</h1>
+        <a href="@Url.Action("MisCanciones")" class="secondary-button">⬅️ Volver a Mis Canciones</a>
+    </div>
+
+    <div class="cancion-form">
+        <div class="form-card">
+            <h4>🎵 Nueva Canción</h4>
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="error-alert">@TempData["Error"]</div>
+            }
+
+            <form asp-action="Create" method="post" enctype="multipart/form-data">
+                <div asp-validation-summary="ModelOnly" class="error-alert"></div>
+
+                <div class="form-field">
+                    <label asp-for="Titulo">Título de la Canción *</label>
+                    <input asp-for="Titulo" class="form-input" placeholder="Ingresa el título de tu canción">
+                    <span asp-validation-for="Titulo" class="field-error"></span>
                 </div>
-                <div class="card-body">
-                    @if (TempData["Error"] != null)
-                    {
-                        <div class="alert alert-danger">@TempData["Error"]</div>
-                    }
 
-                    <form asp-action="Create" method="post" enctype="multipart/form-data">
-                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-
-                        <div class="mb-3">
-                            <label asp-for="Titulo" class="form-label">Título de la Canción </label>
-                            <input asp-for="Titulo" class="form-control" placeholder="Ingresa el título de tu canción">
-                            <span asp-validation-for="Titulo" class="text-danger"></span>
-                        </div>
-
-                        <div class="mb-3">
-                            <label asp-for="ArchivoAudio" class="form-label">Archivo de Audio </label>
-                            <input asp-for="ArchivoAudio" type="file" class="form-control" accept=".mp3,.wav,.flac">
-                            <span asp-validation-for="ArchivoAudio" class="text-danger"></span>
-                        </div>
-
-                        <div class="mb-3">
-                            <label asp-for="ImagenPortada" class="form-label">Imagen de Portada</label>
-                            <input asp-for="ImagenPortada" type="file" class="form-control" accept="image/*">
-                            <span asp-validation-for="ImagenPortada" class="text-danger"></span>
-                        </div>
-
-                        <div class="mb-3">
-                            <label asp-for="GeneroId" class="form-label">Género</label>
-                            <select asp-for="GeneroId" class="form-select" asp-items="ViewBag.Generos">
-                                <option value="">Selecciona un género</option>
-                            </select>
-                            <span asp-validation-for="GeneroId" class="text-danger"></span>
-                        </div>
-
-                        <div class="mb-3">
-                            <label asp-for="AlbumId" class="form-label">Álbum (Opcional)</label>
-                            <select asp-for="AlbumId" class="form-select" asp-items="ViewBag.Albums">
-                                <option value="">Sin álbum</option>
-                            </select>
-                            <span asp-validation-for="AlbumId" class="text-danger"></span>
-                        </div>
-
-                        <div class="d-flex justify-content-between">
-                            <a href="@Url.Action("MisCanciones")" class="btn btn-secondary">Cancelar</a>
-                            <button type="submit" class="btn btn-primary">Subir Canción</button>
-                        </div>
-                    </form>
+                <div class="form-field">
+                    <label asp-for="ArchivoAudio">Archivo de Audio *</label>
+                    <input asp-for="ArchivoAudio" type="file" class="form-file" accept=".mp3,.wav,.flac">
+                    <span asp-validation-for="ArchivoAudio" class="field-error"></span>
+                    <small class="field-help">Formatos: MP3, WAV, FLAC</small>
                 </div>
-            </div>
+
+                <div class="form-field">
+                    <label asp-for="ImagenPortada">Imagen de Portada (Opcional)</label>
+                    <input asp-for="ImagenPortada" type="file" class="form-file" accept="image/*">
+                    <span asp-validation-for="ImagenPortada" class="field-error"></span>
+                    <small class="field-help">JPG, PNG - Máximo 5MB</small>
+                </div>
+
+                <div class="form-field">
+                    <label asp-for="GeneroId">Género *</label>
+                    <select asp-for="GeneroId" class="form-select" asp-items="ViewBag.Generos">
+                        <option value="">Selecciona un género</option>
+                    </select>
+                    <span asp-validation-for="GeneroId" class="field-error"></span>
+                </div>
+
+                <div class="form-field">
+                    <label asp-for="AlbumId">Álbum (Opcional)</label>
+                    <select asp-for="AlbumId" class="form-select" asp-items="ViewBag.Albums">
+                        <option value="">Sin álbum</option>
+                    </select>
+                    <span asp-validation-for="AlbumId" class="field-error"></span>
+                </div>
+
+                <div class="form-actions">
+                    <a href="@Url.Action("MisCanciones")" class="secondary-button">❌ Cancelar</a>
+                    <button type="submit" class="primary-button">🎤 Subir Canción</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
 @section Scripts {
+	<link rel="stylesheet" href="~/css/canciones.css" />
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }

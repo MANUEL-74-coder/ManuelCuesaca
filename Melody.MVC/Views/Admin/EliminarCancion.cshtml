@@ -1,0 +1,147 @@
+﻿@model Melody.Modelos.DTOs.CancionDto
+@{
+    ViewData["Title"] = "Eliminar Canción";
+}
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0 text-danger">
+                    🗑️ Eliminar Canción
+                </h1>
+                <a asp-action="Canciones" class="btn btn-secondary">
+                    ⬅️ Volver a Canciones
+                </a>
+            </div>
+
+            <div class="card shadow border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="card-title mb-0">
+                        ⚠️ Confirmación de Eliminación
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>¡Atención!</strong> ¿Está seguro de que desea eliminar esta canción? Esta acción no se puede deshacer.
+                    </div>
+
+                    <!-- Información de la canción -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            @if (!string.IsNullOrEmpty(Model.PortadaUrl))
+                            {
+                                <img src="@Model.PortadaUrl" 
+                                     alt="Portada" 
+                                     class="img-fluid rounded shadow"
+                                     style="max-width: 150px; max-height: 150px; object-fit: cover;"
+                                     onerror="this.src='https://via.placeholder.com/150x150?text=♪'">
+                            }
+                            else
+                            {
+                                <div class="bg-secondary rounded d-flex align-items-center justify-content-center text-white"
+                                     style="width: 150px; height: 150px; font-size: 3rem;">
+                                    ♪
+                                </div>
+                            }
+                        </div>
+                        <div class="col-md-9">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold text-muted">
+                                            <i class="fas fa-hashtag me-1"></i>ID:
+                                        </label>
+                                        <p class="form-control-plaintext">#@Model.Id</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold text-muted">
+                                            <i class="fas fa-music me-1"></i>Título:
+                                        </label>
+                                        <p class="form-control-plaintext fs-5 fw-medium">@(Model.Titulo ?? "Sin título")</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold text-muted">
+                                            <i class="fas fa-user me-1"></i>Artista:
+                                        </label>
+                                        <p class="form-control-plaintext">
+                                            <span class="badge bg-primary">@(Model.ArtistaNombre ?? "Sin artista")</span>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold text-muted">
+                                            <i class="fas fa-tags me-1"></i>Género:
+                                        </label>
+                                        <p class="form-control-plaintext">
+                                            <span class="badge bg-secondary">@(Model.GeneroNombre ?? "Sin género")</span>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold text-muted">
+                                            <i class="fas fa-album me-1"></i>Álbum:
+                                        </label>
+                                        <p class="form-control-plaintext">
+                                            @if (!string.IsNullOrEmpty(Model.AlbumNombre) && Model.AlbumNombre != "Sin Álbum")
+                                            {
+                                                <span class="badge bg-info">@Model.AlbumNombre</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">Sin álbum</span>
+                                            }
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold text-muted">
+                                            <i class="fas fa-calendar me-1"></i>Fecha:
+                                        </label>
+                                        <p class="form-control-plaintext">@Model.FechaLanzamiento.ToString("dd/MM/yyyy")</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Advertencias -->
+                    <div class="alert alert-danger">
+                        <h6 class="fw-bold mb-2">Consecuencias de la eliminación:</h6>
+                        <ul class="mb-0">
+                            <li>Se eliminará permanentemente de la plataforma</li>
+                            <li>Se removerá de todas las playlists de usuarios</li>
+                            <li>Los archivos de audio y portada se eliminarán del servidor</li>
+                            <li>Esta acción <strong>NO</strong> se puede deshacer</li>
+                        </ul>
+                    </div>
+
+                    <!-- Botones de acción -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <form asp-action="EliminarCancionConfirmar" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.Id" />
+                            <button type="submit" class="btn btn-danger btn-lg me-2"
+                                    onclick="return confirm('¿Está COMPLETAMENTE seguro de eliminar esta canción?')">
+                                <i class="fas fa-trash me-2"></i>
+                                Sí, Eliminar Canción
+                            </button>
+                        </form>
+                        <a asp-action="Canciones" class="btn btn-secondary btn-lg">
+                            <i class="fas fa-times me-2"></i>
+                            Cancelar
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

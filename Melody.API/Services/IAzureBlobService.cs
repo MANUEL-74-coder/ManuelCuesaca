@@ -4,5 +4,6 @@
     {
         Task<string> SubirArchivoAsync(IFormFile archivo, string contenedor, string prefijo = "");
         Task EliminarArchivoAsync(string url, string contenedor);
+        Task<byte[]> DescargarArchivoAsync(string url);
     }
 }

@@ -161,11 +161,11 @@
                                     </td>
                                     <td>
                                         <div class="btn-group btn-group-sm">
-                                            <a href="/api/Pagos/@pago.Id/pdf"
-                                               class="btn btn-outline-success btn-sm"
-                                               target="_blank">
-                                                📄 PDF
-                                            </a>
+                                              <a href="@Url.Action("DescargarPDF", "Pagos", new { pagoId = pago.Id })"
+                                                    class="btn btn-outline-success btn-sm">
+                                                        📄 PDF
+                                              </a>
+
                                         </div>
                                     </td>
                                 </tr>

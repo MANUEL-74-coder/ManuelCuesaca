@@ -27,8 +27,6 @@ namespace Melody.MVC.Controllers
             try
             {
                 var token = _authService.ObtenerToken();
-                AuthConfig.Token = token;
-
                 var canciones = await Crud<CancionDto>.GetListWithAuth("", token);
 
                 ViewBag.CurrentUser = _authService.GetCurrentUser();
@@ -71,17 +69,44 @@ namespace Melody.MVC.Controllers
                 return RedirectToAction("Canciones");
             }
         }
+        // AGREGA ESTE MÉTODO GET a tu AdminController
 
-        // POST: Admin/EliminarCancion - Eliminar canción como admin
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        // GET: Admin/EliminarCancion - Vista de confirmación para eliminar
+        [HttpGet]
         [Authorize(Roles = "admin")]
-        public async Task<IActionResult> EliminarCancion(int cancionId)
+        public async Task<IActionResult> EliminarCancion(int id)
         {
             try
             {
                 var token = _authService.ObtenerToken();
-                var resultado = await Crud<CancionDto>.DeleteWithAuth(cancionId, token);
+                var cancion = await Crud<CancionDto>.GetByIdWithAuth<CancionDto>(id, token);
+
+                if (cancion == null)
+                {
+                    TempData["Error"] = "Canción no encontrada";
+                    return RedirectToAction("Canciones");
+                }
+
+                ViewBag.CurrentUser = _authService.GetCurrentUser();
+                return View(cancion);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Error al cargar la canción";
+                return RedirectToAction("Canciones");
+            }
+        }
+
+        // POST: Admin/EliminarCancion - Confirmar eliminación (mantén tu método actual pero cambia el nombre del parámetro)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> EliminarCancionConfirmar(int id)
+        {
+            try
+            {
+                var token = _authService.ObtenerToken();
+                var resultado = await Crud<CancionDto>.DeleteWithAuth(id, token);
 
                 TempData[resultado ? "Success" : "Error"] = resultado ?
                     "Canción eliminada exitosamente" :
@@ -92,9 +117,10 @@ namespace Melody.MVC.Controllers
                 TempData["Error"] = $"Error al eliminar la canción: {ex.Message}";
             }
 
-            // Redirigir a la página de canciones admin
             return RedirectToAction("Canciones");
         }
+
+
 
         // GET: Admin/Suscripciones - Gestión de suscripciones
         public async Task<ActionResult> Suscripciones()

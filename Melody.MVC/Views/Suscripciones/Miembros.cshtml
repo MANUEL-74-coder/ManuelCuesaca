@@ -92,7 +92,7 @@
 
             @if (Model.PuedeAgregarMas)
             {
-                <!-- Formulario para agregar miembro -->
+                <!-- Formulario para agregar usuario -->
                 <div class="card mb-4">
                     <div class="card-header">
                         <h5 class="mb-0">
@@ -132,12 +132,12 @@
                 </div>
             }
 
-            <!-- Lista de miembros -->
+            <!-- Lista de usuarios adicionales -->
             <div class="card">
                 <div class="card-header">
                     <h5 class="mb-0">
                         <i class="fas fa-users text-info"></i>
-                        Miembros Premium (@Model.Miembros.Count)
+                        Usuarios Adicionales (@Model.Miembros.Count)
                     </h5>
                 </div>
                 <div class="card-body">
@@ -172,14 +172,12 @@
                                                 <span class="badge bg-success">Activo</span>
                                             </td>
                                             <td>
-                                                <button type="button" class="btn btn-danger btn-sm"
-                                                        data-bs-toggle="modal"
-                                                        data-bs-target="#removerModal"
-                                                        data-miembro-id="@miembro.UsuarioId"
-                                                        data-miembro-nombre="@miembro.Nombre @miembro.Apellido"
-                                                        data-miembro-email="@miembro.Email">
+                                                <a asp-action="RemoverUsuario" 
+                                                   asp-route-suscripcionId="@suscripcionId"
+                                                   asp-route-usuarioId="@miembro.UsuarioId"
+                                                   class="btn btn-danger btn-sm">
                                                     <i class="fas fa-user-minus"></i> Remover
-                                                </button>
+                                                </a>
                                             </td>
                                         </tr>
                                     }
@@ -210,53 +208,3 @@
         </div>
     </div>
 </div>
-
-<!-- Modal para confirmar remover miembro -->
-<div class="modal fade" id="removerModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Confirmar Remover Usuario</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="alert alert-warning">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <strong>¡Atención!</strong> Esta acción no se puede deshacer.
-                </div>
-                <p>¿Estás seguro de que deseas remover a <strong id="miembroNombre"></strong> de tu suscripción?</p>
-                <p class="text-muted small">
-                    <strong>Email:</strong> <span id="miembroEmail"></span>
-                </p>
-                <ul class="text-muted small">
-                    <li>El usuario perderá acceso premium inmediatamente</li>
-                    <li>Su cuenta volverá al plan gratuito</li>
-                    <li>Podrás volver a agregarlo más tarde si hay espacios disponibles</li>
-                </ul>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <form method="post" action="@Url.Action("RemoverMiembro")" style="display: inline;" id="formRemover">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="suscripcionId" value="@suscripcionId" />
-                    <input type="hidden" name="usuarioId" id="usuarioIdRemover" />
-                    <button type="submit" class="btn btn-danger">
-                        <i class="fas fa-user-minus"></i> Confirmar Remover
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-@section Scripts {
-    <script>
-        // Solo para el modal de remover miembro
-        document.getElementById('removerModal').addEventListener('show.bs.modal', function(event) {
-            const button = event.relatedTarget;
-            document.getElementById('miembroNombre').textContent = button.getAttribute('data-miembro-nombre');
-            document.getElementById('miembroEmail').textContent = button.getAttribute('data-miembro-email');
-            document.getElementById('usuarioIdRemover').value = button.getAttribute('data-miembro-id');
-        });
-    </script>
-}

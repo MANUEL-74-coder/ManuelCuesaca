@@ -1,38 +1,52 @@
 ﻿@model Melody.Modelos.Genero
+
 @{
     ViewData["Title"] = "Detalles del Género";
 }
 
-<<div class="content-wrapper">
-    <h1> @Html.DisplayFor(model => model.Nombre)</h1>
-    <div>
-        <dl class="row">
-            <!-- Solo mostrar ID si es admin -->
-            @if (User.IsInRole("admin"))
-            {
-                <dt class="col-sm-2">
-                    @Html.DisplayNameFor(model => model.Id)
-                </dt>
-                <dd class="col-sm-10">
-                    @Html.DisplayFor(model => model.Id)
-                </dd>
-            }
-            <dt class="col-sm-2">
-                Total Álbumes
-            </dt>
-            <dd class="col-sm-10">
-                @(Model.Albums?.Count ?? 0)
-            </dd>
-            <dt class="col-sm-2">
-                Total Canciones
-            </dt>
-            <dd class="col-sm-10">
-                @(Model.Canciones?.Count ?? 0)
-            </dd>
-        </dl>
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">@Html.DisplayFor(model => model.Nombre)</h1>
+        <div>
+            <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-warning">
+                ✏️ Editar
+            </a>
+            <a asp-action="Index" class="btn btn-secondary">
+                ⬅️ Volver a Géneros
+            </a>
+        </div>
     </div>
 
-    <!-- Sección de Contenido Musical -->
+    <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="card-title mb-0">
+                🎵 Información del Género
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-muted">ID:</label>
+                        <p class="form-control-plaintext">@Model?.Id</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-muted">Total Álbumes:</label>
+                        <p class="form-control-plaintext">@(Model.Albums?.Count ?? 0)</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-muted">Total Canciones:</label>
+                        <p class="form-control-plaintext">@(Model.Canciones?.Count ?? 0)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     @{
         var tieneAlbumes = (Model.Albums?.Count ?? 0) > 0;
         var tieneCanciones = (Model.Canciones?.Count ?? 0) > 0;
@@ -41,112 +55,106 @@
 
     @if (tieneContenido)
     {
-        <div class="content-section">
-            <!-- Tabla de Álbumes - Solo si hay álbumes -->
-            @if (tieneAlbumes)
-            {
-                <div class="table-section">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Álbum</th>
-                                <th>Artista</th>
-                                <th>Fecha Lanzamiento</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var album in Model.Albums)
-                            {
-                                <tr>
-                                    <td>
-                                        <a asp-action="Details" asp-controller="Albums" asp-route-id="@album.Id" class="content-link">
-                                            @album.Titulo
-                                        </a>
-                                    </td>
-                                    <td>
-                                        <a asp-action="Details" asp-controller="Artistas" asp-route-id="@album.ArtistaId" class="content-link">
-                                            @album.Artista?.NombreArtista
-                                        </a>
-                                    </td>
-                                    <td>@album.FechaLanzamiento.ToString("dd/MM/yyyy")</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+        <!-- Sección de Álbumes -->
+        @if (tieneAlbumes)
+        {
+            <div class="card shadow mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">
+                        💿 Álbumes (@(Model.Albums.Count))
+                    </h5>
                 </div>
-            }
-
-
-            <!-- Tabla de Canciones - SOLO si hay canciones -->
-            @if (tieneCanciones)
-            {
-                <div class="table-section">
-
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Canción</th>
-                                <th>Artista</th>
-                                <th>Fecha Lanzamiento</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var cancion in Model.Canciones)
-                            {
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
                                 <tr>
-                                    <td>
-                                        <a asp-action="Details" asp-controller="Canciones" asp-route-id="@cancion.Id" class="content-link">
-                                            @cancion.Titulo
-                                        </a>
-                                    </td>
-                                    <td>
-                                        <a asp-action="Details" asp-controller="Artistas" asp-route-id="@cancion.ArtistaId" class="content-link">
-                                            @cancion.Artista?.NombreArtista
-                                        </a>
-                                    </td>
-                                    <td>@cancion.FechaLanzamiento.ToString("dd/MM/yyyy")</td>
+                                    <th>Álbum</th>
+                                    <th>Artista</th>
+                                    <th>Fecha Lanzamiento</th>
                                 </tr>
-                            }
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                @foreach (var album in Model.Albums)
+                                {
+                                    <tr>
+                                        <td>
+                                            <a asp-action="Details" asp-controller="Albums" asp-route-id="@album.Id"
+                                               class="text-decoration-none fw-medium">
+                                                @album.Titulo
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <a asp-action="Details" asp-controller="Artistas" asp-route-id="@album.ArtistaId"
+                                               class="text-decoration-none">
+                                                @album.Artista?.NombreArtista
+                                            </a>
+                                        </td>
+                                        <td class="text-muted">@album.FechaLanzamiento.ToString("dd/MM/yyyy")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            }
-        </div>
+            </div>
+        }
+
+        <!-- Sección de Canciones -->
+        @if (tieneCanciones)
+        {
+            <div class="card shadow mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">
+                        🎵 Canciones (@(Model.Canciones.Count))
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Canción</th>
+                                    <th>Artista</th>
+                                    <th>Fecha Lanzamiento</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var cancion in Model.Canciones)
+                                {
+                                    <tr>
+                                        <td>
+                                            <a asp-action="Details" asp-controller="Canciones" asp-route-id="@cancion.Id"
+                                               class="text-decoration-none fw-medium">
+                                                @cancion.Titulo
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <a asp-action="Details" asp-controller="Artistas" asp-route-id="@cancion.ArtistaId"
+                                               class="text-decoration-none">
+                                                @cancion.Artista?.NombreArtista
+                                            </a>
+                                        </td>
+                                        <td class="text-muted">@cancion.FechaLanzamiento.ToString("dd/MM/yyyy")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
     }
     else
     {
         <!-- Mensaje cuando NO hay contenido musical -->
-        <div class="empty-genre-message">
-            <p>No hay álbumes ni canciones disponibles en <strong>@Model.Nombre</strong> por el momento.</p>
-            @if (User.IsInRole("artista"))
-            {
-                <div class="artist-suggestion">
-                    <a asp-controller="Canciones" asp-action="Create" class="btn btn-primary">
-                        <i class="bi bi-plus-circle"></i>
-                        ¡Sé el primero en subir una canción!
-                    </a>
+        <div class="card shadow">
+            <div class="card-body text-center py-5">
+                <div class="text-muted mb-3">
+                    <h4>📭 Género Vacío</h4>
+                    <p class="mb-0">No hay álbumes ni canciones disponibles en <strong>@Model.Nombre</strong> por el momento.</p>
                 </div>
-            }
+            </div>
         </div>
     }
-
-    <div class="navigation-links">
-        <!-- Enlace editar solo para admin-->
-        @if (User.IsInRole("admin"))
-        {
-            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
-                <i class="bi bi-pencil"></i> Editar
-            </a>
-        }
-        <a asp-action="Index" class="btn btn-secondary">
-            <i class="bi bi-arrow-left"></i> Volver a Géneros
-        </a>
-    </div>
 </div>
-
-@section Scripts {
-    <link rel="stylesheet" href="~/css/generos.css" />
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-}

@@ -1,43 +1,58 @@
 ﻿@model Melody.Modelos.Genero
 
 @{
-    ViewData["Title"] = "Editar Género Musical";
+    ViewData["Title"] = "Editar Género";
 }
 
-<div class="content-wrapper">
-    <h1>@ViewData["Title"]</h1>
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0" style="color: #4a90e2;">
+                    ✏️ Editar Género
+                </h1>
+                <a asp-action="Index" class="btn btn-secondary">
+                    ⬅️ Volver a la lista
+                </a>
+            </div>
 
-    <h4>Genero Musical</h4>
-    <hr />
-    <div class="row">
-        <div class="col-md-4">
-            <form asp-action="Edit">
-                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                <div class="form-group">
-                    <label asp-for="Id" class="control-label"></label>
-                    <input asp-for="Id" class="form-control" readonly />
-                    <span asp-validation-for="Id" class="text-danger"></span>
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    @TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
-                <div class="form-group">
-                    <label asp-for="Nombre" class="control-label"></label>
-                    <input asp-for="Nombre" class="form-control" />
-                    <span asp-validation-for="Nombre" class="text-danger"></span>
+            }
+
+            <div class="card shadow border-0">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="card-title mb-0">
+                        🎵 Modificar Género: <strong>@Model?.Nombre</strong>
+                    </h5>
                 </div>
-                <div class="form-group">
-                    <input type="submit" value="Guardar cambios" class="btn btn-primary" />
+                <div class="card-body">
+                    <form asp-action="Edit">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <input type="hidden" asp-for="Id" />
+
+                        <div class="mb-4">
+                            <label asp-for="Nombre" class="form-label fw-bold">
+                                Nombre del Género *
+                            </label>
+                            <input asp-for="Nombre" class="form-control form-control-lg" />
+                            <span asp-validation-for="Nombre" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="submit" class="btn btn-warning btn-lg">
+                                💾 Guardar Cambios
+                            </button>
+                        </div>
+                    </form>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
-
-    <div>
-        <a asp-action="Index">Regresar a Géneros</a>
-    </div>
 </div>
-
-@section Scripts {
-    <link rel="stylesheet" href="~/css/generos.css" />
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-}

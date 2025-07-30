@@ -7,6 +7,7 @@ using Melody.API.Consumer;
 using System.Threading.Tasks;
 using Melody.MVC.Services;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Numerics;
 
 namespace Melody.MVC.Controllers
 {
@@ -20,21 +21,24 @@ namespace Melody.MVC.Controllers
             _authService = authService;
         }
         // GET: PlanesController
+        [AllowAnonymous]
         public ActionResult Index()
         {
-            var data = Crud<Plan>.GetAll();
-            return View(data);
-        }
-
-
-        // GET: PlanesController/Details/5
-        public ActionResult Details(int id)
-        {
-            var data = Crud<Plan>.GetById(id);
-            return View(data);
+            try
+            {
+                var planes = Crud<Plan>.GetAll();
+                ViewBag.CurrentUser = _authService.GetCurrentUser();
+                return View(planes ?? new List<Plan>());
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Error al cargar los planes";
+                return View(new List<Plan>());
+            }
         }
 
         // GET: PlanesController/Create
+        [Authorize(Roles ="admin")]
         public ActionResult Create()
         {
             return View();
@@ -43,80 +47,112 @@ namespace Melody.MVC.Controllers
         // POST: PlanesController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Create(Plan data)
+        [Authorize(Roles ="admin")]
+        public async Task<ActionResult>Create(Plan plan )
         {
             try
             {
                 var token = _authService.ObtenerToken();
-                await Crud<Plan>.CreateWithAuth(data, token);
-                return RedirectToAction(nameof(Index));
+                await Crud<Plan>.CreateWithAuth(plan, token);
+                TempData["Success"] = "Plan creado exitosamente";
+                return RedirectToAction("Index");
             }
             catch (Exception ex)
             {
                 TempData["Error"] = "Error al crear el plan";
                 ModelState.AddModelError("", ex.Message);
-                return View(data);
+                return View(plan);
             }
         }
 
         // GET: PlanesController/Edit/5
-        public ActionResult Edit(int id)
+        [Authorize(Roles = "admin")]
+        public async Task<ActionResult> Edit(int id)
         {
-            var data = Crud<Plan>.GetById(id);
-            return View(data);
+            try
+            {
+                var token = _authService.ObtenerToken();
+
+                var plan = await Crud<Plan>.GetByIdWithAuth<Plan>(id, token);
+                if (plan == null)
+                {
+                    TempData["Error"] = "Plan no encontrado";
+                    return RedirectToAction("Index");
+                }
+                return View(plan);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Error al cargar el plan";
+                return RedirectToAction("Index");
+            }
         }
 
         // POST: PlanesController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(int id, Plan data)
+        [Authorize(Roles ="admin")]
+        public async Task< ActionResult>Edit(int id, Plan plan)
         {
             try
             {
                 var token = _authService.ObtenerToken();
-                var resultado = await Crud<Plan>.Update(id, data, token);
-
+                var resultado = await Crud<Plan>.Update(id, plan, token);
                 if (resultado)
                 {
-                    TempData["Success"] = "Género actualizado exitosamente";
-                    return RedirectToAction(nameof(Index));
+                    TempData["Success"] = "Plan actualizado exitosamente";
+                    return RedirectToAction("Index");
                 }
                 else
                 {
-                    TempData["Error"] = "No se pudo actualizar el género";
-                    return View(data);
+                    TempData["Error"] = "No se pudo actualizar el plan";
+                    return View(plan);
                 }
             }
             catch (Exception ex)
             {
-                TempData["Error"] = "Error al cargar sus canciones";
+                TempData["Error"] = "Error al actualizar el plan";
                 ModelState.AddModelError("", ex.Message);
-                return View(data);
+                return View(plan);
             }
         }
 
         // GET: PlanesController/Delete/5
-        public ActionResult Delete(int id)
+        [Authorize(Roles = "admin")]
+        public async Task<ActionResult> Delete(int id)
         {
-            var data = Crud<Plan>.GetById(id);
-            return View(data);
+            try
+            {
+                var token = _authService.ObtenerToken();
+
+                var data = await Crud<Plan>.GetByIdWithAuth<Plan>(id, token);
+                if (data == null) return NotFound();
+
+                return View(data);
+            }
+            catch
+            {
+                return NotFound();
+            }
         }
 
         // POST: PlanesController/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Delete(int id, Plan data)
+        [Authorize(Roles ="admin")]
+        public async Task<ActionResult> Delete(int id, Plan plan )
         {
             try
             {
                 var token = _authService.ObtenerToken();
-                var resutado = await Crud<Plan>.DeleteWithAuth(id, token);
-                return RedirectToAction(nameof(Index));
+                await Crud<Plan>.DeleteWithAuth(id, token);
+                TempData["Success"] = "Plan eliminado exitosamente";
+                return RedirectToAction("Index");
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", ex.Message);
-                return View(data);
+                TempData["Error"] = "Error al eliminar el plan";
+                return View(plan);
             }
         }
     }

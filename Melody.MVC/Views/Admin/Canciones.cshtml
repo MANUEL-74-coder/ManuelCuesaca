@@ -159,17 +159,15 @@
                                     </td>
                                     <td>
                                         <div class="btn-group btn-group-sm">
-                                            <button type="button"
-                                                    class="btn btn-danger"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#eliminarModal"
-                                                    data-cancion-id="@cancion.Id"
-                                                    data-cancion-titulo="@(cancion.Titulo ?? "Sin título")"
-                                                    data-cancion-artista="@(cancion.ArtistaNombre ?? "Sin artista")">
+                                            <a asp-action="EliminarCancion" 
+                                               asp-route-id="@cancion.Id" 
+                                               class="btn btn-danger"
+                                               title="Eliminar canción">
                                                 <i class="fas fa-trash"></i> Eliminar
-                                            </button>
+                                            </a>
                                         </div>
                                     </td>
+
                                 </tr>
                             }
                         </tbody>
@@ -195,67 +193,3 @@
         </div>
     </div>
 </div>
-
-<!-- Modal de confirmación para eliminar -->
-<div class="modal fade" id="eliminarModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Confirmar Eliminación</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="alert alert-warning">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <strong>¡Atención!</strong> Esta acción no se puede deshacer.
-                </div>
-                <p>¿Estás seguro de que deseas eliminar la canción <strong id="cancionTitulo"></strong>?</p>
-                <p class="text-muted">
-                    <strong>Artista:</strong> <span id="cancionArtista"></span>
-                </p>
-                <ul class="text-muted small">
-                    <li>Se eliminará permanentemente de la plataforma</li>
-                    <li>Se removerá de todas las playlists</li>
-                    <li>Los archivos de audio y portada se eliminarán</li>
-                </ul>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <form method="post" action="@Url.Action("EliminarCancion")" style="display: inline;" id="formEliminar">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="cancionId" id="cancionIdEliminar" />
-                    <button type="submit" class="btn btn-danger">
-                        <i class="fas fa-trash"></i> Confirmar Eliminación
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-@section Scripts {
-    <script>
-        // Script para manejar el modal de eliminar
-        document.addEventListener('DOMContentLoaded', function() {
-            const eliminarModal = document.getElementById('eliminarModal');
-
-            if (eliminarModal) {
-                eliminarModal.addEventListener('show.bs.modal', function(event) {
-                    const button = event.relatedTarget;
-                    const cancionId = button.getAttribute('data-cancion-id');
-                    const cancionTitulo = button.getAttribute('data-cancion-titulo');
-                    const cancionArtista = button.getAttribute('data-cancion-artista');
-
-                    // Actualizar contenido del modal
-                    const tituloElement = document.getElementById('cancionTitulo');
-                    const artistaElement = document.getElementById('cancionArtista');
-                    const idInput = document.getElementById('cancionIdEliminar');
-
-                    if (tituloElement) tituloElement.textContent = cancionTitulo;
-                    if (artistaElement) artistaElement.textContent = cancionArtista;
-                    if (idInput) idInput.value = cancionId;
-                });
-            }
-        });
-    </script>
-}

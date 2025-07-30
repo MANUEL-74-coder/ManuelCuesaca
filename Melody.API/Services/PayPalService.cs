@@ -132,9 +132,6 @@ namespace Melody.API.Services
             }
         }
 
-        // En PayPalService.cs - Método ConstruirRequestBody
-        // Asegúrate de que las URLs coincidan exactamente
-
         private OrderRequest ConstruirRequestBody(double monto, string moneda)
         {
             var montoFormateado = monto.ToString("F2", CultureInfo.InvariantCulture);
@@ -159,7 +156,7 @@ namespace Melody.API.Services
         },
                 ApplicationContext = new ApplicationContext()
                 {
-                    // IMPORTANTE: Estas URLs deben coincidir con las rutas de tu MVC
+                    //Rutas del mvc para redirección después del pago
                     ReturnUrl = "https://localhost:7291/Pagos/PaymentSuccess",
                     CancelUrl = "https://localhost:7291/Pagos/PaymentCancel",
                     BrandName = "Melody Music",

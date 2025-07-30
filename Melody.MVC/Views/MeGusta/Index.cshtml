@@ -79,6 +79,14 @@
                                 title="Quitar de favoritos">
                             💔
                         </button>
+                        @if (currentUser?.IsUserPremium == true)
+                        {
+                            <a href="@Url.Action("Descargar", "Canciones", new { id = favorito.CancionId })"
+                               class="action-btn"
+                               title="Descargar canción">
+                                ⬇️
+                            </a>
+                        }
                     </div>
                 </div>
             }

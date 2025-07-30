@@ -28,9 +28,9 @@
         </p>
 
         <!-- Botón seguir/dejar de seguir -->
-        @if (ViewBag.CurrentUser != null)
+        @if (ViewBag.CurrentUser != null || currentUser.IsAdmin != true)
         {
-            if (!Model.EsMiPerfil)
+            if (!Model.EsMiPerfil )
             {
                 <form asp-action="ToggleSeguir" method="post" style="display: inline;">
                     <input type="hidden" name="artistaId" value="@Model.Id" />
@@ -169,6 +169,14 @@
                                         }
                                     </ul>
                                 </div>
+                            }
+                            @if (currentUser?.IsUserPremium == true)
+                            {
+                                <a href="@Url.Action("Descargar", "Canciones", new { id = cancion.Id })"
+                                   class="action-btn"
+                                   title="Descargar canción">
+                                    ⬇️
+                                </a>
                             }
                             else if (currentUser?.IsUserFree == true)
                             {

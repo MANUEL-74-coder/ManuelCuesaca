@@ -35,7 +35,7 @@ namespace Melody.MVC.Controllers
             }
         }
         // GET: Mis playlist solo para usuarios premium
-        [Authorize(Roles = "userpremium,userfree")]
+        [Authorize(Roles ="userpremium,userfree")]
         public async Task<IActionResult> MisPlaylists()
         {
             try
@@ -76,7 +76,7 @@ namespace Melody.MVC.Controllers
         }
 
         // GET: PlaylistsController/Create
-        [Authorize(Roles = "userpremium")]
+        [Authorize(Roles ="userpremium")]
         public ActionResult Create()
         {
             ViewBag.CurrentUser = _authService.GetCurrentUser();

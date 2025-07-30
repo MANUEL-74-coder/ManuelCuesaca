@@ -1,0 +1,141 @@
+﻿@model Melody.Modelos.DTOs.MiSuscripcionResponseDto
+@{
+    ViewData["Title"] = "Cancelar Suscripción";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0 text-danger">
+                    ❌ Cancelar Suscripción
+                </h1>
+                <a asp-action="MiSuscripcion" class="btn btn-secondary">
+                    ⬅️ Volver a Mi Suscripción
+                </a>
+            </div>
+
+            <div class="card shadow border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="card-title mb-0">
+                        ⚠️ Confirmación de Cancelación
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>¡Atención!</strong> ¿Estás seguro de que deseas cancelar tu suscripción? Esta acción no se puede deshacer.
+                    </div>
+
+                    <!-- Información de la suscripción -->
+                    <div class="card bg-light mb-4">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="fas fa-crown text-warning me-2"></i>
+                                Detalles de la Suscripción a Cancelar
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold text-muted">
+                                            <i class="fas fa-tag me-1"></i>Plan:
+                                        </label>
+                                        <p class="form-control-plaintext fs-5 fw-medium text-primary">@Model.Suscripcion.PlanNombre</p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold text-muted">
+                                            <i class="fas fa-dollar-sign me-1"></i>Precio:
+                                        </label>
+                                        <p class="form-control-plaintext">$@Model.Suscripcion.PlanPrecio.ToString("F2")</p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold text-muted">
+                                            <i class="fas fa-users me-1"></i>Usuarios Activos:
+                                        </label>
+                                        <p class="form-control-plaintext">@(Model.Suscripcion.TotalUsuarios ?? 1) de @Model.Suscripcion.PlanNumeroUsuarios</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold text-muted">
+                                            <i class="fas fa-calendar-check me-1"></i>Fecha Inicio:
+                                        </label>
+                                        <p class="form-control-plaintext">@Model.Suscripcion.FechaInicio.ToString("dd/MM/yyyy")</p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold text-muted">
+                                            <i class="fas fa-calendar-times me-1"></i>Fecha Fin:
+                                        </label>
+                                        <p class="form-control-plaintext">@Model.Suscripcion.FechaFin.ToString("dd/MM/yyyy")</p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold text-muted">
+                                            <i class="fas fa-clock me-1"></i>Días Restantes:
+                                        </label>
+                                        <p class="form-control-plaintext">
+                                            <span class="badge bg-success fs-6">@Model.Suscripcion.DiasRestantes días</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Advertencias -->
+                    <div class="alert alert-danger">
+                        <h6 class="fw-bold mb-2">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            Consecuencias de la cancelación:
+                        </h6>
+                        <ul class="mb-0">
+                            <li><strong>Perderás acceso inmediato</strong> a todas las funciones premium</li>
+                            @if ((Model.Suscripcion.TotalUsuarios ?? 1) > 1)
+                            {
+                                <li><strong>Todos los usuarios adicionales</strong> (@(Model.Suscripcion.TotalUsuarios - 1)) también perderán el acceso</li>
+                            }
+                            <li>Tu cuenta volverá al <strong>plan gratuito</strong></li>
+                            <li>Esta acción <strong>NO</strong> se puede deshacer</li>
+                            <li>Deberás <strong>iniciar sesión nuevamente</strong> después de la cancelación</li>
+                        </ul>
+                    </div>
+
+                    @if ((Model.Suscripcion.TotalUsuarios ?? 1) > 1)
+                    {
+                        <!-- Información adicional para suscripciones familiares -->
+                        <div class="alert alert-info">
+                            <h6 class="fw-bold mb-2">
+                                <i class="fas fa-users me-2"></i>
+                                Usuarios que perderán acceso:
+                            </h6>
+                            <p class="mb-2">
+                                <strong>@(Model.Suscripcion.TotalUsuarios - 1) usuarios adicionales</strong> perderán inmediatamente el acceso premium.
+                            </p>
+                            <small class="text-muted">
+                                Considera notificar a los usuarios antes de cancelar la suscripción.
+                            </small>
+                        </div>
+                    }
+
+                    <!-- Botones de acción -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4">
+                        <form asp-action="CancelarSuscripcionConfirmar" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.Suscripcion.Id" />
+                            <button type="submit" class="btn btn-danger btn-lg me-2"
+                                    onclick="return confirm('¿Estás COMPLETAMENTE seguro de cancelar tu suscripción? Esta acción no se puede deshacer.')">
+                                <i class="fas fa-times-circle me-2"></i>
+                                Sí, Cancelar Suscripción
+                            </button>
+                        </form>
+                        <a asp-action="MiSuscripcion" class="btn btn-secondary btn-lg">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            No, Mantener Suscripción
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

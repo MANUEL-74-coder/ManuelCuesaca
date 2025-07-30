@@ -3,12 +3,11 @@
     ViewData["Title"] = "Artistas";
 }
 <div class="artistas-index">
-    <div class="page-header">
         <h2>Artistas</h2>
         <form method="get" asp-action="Buscar" class="search-form">
             <input type="text" name="q" class="search-input" placeholder="Buscar artistas..." value="@ViewBag.TerminoBusqueda">
         </form>
-    </div>
+    
 
     @if (Model.Any())
     {

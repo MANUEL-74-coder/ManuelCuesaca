@@ -59,6 +59,7 @@ namespace Melody.API.Controllers
                         EsFavorito = false
                     })
                     .OrderByDescending(c => c.Id)
+                    .Take(20)
                     .ToListAsync();
                 return Ok(canciones);
             }
@@ -420,6 +421,40 @@ namespace Melody.API.Controllers
             {
                 _logger.LogError(ex, "Error al buscar canciones con término: {SearchTerm}", q);
                 return StatusCode(StatusCodes.Status500InternalServerError, "Error en la búsqueda");
+            }
+        }
+        [HttpGet("descargar/{id}")]
+        [Authorize(Roles = "userpremium")]
+        public async Task<IActionResult> DescargarCancion(int id)
+        {
+            try
+            {
+                var cancion = await _context.Canciones
+                    .Include(c => c.Artista)
+                    .FirstOrDefaultAsync(c => c.Id == id);
+
+                if (cancion == null || string.IsNullOrEmpty(cancion.ArchivoAudio))
+                    return NotFound("Canción no encontrada");
+
+                var archivoBytes = await _blobService.DescargarArchivoAsync(cancion.ArchivoAudio);
+                if (archivoBytes == null || archivoBytes.Length == 0)
+                    return NotFound("Archivo no encontrado");
+
+                // Nombre limpio
+                var nombreLimpio = System.Text.RegularExpressions.Regex.Replace(
+                    $"{cancion.Artista.NombreArtista} - {cancion.Titulo}",
+                    @"[^\w\s-]", "")
+                    .Replace(" ", "_");
+
+                var extension = Path.GetExtension(cancion.ArchivoAudio) ?? ".mp3";
+                var nombreCompleto = $"{nombreLimpio}{extension}";
+
+                return File(archivoBytes, "audio/mpeg", nombreCompleto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error descargando canción {Id}", id);
+                return StatusCode(500, "Error interno");
             }
         }
     }

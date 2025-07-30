@@ -123,12 +123,17 @@
                     </a>
                 </div>
             }
-
-            <div class="mt-4">
-                <a href="@Url.Action("MiSuscripcion")" class="btn btn-secondary">
-                    ← Volver a Mi Suscripción
-                </a>
-            </div>
+            @{
+                if (User.IsInRole("userpremium"))
+                {
+                    <div class="mt-4">
+                        <a href="@Url.Action("MiSuscripcion")" class="btn btn-secondary">
+                            ← Volver a Mi Suscripción
+                        </a>
+                    </div>
+                }
+            }
+       
         </div>
     </div>
 </div>

@@ -13,6 +13,7 @@ namespace Melody.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "admin")]
 
     public class GenerosController : ControllerBase
     {
@@ -43,7 +44,6 @@ namespace Melody.API.Controllers
 
         // GET: api/Generos/5
         [HttpGet("{id}")]
-        [AllowAnonymous]
         public async Task<ActionResult<Genero>> ObtenerGenero(int id)
         {
             var genero = await _context.Generos
@@ -53,7 +53,6 @@ namespace Melody.API.Controllers
                 .Include(g => g.Canciones)
                     .ThenInclude(c => c.Artista)
                 .FirstOrDefaultAsync(g => g.Id == id);
-
             if (genero == null)
             {
                 return NotFound();
@@ -64,7 +63,6 @@ namespace Melody.API.Controllers
         // PUT: api/Generos/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        [Authorize(Roles = "admin")]
         public async Task<IActionResult> ActualizarGenero(int id, Genero genero)
         {
             if (id != genero.Id)
@@ -107,7 +105,6 @@ namespace Melody.API.Controllers
         // POST: api/Generos
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        [Authorize(Roles = "admin")]
         public async Task<ActionResult<Genero>> CrearGenero(Genero genero)
         {
             // Verificar si el nombre del género ya existe
@@ -125,7 +122,6 @@ namespace Melody.API.Controllers
 
         // DELETE: api/Generos/5
         [HttpDelete("{id}")]
-        [Authorize(Roles = "admin")]
         public async Task<IActionResult> EliminarGenero(int id)
         {
             try

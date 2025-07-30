@@ -221,6 +221,7 @@
     color: #000;
     display: block;
 }
+
 .album-link {
     text-decoration: none;
     color: #666;
@@ -324,6 +325,150 @@
     display: flex;
     gap: 10px;
     flex-shrink: 0;
+}
+/*Formularios*/
+/* Contenedor principal para canciones */
+.cancion-container {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+/* Header de página */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+    .page-header h1 {
+        color: black;
+        font-size: 2rem;
+        font-weight: 700;
+    }
+
+/* Card del formulario */
+.form-card {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
+    .form-card h4 {
+        color: #2563eb;
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid rgba(37, 99, 235, 0.2);
+    }
+
+/* Campos del formulario */
+.form-field {
+    margin-bottom: 2rem;
+}
+
+    .form-field label {
+        color: var(--azul-principal, #2563eb);
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+/* Inputs y selects */
+.form-input, .form-select {
+    background: white;
+    border: 2px solid rgba(37, 99, 235, 0.15);
+    border-radius: 12px;
+    color: #334155;
+    padding: 1rem 1.25rem;
+    font-size: 1rem;
+    width: 100%;
+}
+
+    .form-input:focus, .form-select:focus {
+        border-color: #2563eb;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+/* Input de archivos */
+.form-file {
+    background: white;
+    border: 2px dashed rgba(37, 99, 235, 0.3);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    width: 100%;
+    color: #334155;
+}
+
+    .form-file:focus {
+        border-color: #2563eb;
+        outline: none;
+    }
+
+/* Textos de ayuda y errores */
+.field-help {
+    color: #64748b;
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    display: block;
+}
+
+.field-error {
+    color: #ef4444;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-top: 0.5rem;
+    display: block;
+}
+
+/* Botones */
+.primary-button, .secondary-button, .edit-button {
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-block;
+    border: none;
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+
+.primary-button {
+    background: #10b981;
+    color: white;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+.secondary-button {
+    background: #64748b;
+    color: white;
+    box-shadow: 0 4px 15px rgba(100, 116, 139, 0.2);
+}
+
+.edit-button {
+    background: #f59e0b;
+    color: white;
+    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+}
+
+/* Acciones del formulario */
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 2rem;
+    gap: 1rem;
+    flex-wrap: wrap;
 }
 
 /* ESTADOS */

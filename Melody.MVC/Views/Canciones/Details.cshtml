@@ -114,6 +114,14 @@
                             </ul>
                         </div>
                     }
+                    @if (currentUser?.IsUserPremium == true)
+                    {
+                        <a href="@Url.Action("Descargar", "Canciones", new { id = cancion.Id })"
+                           class="action-btn"
+                           title="Descargar canción">
+                            ⬇️
+                        </a>
+                    }
                     else if (currentUser?.IsUserFree == true)
                     {
                         <a href="/Suscripciones" class="action-btn">⭐</a>

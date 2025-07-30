@@ -10,51 +10,50 @@
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h2>@ViewData["Title"]</h2>
             </div>
-
-            <!-- Estadísticas arriba -->
+            <!-- REEMPLAZA las estadísticas actuales por esto -->
+            <!-- Estadísticas en cuadraditos -->
             <div class="row mb-4">
-                <div class="col-md-2-4">
-                    <div class="card text-center">
-                        <div class="card-body">
-                            <h5 class="card-title">Total Usuarios</h5>
-                            <h3 class="text-primary">@usuarios.Count()</h3>
+                <div class="col">
+                    <div class="card text-center bg-primary text-white">
+                        <div class="card-body py-3">
+                            <h6 class="card-title mb-1">Total Usuarios</h6>
+                            <h4 class="mb-0">@usuarios.Count()</h4>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-2-4">
-                    <div class="card text-center">
-                        <div class="card-body">
-                            <h5 class="card-title">Usuarios Premium</h5>
-                            <h3 class="text-success">@usuarios.Count(u => u.Roles.Contains("userpremium"))</h3>
+                <div class="col">
+                    <div class="card text-center bg-success text-white">
+                        <div class="card-body py-3">
+                            <h6 class="card-title mb-1">Premium</h6>
+                            <h4 class="mb-0">@usuarios.Count(u => u.Roles.Contains("userpremium"))</h4>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-2-4">
-                    <div class="card text-center">
-                        <div class="card-body">
-                            <h5 class="card-title">Usuarios Free</h5>
-                            <h3 class="text-info">@usuarios.Count(u => u.Roles.Contains("userfree"))</h3>
+                <div class="col">
+                    <div class="card text-center bg-info text-white">
+                        <div class="card-body py-3">
+                            <h6 class="card-title mb-1">Free</h6>
+                            <h4 class="mb-0">@usuarios.Count(u => u.Roles.Contains("userfree"))</h4>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-2-4">
-                    <div class="card text-center">
-                        <div class="card-body">
-                            <h5 class="card-title">Artistas</h5>
-                            <h3 class="text-purple">@usuarios.Count(u => u.Roles.Contains("artista"))</h3>
+                <div class="col">
+                    <div class="card text-center" style="background-color: #7c3aed; color: white;">
+                        <div class="card-body py-3">
+                            <h6 class="card-title mb-1">Artistas</h6>
+                            <h4 class="mb-0">@usuarios.Count(u => u.Roles.Contains("artista"))</h4>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-2-4">
-                    <div class="card text-center">
-                        <div class="card-body">
-                            <h5 class="card-title">Admins</h5>
-                            <h3 class="text-warning">@usuarios.Count(u => u.Roles.Contains("admin"))</h3>
+                <div class="col">
+                    <div class="card text-center bg-warning text-dark">
+                        <div class="card-body py-3">
+                            <h6 class="card-title mb-1">Admins</h6>
+                            <h4 class="mb-0">@usuarios.Count(u => u.Roles.Contains("admin"))</h4>
                         </div>
                     </div>
                 </div>
             </div>
-
             <!-- Buscador simple con detección de roles -->
             <div class="card mb-4">
                 <div class="card-body">
@@ -175,7 +174,7 @@
                                             }
                                             else if (rol == "artista")
                                             {
-                                                <span class="badge bg-purple">🎵 Artista</span>
+                                                <span class="badge" style="background-color: #7c3aed; color: white;">🎵 Artista</span>
                                             }
                                         }
                                     </td>

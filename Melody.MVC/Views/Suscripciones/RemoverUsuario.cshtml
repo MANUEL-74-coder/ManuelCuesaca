@@ -1,0 +1,116 @@
+﻿@model Melody.Modelos.DTOs.MiembroFamiliarDto
+@{
+    ViewData["Title"] = "Remover Usuario Adicional";
+    var suscripcionId = ViewBag.SuscripcionId;
+    var usuarioId = ViewBag.UsuarioId;
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0 text-danger">
+                    👤❌ Remover Usuario Adicional
+                </h1>
+                <a asp-action="Miembros" asp-route-id="@suscripcionId" class="btn btn-secondary">
+                    ⬅️ Volver a Gestión de Usuarios
+                </a>
+            </div>
+
+            <div class="card shadow border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="card-title mb-0">
+                        ⚠️ Confirmación de Remoción
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>¡Atención!</strong> ¿Estás seguro de que deseas remover a este usuario de tu suscripción? Esta acción no se puede deshacer.
+                    </div>
+
+                    <!-- Información del usuario -->
+                    <div class="card bg-light mb-4">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="fas fa-user-circle text-primary me-2"></i>
+                                Usuario a Remover
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-2 text-center">
+                                    <i class="fas fa-user-circle fa-4x text-secondary"></i>
+                                </div>
+                                <div class="col-md-10">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold text-muted">
+                                                    <i class="fas fa-user me-1"></i>Nombre Completo:
+                                                </label>
+                                                <p class="form-control-plaintext fs-5 fw-medium text-primary">@Model.Nombre @Model.Apellido</p>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold text-muted">
+                                                    <i class="fas fa-envelope me-1"></i>Email:
+                                                </label>
+                                                <p class="form-control-plaintext">@Model.Email</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold text-muted">
+                                                    <i class="fas fa-calendar-plus me-1"></i>Fecha de Unión:
+                                                </label>
+                                                <p class="form-control-plaintext">@Model.FechaUnion.ToString("dd/MM/yyyy")</p>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold text-muted">
+                                                    <i class="fas fa-id-badge me-1"></i>ID de Usuario:
+                                                </label>
+                                                <p class="form-control-plaintext">#@Model.UsuarioId</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Advertencias -->
+                    <div class="alert alert-danger">
+                        <h6 class="fw-bold mb-2">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            Consecuencias de la remoción:
+                        </h6>
+                        <ul class="mb-0">
+                            <li><strong>Pérdida inmediata de acceso premium</strong> - El usuario volverá al plan gratuito</li>
+                            <li><strong>Sus datos se mantienen</strong> - No se eliminará su cuenta, solo el acceso premium</li>
+                            <li><strong>Puedes volver a agregarlo</strong> más tarde si hay espacios disponibles</li>
+                            <li><strong>Liberará un espacio</strong> en tu suscripción para otro usuario</li>
+                            <li>Esta acción <strong>NO</strong> se puede deshacer automáticamente</li>
+                        </ul>
+                    </div>
+                    <!-- Botones de acción -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4">
+                        <form asp-action="RemoverUsuarioConfirmar" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="suscripcionId" value="@suscripcionId" />
+                            <input type="hidden" name="usuarioId" value="@usuarioId" />
+                            <button type="submit" class="btn btn-danger btn-lg me-2"
+                                    onclick="return confirm('¿Estás COMPLETAMENTE seguro de remover a @Model.Nombre @Model.Apellido de tu suscripción?')">
+                                <i class="fas fa-user-minus me-2"></i>
+                                Sí, Remover Usuario
+                            </button>
+                        </form>
+                        <a asp-action="Miembros" asp-route-id="@suscripcionId" class="btn btn-secondary btn-lg">
+                            <i class="fas fa-times me-2"></i>
+                            Cancelar
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

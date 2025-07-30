@@ -25,7 +25,7 @@ namespace Melody.MVC.Controllers
             if (_authService.IsAuthenticated() && TempData["Success"] == null)
             {
                 TempData["InfoMessage"] = "Ya tienes una sesión activa.";
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("Index", "Canciones");
             }
             return View(new LoginDto());
         }
@@ -88,7 +88,7 @@ namespace Melody.MVC.Controllers
                     }
 
                     TempData["SuccessMessage"] = resultado.Message;
-                    return RedirectToAction("Index", "Home");
+                    return RedirectToAction("Index", "Canciones");
                 }
                 else
                 {
@@ -114,7 +114,7 @@ namespace Melody.MVC.Controllers
             if (_authService.IsAuthenticated())
             {
                 TempData["InfoMessage"] = "Ya tienes una sesión activa.";
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("Index", "Canciones");
             }
             return View(new RegistroDto());
         }
@@ -162,7 +162,7 @@ namespace Melody.MVC.Controllers
             if (_authService.IsAuthenticated())
             {
                 TempData["InfoMessage"] = "Ya tienes una sesión activa.";
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("Index", "Canciones");
             }
 
             return View(new ForgotPasswordDto());
@@ -174,7 +174,7 @@ namespace Melody.MVC.Controllers
         {
             if (_authService.IsAuthenticated())
             {
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("Index", "Canciones");
             }
 
             if (!ModelState.IsValid)
@@ -214,7 +214,7 @@ namespace Melody.MVC.Controllers
         {
             if (_authService.IsAuthenticated())
             {
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("Index", "Canciones");
             }
             return View();
         }

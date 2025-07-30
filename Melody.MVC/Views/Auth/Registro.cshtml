@@ -1,17 +1,14 @@
 ﻿@model Melody.Modelos.DTOs.RegistroDto
-
 @{
     ViewData["Title"] = "Registro - Melody Stream";
-    Layout = null;
-    var hasErrors = ViewData.ModelState.ErrorCount > 0; // Evaluar ErrorCount como variable estática
+   
 }
-
 <html>
 <head>
     <meta charset="utf-8" />
     <title>Registro</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/Auth.css" />
+	<link rel="stylesheet" href="~/css/Auth.css" />
 </head>
 <body>
     <div class="container mt-5">
@@ -27,8 +24,9 @@
                             @Html.AntiForgeryToken()
 
                             <!-- Mensajes de error generales -->
-                            <div asp-validation-summary="All" class="alert alert-danger" role="alert" style="display: @(hasErrors ? "block" : "none")"></div>
+                            <div asp-validation-summary="All" class="alert alert-danger" role="alert" style="display: @(ViewData.ModelState.ErrorCount > 0 ? "block" : "none")"></div>
 
+                          
                             <div class="mb-3">
                                 <label asp-for="Nombre" class="form-label">Nombre</label>
                                 <input asp-for="Nombre" class="form-control" placeholder="Tu nombre" />
@@ -45,7 +43,7 @@
                                 <span asp-validation-for="Email" class="text-danger"></span>
                             </div>
                             <div class="mb-3">
-                                <label asp-for="Password" class="form-label">Contraseña</label>
+                                <label asp-for="Password" class="form-label"> Contraseña</label>
                                 <input asp-for="Password" type="password" class="form-control" placeholder="Mínimo 6 caracteres" />
                                 <span asp-validation-for="Password" class="text-danger"></span>
                             </div>
@@ -70,6 +68,7 @@
                             </div>
                         </form>
 
+
                         <div class="text-center mt-3">
                             <p class="mb-0">
                                 ¿Ya tienes cuenta?
@@ -83,7 +82,3 @@
     </div>
 </body>
 </html>
-
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}

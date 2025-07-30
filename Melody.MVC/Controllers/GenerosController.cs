@@ -8,6 +8,7 @@ using Melody.MVC.Services;
 
 namespace Melody.MVC.Controllers
 {
+    [Authorize(Roles ="admin")]
     public class GenerosController : Controller
     {
         private readonly AuthService _authService;
@@ -17,23 +18,40 @@ namespace Melody.MVC.Controllers
             _authService = authService;
         }
         // GET: GenerosController
-        [AllowAnonymous]
-        public ActionResult Index()
+        public async Task<ActionResult> Index()
         {
-            var data = Crud<Genero>.GetAll();
-            return View(data);
+            try
+            {
+                var token = _authService.ObtenerToken();
+                var data = await Crud<Genero>.GetAllWithAuth<Genero>(token);
+                return View(data ?? new List<Genero>());
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Error al cargar géneros";
+                return View(new List<Genero>());
+            }
         }
 
         // GET: GenerosController/Details/5
-        [Authorize]
-        public ActionResult Details(int id)
+        public async Task<ActionResult> Details(int id)
         {
-            var data = Crud<Genero>.GetById(id);
-            return View(data);
+            try
+            {
+                var token = _authService.ObtenerToken();
+
+                var data = await Crud<Genero>.GetByIdWithAuth<Genero>(id, token);
+                if (data == null) return NotFound();
+
+                return View(data);
+            }
+            catch
+            {
+                return NotFound();
+            }
         }
 
         // GET: GenerosController/Create
-        [Authorize(Roles = "admin")]
         public ActionResult Create()
         {
             return View();
@@ -42,7 +60,6 @@ namespace Melody.MVC.Controllers
         // POST: GenerosController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "admin")]
         public async Task<ActionResult> Create(Genero data)
         {
             try
@@ -60,18 +77,25 @@ namespace Melody.MVC.Controllers
         }
 
         // GET: GenerosController/Edit/5
-        [Authorize(Roles = "admin")]
-        public ActionResult Edit(int id)
+        public async Task<ActionResult> Edit(int id)
         {
-            var token = _authService.ObtenerToken();
-            var data = Crud<Genero>.GetById(id);
-            return View(data);
+            try
+            {
+                var token = _authService.ObtenerToken();
+                var data = await Crud<Genero>.GetByIdWithAuth<Genero>(id, token);
+                if (data == null) return NotFound();
+
+                return View(data);
+            }
+            catch
+            {
+                return NotFound();
+            }
         }
 
         // POST: GenerosController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "admin")]
         public async Task<ActionResult> Edit(int id, Genero data)
         {
             try
@@ -99,23 +123,31 @@ namespace Melody.MVC.Controllers
         }
 
         // GET: GenerosController/Delete/5
-        [Authorize(Roles = "admin")]
-        public ActionResult Delete(int id)
+        public async Task<ActionResult> Delete(int id)
         {
-            var data = Crud<Genero>.GetById(id);
-            return View(data);
+            try
+            {
+                var token = _authService.ObtenerToken();
+                var data = await Crud<Genero>.GetByIdWithAuth<Genero>(id, token);
+                if (data == null) return NotFound();
+
+                return View(data);
+            }
+            catch
+            {
+                return NotFound();
+            }
         }
 
         // POST: GenerosController/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "admin")]
         public async Task<ActionResult> Delete(int id, Genero data)
         {
             try
             {
                 var token = _authService.ObtenerToken();
-                var resutado = await Crud<Genero>.DeleteWithAuth(id, token);
+                var resutado =await Crud<Genero>.DeleteWithAuth(id, token);
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)

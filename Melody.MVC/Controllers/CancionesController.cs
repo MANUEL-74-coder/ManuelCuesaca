@@ -41,13 +41,12 @@ namespace Melody.MVC.Controllers
         {
             try
             {
-                // Configurar token automático
-                AuthConfig.Token = _authService.ObtenerToken();
+                var token = _authService.ObtenerToken();
 
-                var cancion = Crud<CancionDto>.GetById(id);
+                var cancion = await Crud<CancionDto>.GetByIdWithAuth<CancionDto>(id, token);
                 if (cancion == null) return NotFound("Canción no encontrada");
 
-                var artista = Crud<ArtistaDto>.GetById(cancion.ArtistaId);
+                var artista = await Crud<ArtistaDto>.GetByIdWithAuth<ArtistaDto>(cancion.ArtistaId, token);
                 if (artista == null) return NotFound("Artista no encontrado");
 
                 OrdenarCancionesDelArtista(artista, id);
@@ -62,6 +61,40 @@ namespace Melody.MVC.Controllers
             catch (Exception ex)
             {
                 return NotFound($"Error: {ex.Message}");
+            }
+        }
+        [HttpGet]
+        [Authorize(Roles = "userpremium")]
+        public async Task<IActionResult> Descargar(int id)
+        {
+            try
+            {
+                using var httpClient = new HttpClient();
+                httpClient.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", _authService.ObtenerToken());
+
+                var response = await httpClient.GetAsync($"https://localhost:7108/api/Canciones/descargar/{id}");
+
+                if (!response.IsSuccessStatusCode)
+                    return NotFound("Error al descargar la canción");
+
+                var bytes = await response.Content.ReadAsByteArrayAsync();
+                var fileName = response.Content.Headers.ContentDisposition?.FileName ?? "cancion.mp3";
+
+                // Determinar el Content-Type basado en la extensión
+                var contentType = Path.GetExtension(fileName).ToLower() switch
+                {
+                    ".mp3" => "audio/mpeg",
+                    ".wav" => "audio/wav",
+                    ".flac" => "audio/flac",
+                    _ => "audio/mpeg"
+                };
+
+                return File(bytes, contentType, fileName);
+            }
+            catch
+            {
+                return BadRequest("Error al descargar");
             }
         }
 
@@ -179,8 +212,8 @@ namespace Melody.MVC.Controllers
             try
             {
                 //Configurar token automático
-                AuthConfig.Token = _authService.ObtenerToken();
-                var cancion = Crud<CancionDto>.GetById(id);
+                var token = _authService.ObtenerToken();
+                var cancion = await Crud<CancionDto>.GetByIdWithAuth<CancionDto>(id, token);
                 if (cancion == null)
                 {
                     TempData["Error"] = "Canción no encontrada";
@@ -226,8 +259,8 @@ namespace Melody.MVC.Controllers
             try
             {
                 // Configurar token automático
-                AuthConfig.Token = _authService.ObtenerToken();
-                var cancion = Crud<CancionDto>.GetById(id);
+                var token = _authService.ObtenerToken();
+                var cancion = await Crud<CancionDto>.GetByIdWithAuth<CancionDto>(id,token);
                 if (cancion == null)
                 {
                     TempData["Error"] = "Canción no encontrada";
@@ -340,7 +373,6 @@ namespace Melody.MVC.Controllers
 
             try
             {
-                AuthConfig.Token = null;
                 var canciones = await Crud<CancionDto>.GetWithQuery("buscar", q);
                 ViewBag.CurrentUser = _authService.GetCurrentUser();
                 ViewBag.TerminoBusqueda = q;

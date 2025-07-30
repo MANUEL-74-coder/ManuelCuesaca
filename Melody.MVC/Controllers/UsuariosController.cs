@@ -24,7 +24,7 @@ namespace Melody.MVC.Controllers
             try
             {
                 var token = _authService.ObtenerToken();
-                var perfil = await Crud<MiPerfilDto>.GetWithAuth("mi-perfil", token);
+                var perfil = await Crud<MiPerfilDto>.GetWithAuth("mi-perfil",token);
                 ViewBag.CurrentUser = _authService.GetCurrentUser();
                 return View(perfil);
             }
@@ -44,12 +44,12 @@ namespace Melody.MVC.Controllers
 
 
         // GET: UsuariosController/Details/5
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles ="admin")]
         public async Task<ActionResult> Details(int id)
         {
             var token = _authService.ObtenerToken();
-            var data = await Crud<Usuario>.GetByIdWithAuth<Usuario>(id, token);
-
+            var data = await  Crud<Usuario>.GetByIdWithAuth<Usuario>(id, token);
+            
             return View(data);
         }
 
@@ -63,8 +63,7 @@ namespace Melody.MVC.Controllers
             {
                 var token = _authService.ObtenerToken();
                 var perfilActual = await Crud<MiPerfilDto>.GetWithAuth("mi-perfil", token);
-                var model = new ActualizarPerfilUsuarioDto
-                {
+                var model = new ActualizarPerfilUsuarioDto { 
                     Nombre = perfilActual.Nombre,
                     Apellido = perfilActual.Apellido,
                 };
@@ -110,7 +109,7 @@ namespace Melody.MVC.Controllers
                     formData.Add(fotoContent, "FotoPerfil", model.FotoPerfil.FileName);
                 }
 
-                var resultado = await Crud<MiPerfilDto>.UpdateWithFormData("mi-perfil", formData, token);
+                var resultado = await Crud<MiPerfilDto>.UpdateWithFormData("mi-perfil",formData, token);
 
 
                 if (resultado)
@@ -131,6 +130,6 @@ namespace Melody.MVC.Controllers
             ViewBag.CurrentUser = _authService.GetCurrentUser();
             return View(model);
         }
-
+        
     }
 }

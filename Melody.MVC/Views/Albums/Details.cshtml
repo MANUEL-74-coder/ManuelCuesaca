@@ -7,6 +7,19 @@
     var esArtistaPropietario = currentUser?.IsArtista == true && artistaActualId == Model.ArtistaId;
     var artista = ViewBag.Artista as Melody.Modelos.DTOs.ArtistaDto;
 }
+@if (TempData["Success"] != null)
+{
+    <div class="alert success-alert">
+        @TempData["Success"]
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert error-alert">
+        @TempData["Error"]
+    </div>
+}
 
 <div class="album-details">
     <div class="hero-section">
@@ -110,6 +123,14 @@
                                 </ul>
                             </div>
                         }
+                        @if (currentUser?.IsUserPremium == true)
+                        {
+                            <a href="@Url.Action("Descargar", "Canciones", new { id = cancion.Id })"
+                               class="action-btn"
+                               title="Descargar canción">
+                                ⬇️
+                            </a>
+                        }
                         else if (currentUser?.IsUserFree == true)
                         {
                             <a href="/Suscripciones" class="action-btn premium-btn">⭐</a>
@@ -128,19 +149,7 @@
     }
 </div>
 
-@if (TempData["Success"] != null)
-{
-    <div class="alert success-alert">
-        @TempData["Success"]
-    </div>
-}
 
-@if (TempData["Error"] != null)
-{
-    <div class="alert error-alert">
-        @TempData["Error"]
-    </div>
-}
 
 @section Styles {
     <link rel="stylesheet" href="~/css/album.css" asp-append-version="true" />

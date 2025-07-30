@@ -67,7 +67,9 @@ namespace Melody.API.Controllers
                 _logger.LogError(ex, "Error al obtener usuarios");
                 return StatusCode(StatusCodes.Status500InternalServerError, "Error al obtener usuarios");
             }
-        }    // GET: api/Usuarios/5 - Detalle de usuario con suscripciones
+        }
+
+        // GET: api/Usuarios/5 - Detalle de usuario con suscripciones
         [HttpGet("{id}")]
         [Authorize(Roles = "admin")]
         public async Task<ActionResult<UsuarioAdminDto>> ObtenerUsuario(int id)

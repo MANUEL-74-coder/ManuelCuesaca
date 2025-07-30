@@ -88,9 +88,10 @@ namespace Melody.API.Controllers
             }
         }
 
+
         // GET: api/Albums/5 - ACTUALIZADO con EsFavorito
         [HttpGet("{id}")]
-        [AllowAnonymous]
+        [Authorize]
         public async Task<ActionResult<AlbumDto>> ObtenerAlbum(int id)
         {
             try
@@ -98,18 +99,15 @@ namespace Melody.API.Controllers
                 // Obtener usuario actual para verificar favoritos
                 var usuario = await _usuarioService.ObtenerUsuarioActualAsync();
                 var usuarioId = usuario?.Id;
-
                 var album = await _context.Albums
                     .Include(a => a.Artista)
                     .Include(a => a.Genero)
                     .Include(a => a.Canciones)
                     .FirstOrDefaultAsync(a => a.Id == id);
-
                 if (album == null)
                 {
                     return NotFound();
                 }
-
                 var canciones = await _context.Canciones
                     .Include(c => c.Artista)
                     .Include(c => c.Album)
@@ -132,7 +130,6 @@ namespace Melody.API.Controllers
                     })
                     .OrderBy(c => c.FechaLanzamiento)
                     .ToListAsync();
-
                 var resultado = new AlbumDto
                 {
                     Id = album.Id,
@@ -146,7 +143,6 @@ namespace Melody.API.Controllers
                     TotalCanciones = canciones.Count,
                     Canciones = canciones
                 };
-
                 return Ok(resultado);
             }
             catch (Exception ex)

@@ -50,9 +50,8 @@ namespace Melody.API.Controllers
             }
         }
 
-        // GET: api/Planes/5
         [HttpGet("{id}")]
-        [AllowAnonymous]
+        [Authorize(Roles = "admin")]
         public async Task<ActionResult<Plan>> ObtenerPlan(int id)
         {
             try
@@ -68,7 +67,6 @@ namespace Melody.API.Controllers
                 var totalSuscripciones = await _context.Suscripciones
                     .Where(s => s.PlanId == id)
                     .CountAsync();
-
                 var resultado = new
                 {
                     plan.Id,

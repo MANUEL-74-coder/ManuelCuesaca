@@ -210,9 +210,12 @@
                                     </a>
                                 </div>
                                 <div class="col-md-6 text-end">
-                                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#cancelarModal">
+                                    <!-- ✅ ENLACE SIMPLE EN LUGAR DEL BOTÓN CON MODAL -->
+                                    <a asp-action="CancelarSuscripcion" 
+                                       asp-route-id="@Model.Suscripcion.Id" 
+                                       class="btn btn-danger">
                                         <i class="fas fa-times-circle"></i> Cancelar Suscripción
-                                    </button>
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -278,39 +281,3 @@
         </div>
     </div>
 </div>
-
-@if (Model.TienesSuscripcion && Model.EsPropietario)
-{
-    <!-- Modal de confirmación para cancelar -->
-    <div class="modal fade" id="cancelarModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Confirmar Cancelación</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="alert alert-warning">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <strong>¡Atención!</strong> Esta acción no se puede deshacer.
-                    </div>
-                    <p>¿Estás seguro de que deseas cancelar tu suscripción?</p>
-                    <ul class="text-muted small">
-                        <li>Perderás acceso a las funciones premium inmediatamente</li>
-                        <li>Todos los usuarios adicionales también perderán el acceso</li>
-                    </ul>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <form method="post" action="@Url.Action("Cancelar")" style="display: inline;">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="suscripcionId" value="@Model.Suscripcion.Id" />
-                        <button type="submit" class="btn btn-danger">
-                            <i class="fas fa-times-circle"></i> Confirmar Cancelación
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-}

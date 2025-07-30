@@ -1,41 +1,70 @@
 ﻿@model Melody.Modelos.Genero
+
 @{
-    ViewData["Title"] = "Eliminar género musical";
+    ViewData["Title"] = "Eliminar Género";
 }
 
-<div class="content-wrapper">
-    <h1>@ViewData["Title"]</h1>
-    <p>¡Si hay contenido asociado a este género músical no podrás eliminarlo!</p>
-    <h3 style="text-align: center;">¿Estás seguro de eliminar este género musical?</h3>
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    🗑️ Eliminar Género
+                </h1>
+                <a asp-action="Index" class="btn btn-secondary">
+                    ⬅️ Volver a la lista
+                </a>
+            </div>
 
-    <div>
-        <div class="col-md-6">
-            <dl class="row">
-                <dt class="col-sm-4">
-                    @Html.DisplayNameFor(model => model.Id)
-                </dt>
-                <dd class="col-sm-8">
-                    @Html.DisplayFor(model => model.Id)
-                </dd>
-                <dt class="col-sm-4">
-                    @Html.DisplayNameFor(model => model.Nombre)
-                </dt>
-                <dd class="col-sm-8">
-                    @Html.DisplayFor(model => model.Nombre)
-                </dd>
-            </dl>
+            <div class="card shadow border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="card-title mb-0">
+                        ⚠️ Confirmación de Eliminación
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>¡Atención!</strong> ¿Está seguro de que desea eliminar este género? Esta acción no se puede deshacer.
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-muted">
+                                    <i class="fas fa-hashtag me-1"></i>
+                                    ID:
+                                </label>
+                                <p class="form-control-plaintext">@Model?.Id</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-muted">
+                                    <i class="fas fa-tag me-1"></i>
+                                    Nombre:
+                                </label>
+                                <p class="form-control-plaintext fs-5 fw-medium">@Model?.Nombre</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form asp-action="Delete" class="d-inline">
+                        <input type="hidden" asp-for="Id" />
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                            <button type="submit" class="btn btn-danger btn-lg me-2"
+                                    onclick="return confirm('¿Está completamente seguro de eliminar este género?')">
+                                <i class="fas fa-trash me-2"></i>
+                                Sí, Eliminar Género
+                            </button>
+                            <a asp-action="Index" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-times me-2"></i>
+                                Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
-
-        <form asp-action="Delete">
-            <input type="submit" value="Eliminar" class="btn btn-danger" /> |
-            <a asp-action="Index">Regresar a Géneros</a>
-        </form>
     </div>
 </div>
-
-@section Scripts {
-    <link rel="stylesheet" href="~/css/generos.css" />
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-}
